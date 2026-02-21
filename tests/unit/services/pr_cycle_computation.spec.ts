@@ -228,7 +228,10 @@ test.group('PrCycleComputationService', (group) => {
 
     // opened + review only, no merge → covers null branches for mergedAt / timeToMergeHrs
     // and uses openedEvent as the referenceEvent fallback
-    await createPrEvent(repo.id, techStream.id, 211, 'opened', T0, { linesAdded: 10, linesRemoved: 2 })
+    await createPrEvent(repo.id, techStream.id, 211, 'opened', T0, {
+      linesAdded: 10,
+      linesRemoved: 2,
+    })
     await createPrEvent(repo.id, techStream.id, 211, 'review_submitted', T1, {
       reviewerHash: 'hash_bob',
     })

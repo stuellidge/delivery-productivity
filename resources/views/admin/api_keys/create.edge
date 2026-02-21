@@ -1,0 +1,59 @@
+@component('layouts/app', { title: 'New API Key — Admin' })
+  @slot('main')
+    <nav aria-label="breadcrumb">
+      <ul>
+        <li>
+          <a href="/admin">Admin</a>
+        </li>
+        <li>
+          <a href="/admin/api-keys">API Keys</a>
+        </li>
+        <li>
+          New API Key
+        </li>
+      </ul>
+    </nav>
+
+    <h1>
+      New API Key
+    </h1>
+
+    <form method="POST" action="/admin/api-keys">
+      {{ csrfField() }}
+
+      <label for="displayName">
+        Display Name
+        <input
+          type="text"
+          id="displayName"
+          name="displayName"
+          value="{{ flashMessages.get('displayName', '') }}"
+          placeholder="e.g. CI Pipeline, Deployment Bot"
+          required
+          {{ flashMessages.has('errors.displayName') ? 'aria-invalid="true"' : '' }}
+        />
+        @if(flashMessages.has('errors.displayName'))
+          <small>{{ flashMessages.get('errors.displayName') }}</small>
+        @end
+      </label>
+
+      <label for="expiresAt">
+        Expiry Date (optional)
+        <input
+          type="date"
+          id="expiresAt"
+          name="expiresAt"
+          value="{{ flashMessages.get('expiresAt', '') }}"
+        />
+        <small>
+          Leave blank for a non-expiring key.
+        </small>
+      </label>
+
+      <div class="form-actions">
+        <button type="submit">Create API Key</button>
+        <a href="/admin/api-keys" class="secondary outline">Cancel</a>
+      </div>
+    </form>
+  @end
+@end

@@ -7,6 +7,7 @@ import WipMetricsService from '#services/wip_metrics_service'
 import CycleTimeService from '#services/cycle_time_service'
 import FlowEfficiencyService from '#services/flow_efficiency_service'
 import PrReviewTurnaroundService from '#services/pr_review_turnaround_service'
+import DoraMetricsService from '#services/dora_metrics_service'
 
 const STAGE_ORDER = ['backlog', 'ba', 'dev', 'code_review', 'qa', 'uat']
 const STAGE_LABELS: Record<string, string> = {
@@ -46,6 +47,14 @@ export default class DashboardController {
       })
     )
 
+    // Compute DORA metrics per active tech stream
+    const doraMetrics = await Promise.all(
+      techStreams.map(async (ts) => ({
+        techStream: ts,
+        dora: await new DoraMetricsService(ts.id, windowDays).compute(),
+      }))
+    )
+
     // Ordered WIP stages for display (exclude done/cancelled)
     const wipStages = STAGE_ORDER.map((stage) => ({
       key: stage,
@@ -83,6 +92,7 @@ export default class DashboardController {
       cycleScatterData,
       flowEfficiency,
       prMetrics,
+      doraMetrics,
     })
   }
 }

@@ -3,6 +3,8 @@ import { DateTime } from 'luxon'
 import WipMetricsService from '#services/wip_metrics_service'
 import CycleTimeService from '#services/cycle_time_service'
 import FlowEfficiencyService from '#services/flow_efficiency_service'
+import TechStream from '#models/tech_stream'
+import DoraMetricsService from '#services/dora_metrics_service'
 
 export default class ApiMetricsController {
   async realtime({ request, response }: HttpContext) {
@@ -37,6 +39,23 @@ export default class ApiMetricsController {
         window_days: windowDays,
         computed_at: DateTime.now().toISO(),
       },
+    })
+  }
+
+  async trends({ request, response }: HttpContext) {
+    const windowDays = request.input('window') ? Number(request.input('window')) : 30
+    const techStreams = await TechStream.query().where('is_active', true)
+    const metrics = await Promise.all(
+      techStreams.map(async (ts) => ({
+        techStreamId: ts.id,
+        techStreamName: ts.displayName,
+        ...(await new DoraMetricsService(ts.id, windowDays).compute()),
+      }))
+    )
+    return response.ok({
+      status: 'ok',
+      data: { dora: metrics },
+      meta: { window_days: windowDays, computed_at: DateTime.now().toISO() },
     })
   }
 }

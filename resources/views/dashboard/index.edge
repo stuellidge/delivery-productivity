@@ -176,6 +176,71 @@
       {{-- ═══════════════════════════════════════════════════
            ZONE 4 — Developer Experience (PR Review Turnaround)
       ════════════════════════════════════════════════════ --}}
+      {{-- ═══════════════════════════════════════════════════
+           ZONE 5 — DORA Metrics
+      ════════════════════════════════════════════════════ --}}
+      @if(doraMetrics.length > 0)
+        <section style="margin-top: 1.5rem">
+          <h2>
+            DORA Metrics
+          </h2>
+          @if(doraMetrics.every(m => m.dora.deploymentFrequency === 0 && m.dora.changeFailureRate === 0 && m.dora.ttrMedian === 0))
+            <p class="secondary">
+              No deployment events yet. Connect your CI/CD pipeline to start collecting data.
+            </p>
+          @else
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem">
+              @each(item in doraMetrics)
+                <article style="margin: 0">
+                  <header style="font-weight: bold">
+                    {{ item.techStream.displayName }}
+                  </header>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.5rem">
+                    <div>
+                      <small style="display: block; color: var(--pico-muted-color)">Deploy Freq</small>
+                      <strong style="font-size: 1.1rem">{{ item.dora.deploymentFrequency.toFixed(1) }}/wk</strong>
+                    </div>
+                    <div>
+                      <small style="display: block; color: var(--pico-muted-color)">Change Failure</small>
+                      <strong
+                        style="font-size: 1.1rem{{ item.dora.changeFailureRate > 15 ? '; color: var(--pico-del-color)' : '' }}"
+                      >{{ item.dora.changeFailureRate.toFixed(0) }}%</strong>
+                    </div>
+                    <div>
+                      <small style="display: block; color: var(--pico-muted-color)">TTR median</small>
+                      <strong style="font-size: 1.1rem">
+                        @if(item.dora.ttrMedian === 0)
+                          —
+                        @else
+                          {{ item.dora.ttrMedian }}min
+                        @end
+                      </strong>
+                    </div>
+                    <div>
+                      <small style="display: block; color: var(--pico-muted-color)">Lead time p50</small>
+                      <strong style="font-size: 1.1rem">
+                        @if(item.dora.leadTimeP50 === null)
+                          —
+                        @else
+                          {{ item.dora.leadTimeP50.toFixed(1) }}h
+                        @end
+                      </strong>
+                    </div>
+                  </div>
+
+                  @if(item.dora.leadTimeP85 !== null)
+                    <small style="color: var(--pico-muted-color)">
+                      Lead time p85: {{ item.dora.leadTimeP85.toFixed(1) }}h
+                    </small>
+                  @end
+                </article>
+              @end
+            </div>
+          @end
+        </section>
+      @end
+
       @if(prMetrics.length > 0)
         <section style="margin-top: 1.5rem">
           <h2>

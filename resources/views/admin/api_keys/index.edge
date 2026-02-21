@@ -1,0 +1,109 @@
+@component('layouts/app', { title: 'API Keys — Admin' })
+  @slot('main')
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem">
+      <h1>
+        API Keys
+      </h1>
+      <a href="/admin/api-keys/create" role="button">New API Key</a>
+    </div>
+
+    <nav aria-label="breadcrumb">
+      <ul>
+        <li>
+          <a href="/admin">Admin</a>
+        </li>
+        <li>
+          API Keys
+        </li>
+      </ul>
+    </nav>
+
+    @if(flashMessages.has('newKey'))
+      <article style="border-left: 4px solid var(--pico-ins-color)">
+        <header>
+          <strong>New API Key — copy it now</strong>
+        </header>
+        <p>
+          This key will not be shown again. Store it securely.
+        </p>
+        <code style="display: block; word-break: break-all; font-size: 0.9rem; padding: 0.5rem; background: var(--pico-code-background-color)">
+          {{ flashMessages.get('newKey') }}
+        </code>
+      </article>
+    @end
+
+    @if(flashMessages.has('success'))
+      <p>
+        <ins>{{ flashMessages.get('success') }}</ins>
+      </p>
+    @end
+
+    @if(keys.length === 0)
+      <article>
+        <p>
+          No API keys yet. <a href="/admin/api-keys/create">Create the first one</a>.
+        </p>
+      </article>
+    @else
+      <figure>
+        <table>
+          <thead>
+            <tr>
+              <th>
+                Name
+              </th>
+              <th>
+                Status
+              </th>
+              <th>
+                Created
+              </th>
+              <th>
+                Last Used
+              </th>
+              <th>
+                Expires
+              </th>
+              <th>
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @each(key in keys)
+              <tr>
+                <td>
+                  {{ key.displayName }}
+                </td>
+                <td>
+                  @if(key.isActive)
+                    <mark>Active</mark>
+                  @else
+                    <del>Revoked</del>
+                  @end
+                </td>
+                <td>
+                  {{ key.createdAt.toFormat('dd MMM yyyy') }}
+                </td>
+                <td>
+                  {{ key.lastUsedAt ? key.lastUsedAt.toFormat('dd MMM yyyy HH:mm') : '—' }}
+                </td>
+                <td>
+                  {{ key.expiresAt ? key.expiresAt.toFormat('dd MMM yyyy') : '—' }}
+                </td>
+                <td>
+                  @if(key.isActive)
+                    <form method="POST" action="/admin/api-keys/{{ key.id }}/revoke">
+                      {{ csrfField() }}
+                      <button type="submit" class="secondary outline" style="margin: 0">Revoke</button>
+                    </form>
+                  @end
+                </td>
+              </tr>
+            @end
+          </tbody>
+        </table>
+      </figure>
+    @end
+  @end
+@end

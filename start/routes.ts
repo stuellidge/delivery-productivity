@@ -19,6 +19,9 @@ const JiraWebhookController = () => import('#controllers/webhooks/jira_webhook_c
 const GithubWebhookController = () => import('#controllers/webhooks/github_webhook_controller')
 const ApiStreamsController = () => import('#controllers/api/streams_controller')
 const ApiMetricsController = () => import('#controllers/api/metrics_controller')
+const AdminApiKeysController = () => import('#controllers/admin/api_keys_controller')
+const DeploymentEventsController = () => import('#controllers/api/deployment_events_controller')
+const IncidentEventsController = () => import('#controllers/api/incident_events_controller')
 
 /*
 |--------------------------------------------------------------------------
@@ -82,6 +85,12 @@ router
     router.get('/status-mappings/:id/edit', [StatusMappingsController, 'edit'])
     router.put('/status-mappings/:id', [StatusMappingsController, 'update'])
     router.delete('/status-mappings/:id', [StatusMappingsController, 'destroy'])
+
+    // API key management
+    router.get('/api-keys', [AdminApiKeysController, 'index'])
+    router.get('/api-keys/create', [AdminApiKeysController, 'create'])
+    router.post('/api-keys', [AdminApiKeysController, 'store'])
+    router.post('/api-keys/:id/revoke', [AdminApiKeysController, 'revoke'])
   })
   .prefix('/admin')
   .use([middleware.auth(), middleware.admin()])
@@ -107,6 +116,9 @@ router
     router.get('/streams/tech', [ApiStreamsController, 'tech'])
     router.get('/metrics/realtime', [ApiMetricsController, 'realtime'])
     router.get('/metrics/diagnostic', [ApiMetricsController, 'diagnostic'])
+    router.get('/metrics/trends', [ApiMetricsController, 'trends'])
+    router.post('/events/deployment', [DeploymentEventsController, 'handle'])
+    router.post('/events/incident', [IncidentEventsController, 'handle'])
   })
   .prefix('/api/v1')
   .use(middleware.apiKey())
