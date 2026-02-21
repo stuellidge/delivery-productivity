@@ -17,6 +17,7 @@ const DeliveryStreamsController = () => import('#controllers/admin/delivery_stre
 const TechStreamsController = () => import('#controllers/admin/tech_streams_controller')
 const StatusMappingsController = () => import('#controllers/admin/status_mappings_controller')
 const OidcGroupMappingsController = () => import('#controllers/admin/oidc_group_mappings_controller')
+const AdminUsersController = () => import('#controllers/admin/users_controller')
 const JiraWebhookController = () => import('#controllers/webhooks/jira_webhook_controller')
 const GithubWebhookController = () => import('#controllers/webhooks/github_webhook_controller')
 const ApiStreamsController = () => import('#controllers/api/streams_controller')
@@ -104,6 +105,14 @@ router
     router.get('/api-keys/create', [AdminApiKeysController, 'create'])
     router.post('/api-keys', [AdminApiKeysController, 'store'])
     router.post('/api-keys/:id/revoke', [AdminApiKeysController, 'revoke'])
+
+    // User management
+    router.get('/users', [AdminUsersController, 'index']).as('admin.users.index')
+    router.get('/users/:id', [AdminUsersController, 'show']).as('admin.users.show')
+    router.post('/users/:id/activate', [AdminUsersController, 'activate'])
+    router.post('/users/:id/deactivate', [AdminUsersController, 'deactivate'])
+    router.post('/users/:id/roles', [AdminUsersController, 'addRole'])
+    router.delete('/users/:id/roles/:roleId', [AdminUsersController, 'removeRole'])
 
     // OIDC group mappings
     router

@@ -233,4 +233,32 @@ test.group('API | GET /api/v1/metrics/diagnostic', (group) => {
     assert.approximately(body.data.flow_efficiency.avgFlowEfficiencyPct, 100, 0.01)
     assert.equal(body.meta.stream_id, stream.id)
   })
+
+  test('diagnostic response includes defect_escape field', async ({ client, assert }) => {
+    await seedApiKey()
+
+    const response = await client
+      .get('/api/v1/metrics/diagnostic')
+      .header('Authorization', `Bearer ${RAW_KEY}`)
+
+    response.assertStatus(200)
+    const body = response.body()
+    assert.exists(body.data.defect_escape)
+    assert.isDefined(body.data.defect_escape.escapeRatePct)
+    assert.isDefined(body.data.defect_escape.count)
+  })
+
+  test('diagnostic response includes pr_review_turnaround field', async ({ client, assert }) => {
+    await seedApiKey()
+
+    const response = await client
+      .get('/api/v1/metrics/diagnostic')
+      .header('Authorization', `Bearer ${RAW_KEY}`)
+
+    response.assertStatus(200)
+    const body = response.body()
+    assert.exists(body.data.pr_review_turnaround)
+    assert.isDefined(body.data.pr_review_turnaround.p50)
+    assert.isDefined(body.data.pr_review_turnaround.p85)
+  })
 })

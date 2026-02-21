@@ -4,6 +4,8 @@ import env from '#start/env'
 import TechStream from '#models/tech_stream'
 import Repository from '#models/repository'
 import PrEvent from '#models/pr_event'
+import CicdEvent from '#models/cicd_event'
+import DeploymentRecord from '#models/deployment_record'
 import PrCycleComputationService from '#services/pr_cycle_computation_service'
 import type { PrEventType } from '#models/pr_event'
 
@@ -37,6 +39,10 @@ export default class GithubEventNormalizerService {
       await this.handlePullRequest()
     } else if (this.githubEventType === 'pull_request_review') {
       await this.handlePrReview()
+    } else if (this.githubEventType === 'workflow_run') {
+      await this.handleWorkflowRun()
+    } else if (this.githubEventType === 'deployment_status') {
+      await this.handleDeploymentStatus()
     }
     // Other event types are silently ignored
   }
@@ -155,6 +161,91 @@ export default class GithubEventNormalizerService {
       techStreamId: techStream.id,
       eventTimestamp,
     })
+  }
+
+  private async handleWorkflowRun(): Promise<void> {
+    const { action, workflow_run: run, installation } = this.payload
+
+    // Only process completed actions
+    if (action !== 'completed') return
+
+    const techStream = await this.resolveTechStream(installation?.id)
+    if (!techStream) return
+
+    const pipelineId = String(run?.workflow_id ?? '')
+    const pipelineRunId = String(run?.id ?? '')
+    const status = run?.conclusion ?? 'unknown'
+    const eventTimestamp = DateTime.fromISO(run?.updated_at ?? run?.created_at)
+
+    // Idempotency
+    const existing = await CicdEvent.query()
+      .where('pipeline_id', pipelineId)
+      .where('pipeline_run_id', pipelineRunId)
+      .where('event_type', 'build_completed')
+      .first()
+
+    if (existing) return
+
+    await CicdEvent.create({
+      source: 'github',
+      techStreamId: techStream.id,
+      eventType: 'build_completed',
+      pipelineId,
+      pipelineRunId,
+      environment: 'ci',
+      status,
+      commitSha: run?.head_sha ?? null,
+      eventTimestamp,
+    })
+  }
+
+  private async handleDeploymentStatus(): Promise<void> {
+    const { deployment, deployment_status: deployStatus, installation } = this.payload
+
+    const state = deployStatus?.state
+    if (state !== 'success' && state !== 'failure') return
+
+    const techStream = await this.resolveTechStream(installation?.id)
+    if (!techStream) return
+
+    const pipelineId = String(deployment?.id ?? '')
+    const pipelineRunId = String(deployStatus?.id ?? '')
+    const environment = deployStatus?.environment ?? deployment?.environment ?? 'unknown'
+    const eventType = state === 'success' ? 'deploy_completed' : 'deploy_failed'
+    const eventTimestamp = DateTime.fromISO(deployStatus?.created_at)
+
+    // Idempotency
+    const existing = await CicdEvent.query()
+      .where('pipeline_id', pipelineId)
+      .where('pipeline_run_id', pipelineRunId)
+      .where('event_type', eventType)
+      .first()
+
+    if (existing) return
+
+    await CicdEvent.create({
+      source: 'github',
+      techStreamId: techStream.id,
+      eventType,
+      pipelineId,
+      pipelineRunId,
+      environment,
+      status: state,
+      commitSha: deployment?.sha ?? null,
+      eventTimestamp,
+    })
+
+    // For production success deploys, also upsert a DeploymentRecord
+    if (environment === 'production' && state === 'success') {
+      await DeploymentRecord.create({
+        techStreamId: techStream.id,
+        environment,
+        status: 'success',
+        commitSha: deployment?.sha ?? null,
+        causedIncident: false,
+        deployedAt: eventTimestamp,
+      })
+    }
   }
 
   private async resolveTechStream(

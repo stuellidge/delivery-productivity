@@ -1,8 +1,10 @@
 import { DateTime } from 'luxon'
 import WorkItemEvent from '#models/work_item_event'
+import DefectEvent from '#models/defect_event'
 import DeliveryStream from '#models/delivery_stream'
 import StatusMapping from '#models/status_mapping'
 import type { WorkItemEventType } from '#models/work_item_event'
+import type { DefectSeverity } from '#models/defect_event'
 import type { PipelineStage } from '#models/status_mapping'
 
 interface ChangelogItem {
@@ -21,6 +23,8 @@ export interface JiraWebhookPayload {
       story_points?: number
       labels?: string[]
       customfield_delivery_stream?: string
+      customfield_found_in_stage?: string
+      customfield_introduced_in_stage?: string
       resolutiondate?: string
     }
   }
@@ -74,6 +78,14 @@ export default class JiraEventNormalizerService {
       storyPoints: issue.fields.story_points ?? null,
       labels: issue.fields.labels ?? null,
     })
+
+    // Create a defect event for Bug tickets on creation
+    if (eventType === 'created') {
+      const ticketType = issue.fields.issuetype?.name ?? ''
+      if (ticketType.toLowerCase() === 'bug') {
+        await this.createDefectEvent(issue.key, deliveryStreamId, eventTimestamp)
+      }
+    }
   }
 
   private determineEventType(): WorkItemEventType | null {
@@ -98,6 +110,49 @@ export default class JiraEventNormalizerService {
 
     const stream = await DeliveryStream.findBy('name', streamName)
     return stream?.id ?? null
+  }
+
+  private async createDefectEvent(
+    ticketId: string,
+    deliveryStreamId: number | null,
+    eventTimestamp: DateTime
+  ): Promise<void> {
+    const { issue } = this.payload
+
+    // Idempotency: skip if already processed
+    const existing = await DefectEvent.query()
+      .where('ticket_id', ticketId)
+      .where('event_type', 'logged')
+      .whereRaw('event_timestamp = ?::timestamptz', [eventTimestamp.toISO()!])
+      .first()
+
+    if (existing) return
+
+    const foundInStage = issue.fields.customfield_found_in_stage ?? 'unknown'
+    const introducedInStage = issue.fields.customfield_introduced_in_stage ?? null
+    const severity = this.mapPriorityToSeverity(issue.fields.priority?.name ?? null)
+
+    await DefectEvent.create({
+      source: 'jira',
+      ticketId,
+      eventType: 'logged',
+      deliveryStreamId,
+      eventTimestamp,
+      foundInStage,
+      introducedInStage,
+      severity,
+    })
+  }
+
+  private mapPriorityToSeverity(priority: string | null): DefectSeverity | null {
+    if (!priority) return null
+    const map: Record<string, DefectSeverity> = {
+      critical: 'critical',
+      high: 'high',
+      medium: 'medium',
+      low: 'low',
+    }
+    return map[priority.toLowerCase()] ?? null
   }
 
   private async resolveStage(

@@ -4,6 +4,8 @@ import { createHmac } from 'node:crypto'
 import TechStream from '#models/tech_stream'
 import Repository from '#models/repository'
 import PrEvent from '#models/pr_event'
+import CicdEvent from '#models/cicd_event'
+import DeploymentRecord from '#models/deployment_record'
 
 const WEBHOOK_PATH = '/api/v1/webhooks/github'
 const WEBHOOK_SECRET = 'test-github-secret'
@@ -224,5 +226,120 @@ test.group('Github Webhooks | signature verification', (group) => {
       .json(payload)
 
     response.assertStatus(200)
+  })
+})
+
+test.group('Github Webhooks | workflow_run events', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('accepts workflow_run webhook and writes cicd_event', async ({ client, assert }) => {
+    const techStream = await TechStream.create({
+      name: 'backend-ci',
+      displayName: 'Backend CI',
+      githubOrg: 'acme-org',
+      githubInstallId: '77001',
+      isActive: true,
+    })
+    await Repository.create({
+      techStreamId: techStream.id,
+      githubOrg: 'acme-org',
+      githubRepoName: 'backend',
+      fullName: 'acme-org/backend',
+      isActive: true,
+    })
+
+    const payload = {
+      action: 'completed',
+      installation: { id: 77001 },
+      workflow_run: {
+        id: 55001,
+        workflow_id: 66001,
+        conclusion: 'success',
+        status: 'completed',
+        head_sha: 'abc123',
+        created_at: '2026-02-10T10:00:00Z',
+        updated_at: '2026-02-10T10:01:00Z',
+        run_started_at: '2026-02-10T10:00:00Z',
+      },
+      repository: {
+        full_name: 'acme-org/backend',
+        name: 'backend',
+        owner: { login: 'acme-org' },
+      },
+    }
+
+    const response = await client
+      .post(WEBHOOK_PATH)
+      .header('x-github-event', 'workflow_run')
+      .json(payload)
+
+    response.assertStatus(200)
+
+    const event = await CicdEvent.query().where('pipeline_run_id', '55001').first()
+    assert.isNotNull(event)
+    assert.equal(event!.eventType, 'build_completed')
+    assert.equal(event!.status, 'success')
+  })
+})
+
+test.group('Github Webhooks | deployment_status events', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('accepts deployment_status webhook and writes cicd_event and deployment_record', async ({
+    client,
+    assert,
+  }) => {
+    const techStream = await TechStream.create({
+      name: 'backend-deploy',
+      displayName: 'Backend Deploy',
+      githubOrg: 'acme-org',
+      githubInstallId: '77002',
+      isActive: true,
+    })
+    await Repository.create({
+      techStreamId: techStream.id,
+      githubOrg: 'acme-org',
+      githubRepoName: 'backend',
+      fullName: 'acme-org/backend',
+      isActive: true,
+    })
+
+    const payload = {
+      action: 'created',
+      installation: { id: 77002 },
+      deployment: {
+        id: 88001,
+        sha: 'def456',
+        environment: 'production',
+      },
+      deployment_status: {
+        id: 99001,
+        state: 'success',
+        environment: 'production',
+        created_at: '2026-02-10T12:00:00Z',
+      },
+      repository: {
+        full_name: 'acme-org/backend',
+        name: 'backend',
+        owner: { login: 'acme-org' },
+      },
+    }
+
+    const response = await client
+      .post(WEBHOOK_PATH)
+      .header('x-github-event', 'deployment_status')
+      .json(payload)
+
+    response.assertStatus(200)
+
+    const event = await CicdEvent.query().where('pipeline_id', '88001').first()
+    assert.isNotNull(event)
+    assert.equal(event!.eventType, 'deploy_completed')
+
+    const deployRecord = await DeploymentRecord.query()
+      .where('tech_stream_id', techStream.id)
+      .where('environment', 'production')
+      .first()
+    assert.isNotNull(deployRecord)
   })
 })

@@ -7,6 +7,8 @@ import TechStream from '#models/tech_stream'
 import DoraMetricsService from '#services/dora_metrics_service'
 import MonteCarloForecastService from '#services/monte_carlo_forecast_service'
 import CrossStreamCorrelationService from '#services/cross_stream_correlation_service'
+import DefectEscapeRateService from '#services/defect_escape_rate_service'
+import PrReviewTurnaroundService from '#services/pr_review_turnaround_service'
 import PulseAggregate from '#models/pulse_aggregate'
 import { cache } from '#services/cache_service'
 
@@ -46,8 +48,23 @@ export default class ApiMetricsController {
     const cacheKey = `metrics:diagnostic:${streamId ?? 'all'}:${windowDays}`
 
     const data = await cache.remember(cacheKey, TTL.diagnostic, async () => {
-      const flowEfficiency = await new FlowEfficiencyService().compute(streamId, windowDays)
-      return { flow_efficiency: flowEfficiency }
+      const [flowEfficiency, defectEscape] = await Promise.all([
+        new FlowEfficiencyService().compute(streamId, windowDays),
+        new DefectEscapeRateService(streamId, windowDays).compute(),
+      ])
+
+      // PR turnaround requires a techStreamId; skip if no stream specified
+      // When a deliveryStreamId is given we compute across all tech streams (pass undefined)
+      const prReviewTurnaround = await new PrReviewTurnaroundService(
+        streamId ?? 0,
+        windowDays
+      ).compute()
+
+      return {
+        flow_efficiency: flowEfficiency,
+        defect_escape: defectEscape,
+        pr_review_turnaround: prReviewTurnaround,
+      }
     })
 
     return response.ok({

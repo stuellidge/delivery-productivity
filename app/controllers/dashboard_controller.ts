@@ -12,6 +12,7 @@ import DoraMetricsService from '#services/dora_metrics_service'
 import MonteCarloForecastService from '#services/monte_carlo_forecast_service'
 import SprintConfidenceService from '#services/sprint_confidence_service'
 import CrossStreamCorrelationService from '#services/cross_stream_correlation_service'
+import DataQualityService from '#services/data_quality_service'
 
 const STAGE_ORDER = ['backlog', 'ba', 'dev', 'code_review', 'qa', 'uat']
 const STAGE_LABELS: Record<string, string> = {
@@ -104,6 +105,11 @@ export default class DashboardController {
       }))
     )
 
+    // Data quality warnings for selected stream
+    const dataQualityWarnings = selectedStreamId
+      ? await new DataQualityService().getStreamWarnings(selectedStreamId)
+      : []
+
     return view.render('dashboard/index', {
       deliveryStreams,
       selectedStream,
@@ -119,6 +125,7 @@ export default class DashboardController {
       sprintConfidence,
       crossStreamCorrelations,
       pulseAggregates,
+      dataQualityWarnings,
     })
   }
 }

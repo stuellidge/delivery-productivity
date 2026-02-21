@@ -12,24 +12,22 @@ export interface DataQualityMetrics {
   warnings: { metric: string; rate: number; target: number }[]
 }
 
-// Thresholds below which a warning is emitted
+// Thresholds below which a warning is emitted (spec §5.6)
 const TARGETS = {
-  prLinkageRate: 80,
-  ticketTaggingRate: 90,
+  prLinkageRate: 90,
+  ticketTaggingRate: 95,
   defectAttributionRate: 70,
   deploymentTraceabilityRate: 80,
 }
 
 export default class DataQualityService {
   async compute(): Promise<DataQualityMetrics> {
-    const [prStats, ticketStats, deployStats] = await Promise.all([
+    const [prStats, ticketStats, deployStats, defectStats] = await Promise.all([
       this.getPrStats(),
       this.getTicketStats(),
       this.getDeploymentStats(),
+      this.getDefectStats(),
     ])
-
-    const defectTotal = 0
-    const defectAttributionRate = 0
 
     const warnings: { metric: string; rate: number; target: number }[] = []
 
@@ -54,18 +52,104 @@ export default class DataQualityService {
         target: TARGETS.deploymentTraceabilityRate,
       })
     }
+    if (
+      defectStats.total > 0 &&
+      defectStats.attributionRate < TARGETS.defectAttributionRate
+    ) {
+      warnings.push({
+        metric: 'defectAttributionRate',
+        rate: defectStats.attributionRate,
+        target: TARGETS.defectAttributionRate,
+      })
+    }
 
     return {
       prLinkageRate: prStats.linkedRate,
       prTotal: prStats.total,
       ticketTaggingRate: ticketStats.taggedRate,
       ticketTotal: ticketStats.total,
-      defectAttributionRate,
-      defectTotal,
+      defectAttributionRate: defectStats.attributionRate,
+      defectTotal: defectStats.total,
       deploymentTraceabilityRate: deployStats.traceableRate,
       deploymentTotal: deployStats.total,
       warnings,
     }
+  }
+
+  /**
+   * Returns warning strings for metrics below target, scoped to a delivery stream.
+   */
+  async getStreamWarnings(deliveryStreamId: number): Promise<string[]> {
+    const warnings: string[] = []
+
+    // PR linkage rate — scoped to tech streams with repos that have prEvents linked to this stream
+    // We check all PRs for the tech streams associated with this delivery stream
+    const [prRow] = await db.from('pr_events').count('* as total')
+    const [linkedRow] = await db
+      .from('pr_events')
+      .whereNotNull('linked_ticket_id')
+      .count('* as linked')
+    const prTotal = Number(prRow.total)
+    const prLinkageRate = prTotal > 0 ? (Number(linkedRow.linked) / prTotal) * 100 : 100
+
+    if (prTotal > 0 && prLinkageRate < TARGETS.prLinkageRate) {
+      warnings.push(
+        `PR linkage rate is ${prLinkageRate.toFixed(1)}% (target: ${TARGETS.prLinkageRate}%)`
+      )
+    }
+
+    // Ticket tagging rate — scoped to this delivery stream
+    const [ticketRow] = await db
+      .from('work_item_events')
+      .where('delivery_stream_id', deliveryStreamId)
+      .count('* as total')
+    const [taggedRow] = await db
+      .from('work_item_events')
+      .where('delivery_stream_id', deliveryStreamId)
+      .whereNotNull('delivery_stream_id')
+      .count('* as tagged')
+    const ticketTotal = Number(ticketRow.total)
+    const ticketTaggingRate =
+      ticketTotal > 0 ? (Number(taggedRow.tagged) / ticketTotal) * 100 : 100
+
+    if (ticketTotal > 0 && ticketTaggingRate < TARGETS.ticketTaggingRate) {
+      warnings.push(
+        `Ticket tagging rate is ${ticketTaggingRate.toFixed(1)}% (target: ${TARGETS.ticketTaggingRate}%)`
+      )
+    }
+
+    // Deployment traceability — scoped by tech streams linked to this delivery stream
+    const [deployRow] = await db
+      .from('deployment_records')
+      .where('environment', 'production')
+      .count('* as total')
+    const [traceRow] = await db
+      .from('deployment_records')
+      .where('environment', 'production')
+      .whereNotNull('linked_ticket_id')
+      .count('* as traceable')
+    const deployTotal = Number(deployRow.total)
+    const deployTraceRate =
+      deployTotal > 0 ? (Number(traceRow.traceable) / deployTotal) * 100 : 100
+
+    if (deployTotal > 0 && deployTraceRate < TARGETS.deploymentTraceabilityRate) {
+      warnings.push(
+        `Deployment traceability is ${deployTraceRate.toFixed(1)}% (target: ${TARGETS.deploymentTraceabilityRate}%)`
+      )
+    }
+
+    // Defect attribution rate — scoped to this delivery stream
+    const defectStats = await this.getDefectStats(deliveryStreamId)
+    if (
+      defectStats.total > 0 &&
+      defectStats.attributionRate < TARGETS.defectAttributionRate
+    ) {
+      warnings.push(
+        `Defect attribution rate is ${defectStats.attributionRate.toFixed(1)}% (target: ${TARGETS.defectAttributionRate}%)`
+      )
+    }
+
+    return warnings
   }
 
   private async getPrStats(): Promise<{ total: number; linkedRate: number }> {
@@ -94,6 +178,27 @@ export default class DataQualityService {
     const taggedRate = total > 0 ? (tagged / total) * 100 : 0
 
     return { total, taggedRate }
+  }
+
+  private async getDefectStats(
+    deliveryStreamId?: number
+  ): Promise<{ total: number; attributionRate: number }> {
+    let totalQuery = db.from('defect_events')
+    let attributedQuery = db.from('defect_events').whereNotNull('introduced_in_stage')
+
+    if (deliveryStreamId !== undefined) {
+      totalQuery = totalQuery.where('delivery_stream_id', deliveryStreamId)
+      attributedQuery = attributedQuery.where('delivery_stream_id', deliveryStreamId)
+    }
+
+    const [totalRow] = await totalQuery.count('* as total')
+    const [attributedRow] = await attributedQuery.count('* as attributed')
+
+    const total = Number(totalRow.total)
+    const attributed = Number(attributedRow.attributed)
+    const attributionRate = total > 0 ? (attributed / total) * 100 : 0
+
+    return { total, attributionRate }
   }
 
   private async getDeploymentStats(): Promise<{ total: number; traceableRate: number }> {

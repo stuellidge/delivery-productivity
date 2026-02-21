@@ -44,6 +44,15 @@
       </label>
     </form>
 
+    @if(dataQualityWarnings.length)
+      <article style="border-left: 4px solid var(--pico-color-orange-450)">
+        <strong>Data confidence notice</strong>
+        @each(w in dataQualityWarnings)
+          <p><small>{{ w }}</small></p>
+        @end
+      </article>
+    @end
+
     @if(deliveryStreams.length === 0)
       <article>
         <header>
