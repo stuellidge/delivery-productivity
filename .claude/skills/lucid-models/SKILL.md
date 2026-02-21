@@ -50,19 +50,20 @@ export default class Post extends BaseModel {
 
 ## Column Decorators
 
-| Decorator | Use for |
-|---|---|
-| `@column()` | Standard columns (string, number, boolean) |
-| `@column({ isPrimary: true })` | Primary key |
-| `@column({ columnName: 'custom_name' })` | Override auto snake_case mapping |
-| `@column({ serializeAs: 'apiName' })` | Rename in JSON output |
-| `@column({ serializeAs: null })` | Hide from JSON output (e.g. password) |
-| `@column.dateTime({ autoCreate: true })` | Auto-set on create (createdAt) |
-| `@column.dateTime({ autoCreate: true, autoUpdate: true })` | Auto-set on create and update (updatedAt) |
+| Decorator                                                  | Use for                                    |
+| ---------------------------------------------------------- | ------------------------------------------ |
+| `@column()`                                                | Standard columns (string, number, boolean) |
+| `@column({ isPrimary: true })`                             | Primary key                                |
+| `@column({ columnName: 'custom_name' })`                   | Override auto snake_case mapping           |
+| `@column({ serializeAs: 'apiName' })`                      | Rename in JSON output                      |
+| `@column({ serializeAs: null })`                           | Hide from JSON output (e.g. password)      |
+| `@column.dateTime({ autoCreate: true })`                   | Auto-set on create (createdAt)             |
+| `@column.dateTime({ autoCreate: true, autoUpdate: true })` | Auto-set on create and update (updatedAt)  |
 
 ## Naming Strategy
 
 Lucid's `CamelCaseNamingStrategy` automatically maps:
+
 - Model property `createdAt` → database column `created_at`
 - Model property `userId` → database column `user_id`
 
@@ -84,6 +85,7 @@ await Post.create({ publishedAt: DateTime.now() })
 Use `.toISODate()` only for form data in tests or string comparisons.
 
 Custom serialization:
+
 ```typescript
 @column.dateTime({
   autoCreate: true,
@@ -98,17 +100,24 @@ declare createdAt: DateTime
 
 ```typescript
 import { hasOne, hasMany, belongsTo, manyToMany, hasManyThrough } from '@adonisjs/lucid/orm'
-import type { HasOne, HasMany, BelongsTo, ManyToMany, HasManyThrough } from '@adonisjs/lucid/types/relations'
+import type {
+  HasOne,
+  HasMany,
+  BelongsTo,
+  ManyToMany,
+  HasManyThrough,
+} from '@adonisjs/lucid/types/relations'
 ```
 
-| Decorator | Type Import | Foreign Key Convention |
-|---|---|---|
-| `@hasOne(() => Profile)` | `HasOne<typeof Profile>` | `profiles.user_id` |
-| `@hasMany(() => Post)` | `HasMany<typeof Post>` | `posts.user_id` |
-| `@belongsTo(() => User)` | `BelongsTo<typeof User>` | `posts.user_id` |
+| Decorator                | Type Import              | Foreign Key Convention |
+| ------------------------ | ------------------------ | ---------------------- |
+| `@hasOne(() => Profile)` | `HasOne<typeof Profile>` | `profiles.user_id`     |
+| `@hasMany(() => Post)`   | `HasMany<typeof Post>`   | `posts.user_id`        |
+| `@belongsTo(() => User)` | `BelongsTo<typeof User>` | `posts.user_id`        |
 | `@manyToMany(() => Tag)` | `ManyToMany<typeof Tag>` | pivot table `post_tag` |
 
 Always preload relationships to avoid N+1 queries:
+
 ```typescript
 const users = await User.query().preload('posts')
 ```
@@ -134,8 +143,8 @@ await post.related('tags').attach([2, 3, 4])
 const user = await User.create({ email: 'a@b.com', password: 'secret' })
 
 // Find
-const user = await User.find(1)             // returns null if not found
-const user = await User.findOrFail(1)       // throws E_ROW_NOT_FOUND (404)
+const user = await User.find(1) // returns null if not found
+const user = await User.findOrFail(1) // throws E_ROW_NOT_FOUND (404)
 const user = await User.findByOrFail('email', 'a@b.com')
 
 // Update
@@ -158,8 +167,7 @@ await User.updateOrCreateMany('email', [
 ## Query Builder
 
 ```typescript
-const users = await User
-  .query()
+const users = await User.query()
   .where('countryCode', 'GB')
   .orWhereNull('countryCode')
   .preload('posts')

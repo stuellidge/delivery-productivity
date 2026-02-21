@@ -2,8 +2,12 @@
   @slot('main')
     <div style="max-width: 400px; margin: 4rem auto">
       <hgroup>
-        <h1>Sign in</h1>
-        <p>Delivery Performance Platform</p>
+        <h1>
+          Sign in
+        </h1>
+        <p>
+          Delivery Performance Platform
+        </p>
       </hgroup>
 
       @if(flashMessages.has('errors.login'))
@@ -11,7 +15,7 @@
           {{ flashMessages.get('errors.login') }}
         </article>
       @end
-
+      
       <form method="POST" action="/login">
         {{ csrfField() }}
 
@@ -25,7 +29,7 @@
             autocomplete="email"
             required
             {{ flashMessages.has('errors.email') ? 'aria-invalid="true"' : '' }}
-          >
+          />
           @if(flashMessages.has('errors.email'))
             <small>{{ flashMessages.get('errors.email') }}</small>
           @end
@@ -40,7 +44,7 @@
             autocomplete="current-password"
             required
             {{ flashMessages.has('errors.password') ? 'aria-invalid="true"' : '' }}
-          >
+          />
           @if(flashMessages.has('errors.password'))
             <small>{{ flashMessages.get('errors.password') }}</small>
           @end

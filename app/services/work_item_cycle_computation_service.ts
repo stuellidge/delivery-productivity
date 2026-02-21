@@ -18,9 +18,7 @@ export default class WorkItemCycleComputationService {
     const createdEvent = events.find((e) => e.eventType === 'created')
     const completedAt = completedEvent.eventTimestamp
 
-    const transitions = events.filter(
-      (e) => e.eventType === 'transitioned' && e.toStage !== null
-    )
+    const transitions = events.filter((e) => e.eventType === 'transitioned' && e.toStage !== null)
 
     const projectKey = this.ticketId.split('-')[0]
     const activeStages = await this.loadActiveStages(projectKey, transitions)
@@ -47,8 +45,7 @@ export default class WorkItemCycleComputationService {
             ? relevantTransitions[i + 1].eventTimestamp
             : completedAt
 
-        const durationMs =
-          nextTimestamp.toMillis() - current.eventTimestamp.toMillis()
+        const durationMs = nextTimestamp.toMillis() - current.eventTimestamp.toMillis()
         const durationDays = durationMs / (1000 * 60 * 60 * 24)
         const stage = current.toStage!
 
@@ -63,7 +60,8 @@ export default class WorkItemCycleComputationService {
     }
 
     // Compute time metrics
-    const createdAtSource = createdEvent?.eventTimestamp ?? transitions[0]?.eventTimestamp ?? completedAt
+    const createdAtSource =
+      createdEvent?.eventTimestamp ?? transitions[0]?.eventTimestamp ?? completedAt
     const leadTimeDays = this.daysBetween(createdAtSource, completedAt)
     const cycleTimeDays = firstInProgress ? this.daysBetween(firstInProgress, completedAt) : 0
     const flowEfficiencyPct = cycleTimeDays > 0 ? (activeTimeDays / cycleTimeDays) * 100 : 0
@@ -106,7 +104,9 @@ export default class WorkItemCycleComputationService {
     projectKey: string,
     transitions: WorkItemEvent[]
   ): Promise<Set<PipelineStage>> {
-    const stages = [...new Set(transitions.map((t) => t.toStage).filter(Boolean))] as PipelineStage[]
+    const stages = [
+      ...new Set(transitions.map((t) => t.toStage).filter(Boolean)),
+    ] as PipelineStage[]
 
     if (stages.length === 0) return new Set()
 

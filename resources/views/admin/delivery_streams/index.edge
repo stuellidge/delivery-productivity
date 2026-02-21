@@ -1,42 +1,64 @@
 @component('layouts/app', { title: 'Delivery Streams — Admin' })
   @slot('main')
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem">
-      <h1>Delivery Streams</h1>
+      <h1>
+        Delivery Streams
+      </h1>
       <a href="/admin/streams/delivery/create" role="button">New Stream</a>
     </div>
 
     <nav aria-label="breadcrumb">
       <ul>
-        <li><a href="/admin">Admin</a></li>
-        <li>Delivery Streams</li>
+        <li>
+          <a href="/admin">Admin</a>
+        </li>
+        <li>
+          Delivery Streams
+        </li>
       </ul>
     </nav>
 
     @if(streams.length === 0)
       <article>
-        <p>No delivery streams configured yet. <a href="/admin/streams/delivery/create">Create the first one</a>.</p>
+        <p>
+          No delivery streams configured yet. <a href="/admin/streams/delivery/create">Create the first one</a>.
+        </p>
       </article>
     @else
       <figure>
         <table>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Display Name</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>
+                Name
+              </th>
+              <th>
+                Display Name
+              </th>
+              <th>
+                Status
+              </th>
+              <th>
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             @each(stream in streams)
               <tr>
-                <td><code>{{ stream.name }}</code></td>
-                <td>{{ stream.displayName }}</td>
+                <td>
+                  <code>{{ stream.name }}</code>
+                </td>
+                <td>
+                  {{ stream.displayName }}
+                </td>
                 <td>
                   @if(stream.isActive)
                     <mark>Active</mark>
                   @else
-                    <del>Inactive</del>
+                    <del>
+                      Inactive
+                    </del>
                   @end
                 </td>
                 <td>

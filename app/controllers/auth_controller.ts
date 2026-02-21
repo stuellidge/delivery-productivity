@@ -1,4 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import { DateTime } from 'luxon'
 import { loginValidator } from '#validators/auth_validator'
 
 export default class AuthController {
@@ -15,20 +16,24 @@ export default class AuthController {
   async login({ request, response, auth, session }: HttpContext) {
     const { email, password } = await request.validateUsing(loginValidator)
 
-    const User = (await import('#models/user')).default
+    const userModule = await import('#models/user')
+    const User = userModule.default
 
     try {
       const user = await User.verifyCredentials(email, password)
 
       if (!user.isActive) {
-        session.flash('errors.login', 'Your account is inactive. Please contact your administrator.')
+        session.flash(
+          'errors.login',
+          'Your account is inactive. Please contact your administrator.'
+        )
         return response.redirect().toRoute('auth.login')
       }
 
       await auth.use('web').login(user)
 
       // Update last login timestamp
-      user.lastLoginAt = (await import('luxon')).DateTime.now()
+      user.lastLoginAt = DateTime.now()
       await user.save()
 
       return response.redirect('/dashboard')

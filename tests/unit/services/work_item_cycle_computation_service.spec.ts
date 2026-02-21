@@ -14,10 +14,34 @@ const JAN_7 = DateTime.fromISO('2026-01-07T00:00:00.000Z')
 
 async function createStatusMappings() {
   await StatusMapping.createMany([
-    { jiraProjectKey: 'PAY', jiraStatusName: 'In BA', pipelineStage: 'ba', isActiveWork: true, displayOrder: 1 },
-    { jiraProjectKey: 'PAY', jiraStatusName: 'In Dev', pipelineStage: 'dev', isActiveWork: true, displayOrder: 2 },
-    { jiraProjectKey: 'PAY', jiraStatusName: 'In QA', pipelineStage: 'qa', isActiveWork: true, displayOrder: 3 },
-    { jiraProjectKey: 'PAY', jiraStatusName: 'Backlog', pipelineStage: 'backlog', isActiveWork: false, displayOrder: 0 },
+    {
+      jiraProjectKey: 'PAY',
+      jiraStatusName: 'In BA',
+      pipelineStage: 'ba',
+      isActiveWork: true,
+      displayOrder: 1,
+    },
+    {
+      jiraProjectKey: 'PAY',
+      jiraStatusName: 'In Dev',
+      pipelineStage: 'dev',
+      isActiveWork: true,
+      displayOrder: 2,
+    },
+    {
+      jiraProjectKey: 'PAY',
+      jiraStatusName: 'In QA',
+      pipelineStage: 'qa',
+      isActiveWork: true,
+      displayOrder: 3,
+    },
+    {
+      jiraProjectKey: 'PAY',
+      jiraStatusName: 'Backlog',
+      pipelineStage: 'backlog',
+      isActiveWork: false,
+      displayOrder: 0,
+    },
   ])
 }
 

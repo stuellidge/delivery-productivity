@@ -57,22 +57,22 @@ const createPostValidator = vine.compile(
 ```edge
 {{-- ❌ v5 syntax (WRONG) --}}
 @layout('layouts/app')
-@section('content')
-  @set('title', 'Hello')
-  {{ e(userInput) }}
+  @section('content')
+    @set('title', 'Hello')
+      {{ e(userInput) }}
   {{ safe(trustedHtml) }}
   {{ stringify(obj) }}
-@endsection
-
-{{-- ✅ v6 syntax (CORRECT) --}}
-@component('layouts/app', { title: 'Hello' })
-  @slot('main')
-    @let(myVar = 'Hello')
-    {{ html.escape(userInput) }}
+    @endsection
+    
+    {{-- ✅ v6 syntax (CORRECT) --}}
+    @component('layouts/app', { title: 'Hello' })
+      @slot('main')
+        @let(myVar = 'Hello')
+        {{ html.escape(userInput) }}
     {{{ html.safe(trustedHtml) }}}
     {{ js.stringify(obj) }}
-  @end
-@end
+      @end
+    @end
 ```
 
 ### Method Spoofing
@@ -80,12 +80,11 @@ const createPostValidator = vine.compile(
 ```html
 <!-- ❌ WRONG — hidden field is silently ignored in v6 -->
 <form method="POST" action="/posts/1">
-  <input type="hidden" name="_method" value="PUT">
+  <input type="hidden" name="_method" value="PUT" />
 </form>
 
 <!-- ✅ CORRECT — _method must be in the query string -->
-<form method="POST" action="/posts/1?_method=PUT">
-</form>
+<form method="POST" action="/posts/1?_method=PUT"></form>
 
 <!-- ✅ Using Edge route helper -->
 <form method="POST" action="{{ route('posts.update', { id: post.id }) }}?_method=PUT">
@@ -117,7 +116,6 @@ const createPostValidator = vine.compile(
 {{-- ❌ WRONG — arrow functions fail silently --}}
 {{ items.filter(i => i.active).length }}
 {{ items.map(i => i.name).join(', ') }}
-
 {{-- ✅ CORRECT — use @each/@if, or compute in controller --}}
 ```
 
@@ -206,11 +204,13 @@ When validating uniqueness on update, you must exclude the current record:
 
 ```typescript
 // ✅ CORRECT — exclude current record from uniqueness check
-export const updateArtistValidator = vine
-  .withMetaData<{ resourceId: number }>()
-  .compile(
-    vine.object({
-      name: vine.string().trim().minLength(1).unique(async (db, value, field) => {
+export const updateArtistValidator = vine.withMetaData<{ resourceId: number }>().compile(
+  vine.object({
+    name: vine
+      .string()
+      .trim()
+      .minLength(1)
+      .unique(async (db, value, field) => {
         const row = await db
           .from('artists')
           .where('name', value)
@@ -218,8 +218,8 @@ export const updateArtistValidator = vine
           .first()
         return !row
       }),
-    })
-  )
+  })
+)
 
 // In controller:
 const data = await request.validateUsing(updateArtistValidator, {
@@ -371,7 +371,7 @@ const record = await MyModel.query()
   gap: var(--pico-spacing);
 }
 
-.form-actions [role="button"],
+.form-actions [role='button'],
 .form-actions button {
   width: auto;
   margin-bottom: 0;

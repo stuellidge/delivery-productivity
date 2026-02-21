@@ -21,24 +21,24 @@ The platform covers the full delivery pipeline from business analysis through de
 
 ### 1.3 Design Principles
 
-| Principle | Rationale |
-|---|---|
-| Behaviour-first metrics | Every metric exists to answer a question and provoke a specific action. If a metric doesn't change a decision, it is excluded. |
-| Technology agnostic | The specification describes data flows, schemas, and computations without prescribing specific implementation technologies beyond the requirement for a relational database. |
-| Event-sourced | Raw events are stored immutably. Computed metrics are derived views that can be recomputed from the event log at any time. |
-| Stream-aware | All data is tagged with delivery stream and technology stream at the point of collection, enabling per-stream and cross-stream analysis. |
-| Privacy by design | The platform measures process, not people. Individual activity data is used only in aggregate. Pulse survey responses are anonymous. |
+| Principle               | Rationale                                                                                                                                                                    |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Behaviour-first metrics | Every metric exists to answer a question and provoke a specific action. If a metric doesn't change a decision, it is excluded.                                               |
+| Technology agnostic     | The specification describes data flows, schemas, and computations without prescribing specific implementation technologies beyond the requirement for a relational database. |
+| Event-sourced           | Raw events are stored immutably. Computed metrics are derived views that can be recomputed from the event log at any time.                                                   |
+| Stream-aware            | All data is tagged with delivery stream and technology stream at the point of collection, enabling per-stream and cross-stream analysis.                                     |
+| Privacy by design       | The platform measures process, not people. Individual activity data is used only in aggregate. Pulse survey responses are anonymous.                                         |
 
 ### 1.4 Key Terminology
 
-| Term | Definition |
-|---|---|
-| Delivery Stream | A value stream aligned to a product area or business outcome (e.g. "Payments", "Onboarding"). A delivery stream may span multiple technology streams. |
-| Technology Stream | A technical domain represented by a GitHub organisation (e.g. "Core API", "Auth Service"). Maps 1:1 to a GitHub org. |
-| Work Item | A Jira ticket representing a unit of deliverable work (story, task, or bug) that passes through the pipeline stages. |
-| Pipeline Stage | One of the defined workflow stages: BA, DEV, QA, UAT, DONE. Mapped from Jira statuses. |
-| Event | An immutable record of something that happened in one of the source systems, captured with a timestamp, source identifiers, and stream tags. |
-| Computed Metric | A derived value calculated from one or more event types, refreshed on a defined schedule. |
+| Term              | Definition                                                                                                                                            |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Delivery Stream   | A value stream aligned to a product area or business outcome (e.g. "Payments", "Onboarding"). A delivery stream may span multiple technology streams. |
+| Technology Stream | A technical domain represented by a GitHub organisation (e.g. "Core API", "Auth Service"). Maps 1:1 to a GitHub org.                                  |
+| Work Item         | A Jira ticket representing a unit of deliverable work (story, task, or bug) that passes through the pipeline stages.                                  |
+| Pipeline Stage    | One of the defined workflow stages: BA, DEV, QA, UAT, DONE. Mapped from Jira statuses.                                                                |
+| Event             | An immutable record of something that happened in one of the source systems, captured with a timestamp, source identifiers, and stream tags.          |
+| Computed Metric   | A derived value calculated from one or more event types, refreshed on a defined schedule.                                                             |
 
 ---
 
@@ -48,13 +48,13 @@ The platform covers the full delivery pipeline from business analysis through de
 
 The company organises its source code across multiple GitHub organisations, each representing a distinct technology stream. All repositories within these organisations are private.
 
-| GitHub Organisation (example) | Technology Stream | Description |
-|---|---|---|
-| {company}-core-api | core-api | Backend services, API gateway, domain logic |
-| {company}-auth | auth | Identity, authentication, SSO, token services |
-| {company}-data | data-layer | Data warehouse, ETL, reporting APIs, event store |
-| {company}-frontend | frontend | Customer-facing UIs, admin dashboards, component libraries |
-| {company}-infra | infra | Infrastructure-as-code, CI templates, monitoring |
+| GitHub Organisation (example) | Technology Stream | Description                                                |
+| ----------------------------- | ----------------- | ---------------------------------------------------------- |
+| {company}-core-api            | core-api          | Backend services, API gateway, domain logic                |
+| {company}-auth                | auth              | Identity, authentication, SSO, token services              |
+| {company}-data                | data-layer        | Data warehouse, ETL, reporting APIs, event store           |
+| {company}-frontend            | frontend          | Customer-facing UIs, admin dashboards, component libraries |
+| {company}-infra               | infra             | Infrastructure-as-code, CI templates, monitoring           |
 
 This mapping is configuration-driven. Adding a new technology stream requires adding a new row to the configuration, not a code change. See §5.2 for the configuration schema.
 
@@ -93,15 +93,15 @@ The production deployment authenticates users via Microsoft Entra ID (formerly A
 
 **Configuration Parameters:**
 
-| Parameter | Description |
-|---|---|
-| AUTH_METHOD | Set to `oidc` |
-| OIDC_ISSUER_URL | Entra ID tenant issuer URL |
-| OIDC_CLIENT_ID | Application (client) ID registered in Entra ID |
+| Parameter          | Description                                                       |
+| ------------------ | ----------------------------------------------------------------- |
+| AUTH_METHOD        | Set to `oidc`                                                     |
+| OIDC_ISSUER_URL    | Entra ID tenant issuer URL                                        |
+| OIDC_CLIENT_ID     | Application (client) ID registered in Entra ID                    |
 | OIDC_CLIENT_SECRET | Client secret (stored in secrets management, not in config files) |
-| OIDC_REDIRECT_URI | Callback URL for the platform |
-| OIDC_SCOPES | `openid profile email` (minimum) |
-| OIDC_GROUP_CLAIM | The token claim containing group memberships (default: `groups`) |
+| OIDC_REDIRECT_URI  | Callback URL for the platform                                     |
+| OIDC_SCOPES        | `openid profile email` (minimum)                                  |
+| OIDC_GROUP_CLAIM   | The token claim containing group memberships (default: `groups`)  |
 
 **Entra ID Application Registration Requirements:**
 
@@ -122,11 +122,11 @@ Non-production environments (development, test, staging) may use database-backed
 
 **Configuration Parameters:**
 
-| Parameter | Description |
-|---|---|
-| AUTH_METHOD | Set to `database` |
-| PASSWORD_HASH_ALGORITHM | Algorithm identifier (e.g. `argon2id`) |
-| SESSION_DURATION_MINUTES | Session timeout (default: 480) |
+| Parameter                | Description                            |
+| ------------------------ | -------------------------------------- |
+| AUTH_METHOD              | Set to `database`                      |
+| PASSWORD_HASH_ALGORITHM  | Algorithm identifier (e.g. `argon2id`) |
+| SESSION_DURATION_MINUTES | Session timeout (default: 480)         |
 
 **Database Schema (users table — non-production only):**
 
@@ -171,12 +171,12 @@ api_keys
 
 The platform uses role-based access control (RBAC). Roles determine what data a user can see and what actions they can take.
 
-| Role | Description | Permissions |
-|---|---|---|
-| viewer | Read-only access to dashboards and metrics | View metrics for assigned streams |
-| team_member | Standard team access | Viewer permissions + submit pulse survey responses |
-| stream_lead | Delivery or tech stream lead | Team member permissions + manage stream configuration, view diagnostic detail |
-| platform_admin | Platform administrator | All permissions + manage users, API keys, stream config, and system settings |
+| Role           | Description                                | Permissions                                                                   |
+| -------------- | ------------------------------------------ | ----------------------------------------------------------------------------- |
+| viewer         | Read-only access to dashboards and metrics | View metrics for assigned streams                                             |
+| team_member    | Standard team access                       | Viewer permissions + submit pulse survey responses                            |
+| stream_lead    | Delivery or tech stream lead               | Team member permissions + manage stream configuration, view diagnostic detail |
+| platform_admin | Platform administrator                     | All permissions + manage users, API keys, stream config, and system settings  |
 
 **Role Assignment:**
 
@@ -218,12 +218,12 @@ API key authentication is stateless and does not create session records. API key
 
 The platform reads the `AUTH_METHOD` environment variable at startup and initialises the corresponding authentication provider. Only one primary interactive method is active per deployment, but API key authentication is always available in parallel.
 
-| Environment | AUTH_METHOD | Interactive Auth | API Auth |
-|---|---|---|---|
-| Production | `oidc` | Microsoft Entra ID SSO | API keys |
-| Staging | `oidc` or `database` | Configurable | API keys |
-| Test | `database` | Local credentials | API keys |
-| Development | `database` | Local credentials | API keys |
+| Environment | AUTH_METHOD          | Interactive Auth       | API Auth |
+| ----------- | -------------------- | ---------------------- | -------- |
+| Production  | `oidc`               | Microsoft Entra ID SSO | API keys |
+| Staging     | `oidc` or `database` | Configurable           | API keys |
+| Test        | `database`           | Local credentials      | API keys |
+| Development | `database`           | Local credentials      | API keys |
 
 ---
 
@@ -751,12 +751,12 @@ API token associated with a service account. The service account requires read-o
 
 The following Jira webhook events are subscribed to:
 
-| Jira Webhook Event | Platform Event Type | Key Mapping |
-|---|---|---|
-| `jira:issue_created` | `work_item_events.created` | Ticket key, type, priority, sprint, labels → delivery_stream |
-| `jira:issue_updated` (status change) | `work_item_events.transitioned` | From/to status → pipeline stage via status_mappings table |
-| `jira:issue_updated` (flagged) | `work_item_events.blocked` / `work_item_events.unblocked` | Flag state, blocked reason if available |
-| `jira:issue_updated` (resolution set) | `work_item_events.completed` | Resolution, completed timestamp |
+| Jira Webhook Event                    | Platform Event Type                                       | Key Mapping                                                  |
+| ------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------ |
+| `jira:issue_created`                  | `work_item_events.created`                                | Ticket key, type, priority, sprint, labels → delivery_stream |
+| `jira:issue_updated` (status change)  | `work_item_events.transitioned`                           | From/to status → pipeline stage via status_mappings table    |
+| `jira:issue_updated` (flagged)        | `work_item_events.blocked` / `work_item_events.unblocked` | Flag state, blocked reason if available                      |
+| `jira:issue_updated` (resolution set) | `work_item_events.completed`                              | Resolution, completed timestamp                              |
 
 #### 5.2.4 Delivery Stream Derivation
 
@@ -777,11 +777,11 @@ Jira tickets are assigned technology streams through a multi-select custom field
 
 The following data is collected via the Jira REST API on a schedule:
 
-| Data | Schedule | Purpose |
-|---|---|---|
-| Sprint state (active sprints) | Every 2 hours | Sprint snapshot events — committed/completed/remaining counts, WIP by stage |
-| Sprint retrospective (closed sprints) | On sprint close (daily check) | Final sprint metrics — velocity, commitment accuracy |
-| Backlog state | Daily | Remaining scope count for Monte Carlo forecasting |
+| Data                                  | Schedule                      | Purpose                                                                     |
+| ------------------------------------- | ----------------------------- | --------------------------------------------------------------------------- |
+| Sprint state (active sprints)         | Every 2 hours                 | Sprint snapshot events — committed/completed/remaining counts, WIP by stage |
+| Sprint retrospective (closed sprints) | On sprint close (daily check) | Final sprint metrics — velocity, commitment accuracy                        |
+| Backlog state                         | Daily                         | Remaining scope count for Monte Carlo forecasting                           |
 
 #### 5.2.7 Defect Events
 
@@ -800,33 +800,33 @@ A single GitHub App installed across all organisations. Webhooks for real-time e
 
 #### 5.3.2 GitHub App Configuration
 
-| Parameter | Value |
-|---|---|
-| App Name | {Company} Delivery Metrics |
-| Homepage URL | Platform URL |
-| Webhook URL | Platform webhook endpoint (single URL for all orgs) |
-| Webhook Secret | Shared secret for HMAC-SHA256 payload verification |
+| Parameter      | Value                                               |
+| -------------- | --------------------------------------------------- |
+| App Name       | {Company} Delivery Metrics                          |
+| Homepage URL   | Platform URL                                        |
+| Webhook URL    | Platform webhook endpoint (single URL for all orgs) |
+| Webhook Secret | Shared secret for HMAC-SHA256 payload verification  |
 
 **Required Permissions (all read-only):**
 
-| Permission | Scope | Purpose |
-|---|---|---|
-| Contents | Repository | Commit history for lead time computation |
-| Pull requests | Repository | PR lifecycle events, review data, branch names |
-| Checks | Repository | CI run outcomes |
-| Actions | Repository | Workflow run events for deployment frequency |
-| Metadata | Repository | Repository names, default branches |
-| Members | Organisation | Team structure for reviewer distribution analysis |
+| Permission    | Scope        | Purpose                                           |
+| ------------- | ------------ | ------------------------------------------------- |
+| Contents      | Repository   | Commit history for lead time computation          |
+| Pull requests | Repository   | PR lifecycle events, review data, branch names    |
+| Checks        | Repository   | CI run outcomes                                   |
+| Actions       | Repository   | Workflow run events for deployment frequency      |
+| Metadata      | Repository   | Repository names, default branches                |
+| Members       | Organisation | Team structure for reviewer distribution analysis |
 
 **Subscribed Webhook Events:**
 
-| GitHub Event | Platform Event Type |
-|---|---|
-| `pull_request` (opened) | `pr_events.opened` |
-| `pull_request_review` (submitted) | `pr_events.review_submitted` |
-| `pull_request` (closed + merged) | `pr_events.merged` |
-| `pull_request` (closed + not merged) | `pr_events.closed` |
-| `workflow_run` (completed) | `cicd_events.build_completed` |
+| GitHub Event                          | Platform Event Type                                          |
+| ------------------------------------- | ------------------------------------------------------------ |
+| `pull_request` (opened)               | `pr_events.opened`                                           |
+| `pull_request_review` (submitted)     | `pr_events.review_submitted`                                 |
+| `pull_request` (closed + merged)      | `pr_events.merged`                                           |
+| `pull_request` (closed + not merged)  | `pr_events.closed`                                           |
+| `workflow_run` (completed)            | `cicd_events.build_completed`                                |
 | `deployment_status` (success/failure) | `cicd_events.deploy_completed` / `cicd_events.deploy_failed` |
 
 #### 5.3.3 Webhook Processing
@@ -875,12 +875,12 @@ Delivery stream is derived indirectly via the linked Jira ticket:
 
 The GitHub API is used only for:
 
-| Use Case | Method | Frequency |
-|---|---|---|
-| Initial historical backfill | GraphQL API | One-time per org, rate-limit aware |
-| Deferred enrichment | REST API (single-resource lookups) | Low volume, on-demand |
-| Gap detection and recovery | GraphQL API | Daily scheduled check |
-| Repository list sync | REST API | Daily per org |
+| Use Case                    | Method                             | Frequency                          |
+| --------------------------- | ---------------------------------- | ---------------------------------- |
+| Initial historical backfill | GraphQL API                        | One-time per org, rate-limit aware |
+| Deferred enrichment         | REST API (single-resource lookups) | Low volume, on-demand              |
+| Gap detection and recovery  | GraphQL API                        | Daily scheduled check              |
+| Repository list sync        | REST API                           | Daily per org                      |
 
 Each API call authenticates using an installation token generated for the specific org, ensuring that the token can only access that org's private repositories.
 
@@ -912,10 +912,10 @@ POST /api/v1/events/incident
 
 **Request Headers:**
 
-| Header | Required | Description |
-|---|---|---|
-| `Authorization` | Yes | `Bearer {api_key}` |
-| `Content-Type` | Yes | `application/json` |
+| Header              | Required    | Description                                            |
+| ------------------- | ----------- | ------------------------------------------------------ |
+| `Authorization`     | Yes         | `Bearer {api_key}`                                     |
+| `Content-Type`      | Yes         | `application/json`                                     |
 | `X-Idempotency-Key` | Recommended | Client-provided dedup key (falls back to payload hash) |
 
 **Deployment Event Payload:**
@@ -984,10 +984,10 @@ The pulse survey is a lightweight, anonymous form presented to team members mont
 
 The survey consists of exactly three questions, each scored on a 1–5 Likert scale:
 
-| Question | Field | What it Measures |
-|---|---|---|
-| "How sustainable does the current pace of work feel?" | pace_score | Burnout risk, over-commitment |
-| "How much do your tools and processes help (vs hinder) your work?" | tooling_score | Tooling friction, process overhead |
+| Question                                                                  | Field         | What it Measures                               |
+| ------------------------------------------------------------------------- | ------------- | ---------------------------------------------- |
+| "How sustainable does the current pace of work feel?"                     | pace_score    | Burnout risk, over-commitment                  |
+| "How much do your tools and processes help (vs hinder) your work?"        | tooling_score | Tooling friction, process overhead             |
 | "How clear are the current priorities and what you should be working on?" | clarity_score | Alignment, communication, requirements quality |
 
 The free-text field is optional and is stored but never displayed on dashboards. It is intended for use in team retrospectives only.
@@ -998,13 +998,13 @@ Events that cannot be fully enriched (missing delivery stream, missing ticket li
 
 The platform computes and displays the following data quality metrics:
 
-| Metric | Computation | Target |
-|---|---|---|
-| PR ticket linkage rate | PRs with non-null `linked_ticket_id` / total PRs | ≥ 90% |
-| Ticket stream tagging rate | Work items with non-null `delivery_stream_id` / total work items | ≥ 95% |
-| Defect origin attribution rate | Defects with non-null `introduced_in_stage` / total defects | ≥ 70% |
-| Pulse survey response rate | Responses / team size per delivery stream | ≥ 60% |
-| Deployment traceability rate | Deployments with non-null `linked_ticket_id` / total production deployments | ≥ 80% |
+| Metric                         | Computation                                                                 | Target |
+| ------------------------------ | --------------------------------------------------------------------------- | ------ |
+| PR ticket linkage rate         | PRs with non-null `linked_ticket_id` / total PRs                            | ≥ 90%  |
+| Ticket stream tagging rate     | Work items with non-null `delivery_stream_id` / total work items            | ≥ 95%  |
+| Defect origin attribution rate | Defects with non-null `introduced_in_stage` / total defects                 | ≥ 70%  |
+| Pulse survey response rate     | Responses / team size per delivery stream                                   | ≥ 60%  |
+| Deployment traceability rate   | Deployments with non-null `linked_ticket_id` / total production deployments | ≥ 80%  |
 
 These metrics should be displayed on the platform's admin dashboard and treated as prerequisites for metric accuracy. Low data quality rates should trigger alerts and process improvements, not workarounds.
 
@@ -1024,12 +1024,12 @@ All window-based metrics (rolling averages, percentiles) use a configurable roll
 
 #### 6.2.1 WIP by Stage
 
-| Property | Value |
-|---|---|
-| Metric Name | `wip_by_stage` |
-| Dashboard Zone | Real-Time |
-| Framework | SPACE (Efficiency) |
-| Refresh | Event-driven (on each `work_item_events.transitioned`) |
+| Property       | Value                                                  |
+| -------------- | ------------------------------------------------------ |
+| Metric Name    | `wip_by_stage`                                         |
+| Dashboard Zone | Real-Time                                              |
+| Framework      | SPACE (Efficiency)                                     |
+| Refresh        | Event-driven (on each `work_item_events.transitioned`) |
 
 **Computation:**
 
@@ -1048,12 +1048,12 @@ For each (delivery_stream, pipeline_stage):
 
 #### 6.2.2 Sprint Delivery Confidence
 
-| Property | Value |
-|---|---|
-| Metric Name | `sprint_confidence` |
-| Dashboard Zone | Real-Time |
-| Framework | OKR (Predictability) |
-| Refresh | Every 2 hours during an active sprint |
+| Property       | Value                                 |
+| -------------- | ------------------------------------- |
+| Metric Name    | `sprint_confidence`                   |
+| Dashboard Zone | Real-Time                             |
+| Framework      | OKR (Predictability)                  |
+| Refresh        | Every 2 hours during an active sprint |
 
 **Computation:**
 
@@ -1069,12 +1069,12 @@ For each (delivery_stream, pipeline_stage):
 
 #### 6.2.3 Cycle Time Distribution
 
-| Property | Value |
-|---|---|
-| Metric Name | `cycle_time_p50`, `cycle_time_p85`, `cycle_time_p95` |
-| Dashboard Zone | Real-Time |
-| Framework | DORA (Lead Time proxy) |
-| Refresh | On each `work_item_events.completed` |
+| Property       | Value                                                |
+| -------------- | ---------------------------------------------------- |
+| Metric Name    | `cycle_time_p50`, `cycle_time_p85`, `cycle_time_p95` |
+| Dashboard Zone | Real-Time                                            |
+| Framework      | DORA (Lead Time proxy)                               |
+| Refresh        | On each `work_item_events.completed`                 |
 
 **Computation:**
 
@@ -1090,12 +1090,12 @@ The scatter plot view uses individual `work_item_cycles` records, plotting `comp
 
 #### 6.3.1 Flow Efficiency
 
-| Property | Value |
-|---|---|
-| Metric Name | `flow_efficiency` |
-| Dashboard Zone | Diagnostic |
-| Framework | SPACE (Efficiency) |
-| Refresh | Daily |
+| Property       | Value              |
+| -------------- | ------------------ |
+| Metric Name    | `flow_efficiency`  |
+| Dashboard Zone | Diagnostic         |
+| Framework      | SPACE (Efficiency) |
+| Refresh        | Daily              |
 
 **Computation:**
 
@@ -1120,12 +1120,12 @@ For each queue stage (is_active_work = FALSE):
 
 #### 6.3.2 Defect Escape Rate
 
-| Property | Value |
-|---|---|
-| Metric Name | `defect_escape_rate` |
-| Dashboard Zone | Diagnostic |
-| Framework | SPACE (Performance) |
-| Refresh | Daily |
+| Property       | Value                |
+| -------------- | -------------------- |
+| Metric Name    | `defect_escape_rate` |
+| Dashboard Zone | Diagnostic           |
+| Framework      | SPACE (Performance)  |
+| Refresh        | Daily                |
 
 **Computation:**
 
@@ -1151,12 +1151,12 @@ Report the percentage of defects with `introduced_in_stage IS NULL` (i.e. unattr
 
 #### 6.3.3 PR Review Turnaround
 
-| Property | Value |
-|---|---|
-| Metric Name | `review_turnaround_p50`, `review_turnaround_p85` |
-| Dashboard Zone | Diagnostic |
-| Framework | SPACE (Communication) |
-| Refresh | On each `pr_events.review_submitted` |
+| Property       | Value                                            |
+| -------------- | ------------------------------------------------ |
+| Metric Name    | `review_turnaround_p50`, `review_turnaround_p85` |
+| Dashboard Zone | Diagnostic                                       |
+| Framework      | SPACE (Communication)                            |
+| Refresh        | On each `pr_events.review_submitted`             |
 
 **Computation:**
 
@@ -1182,12 +1182,12 @@ Flag if any single reviewer handles > 50% of reviews within a tech stream.
 
 #### 6.4.1 Deployment Frequency
 
-| Property | Value |
-|---|---|
-| Metric Name | `deployment_frequency` |
-| Dashboard Zone | Trend |
-| Framework | DORA |
-| Refresh | On each `cicd_events.deploy_completed` |
+| Property       | Value                                  |
+| -------------- | -------------------------------------- |
+| Metric Name    | `deployment_frequency`                 |
+| Dashboard Zone | Trend                                  |
+| Framework      | DORA                                   |
+| Refresh        | On each `cicd_events.deploy_completed` |
 
 **Computation:**
 
@@ -1205,12 +1205,12 @@ Only count deployments to production that represent meaningful changes. Exclude 
 
 #### 6.4.2 Change Failure Rate
 
-| Property | Value |
-|---|---|
-| Metric Name | `change_failure_rate` |
-| Dashboard Zone | Trend |
-| Framework | DORA |
-| Refresh | On each deployment or incident event |
+| Property       | Value                                |
+| -------------- | ------------------------------------ |
+| Metric Name    | `change_failure_rate`                |
+| Dashboard Zone | Trend                                |
+| Framework      | DORA                                 |
+| Refresh        | On each deployment or incident event |
 
 **Computation:**
 
@@ -1226,12 +1226,12 @@ COUNT(deployment_records WHERE environment = 'production' AND (status = 'rolled_
 
 #### 6.4.3 Time to Restore (TTR)
 
-| Property | Value |
-|---|---|
-| Metric Name | `ttr_median` |
-| Dashboard Zone | Trend |
-| Framework | DORA |
-| Refresh | On each incident resolution |
+| Property       | Value                       |
+| -------------- | --------------------------- |
+| Metric Name    | `ttr_median`                |
+| Dashboard Zone | Trend                       |
+| Framework      | DORA                        |
+| Refresh        | On each incident resolution |
 
 **Computation:**
 
@@ -1251,12 +1251,12 @@ MEDIAN(incident_events.time_to_restore_min)
 
 #### 6.4.4 Lead Time for Changes
 
-| Property | Value |
-|---|---|
-| Metric Name | `lead_time_p50`, `lead_time_p85` |
-| Dashboard Zone | Trend |
-| Framework | DORA |
-| Refresh | On each production deployment event |
+| Property       | Value                               |
+| -------------- | ----------------------------------- |
+| Metric Name    | `lead_time_p50`, `lead_time_p85`    |
+| Dashboard Zone | Trend                               |
+| Framework      | DORA                                |
+| Refresh        | On each production deployment event |
 
 **Computation:**
 
@@ -1276,12 +1276,12 @@ The method is configurable per technology stream. The default is PR-based. From 
 
 #### 6.5.1 Monte Carlo Delivery Forecast
 
-| Property | Value |
-|---|---|
-| Metric Name | `monte_carlo_forecast` |
-| Dashboard Zone | Forecast |
-| Framework | OKR (Predictability) |
-| Refresh | Daily |
+| Property       | Value                  |
+| -------------- | ---------------------- |
+| Metric Name    | `monte_carlo_forecast` |
+| Dashboard Zone | Forecast               |
+| Framework      | OKR (Predictability)   |
+| Refresh        | Daily                  |
 
 **Computation:**
 
@@ -1300,12 +1300,12 @@ The method is configurable per technology stream. The default is PR-based. From 
 
 #### 6.6.1 Team Health Pulse
 
-| Property | Value |
-|---|---|
-| Metric Name | `team_pulse` |
-| Dashboard Zone | Health |
-| Framework | SPACE (Satisfaction) |
-| Refresh | Monthly (on survey close) |
+| Property       | Value                     |
+| -------------- | ------------------------- |
+| Metric Name    | `team_pulse`              |
+| Dashboard Zone | Health                    |
+| Framework      | SPACE (Satisfaction)      |
+| Refresh        | Monthly (on survey close) |
 
 **Computation:**
 
@@ -1330,12 +1330,12 @@ overall_avg = (pace_avg + tooling_avg + clarity_avg) / 3
 
 ### 6.7 Cross-Stream Correlation
 
-| Property | Value |
-|---|---|
-| Metric Name | `cross_stream_bottleneck` |
+| Property       | Value                     |
+| -------------- | ------------------------- |
+| Metric Name    | `cross_stream_bottleneck` |
 | Dashboard Zone | Diagnostic (Cross-Stream) |
-| Framework | SPACE (Efficiency) |
-| Refresh | Hourly |
+| Framework      | SPACE (Efficiency)        |
+| Refresh        | Hourly                    |
 
 **Computation:**
 
@@ -1346,14 +1346,14 @@ For each technology stream:
 3. Compute the average sprint confidence and p85 cycle time across affected delivery streams.
 4. Assign a severity based on the number of impacted delivery streams and the magnitude of impact. The following thresholds are defaults and must be configurable via the platform admin settings without code changes:
 
-| Impacted Streams | Average Confidence | Severity |
-|---|---|---|
-| 0 | Any | `none` |
-| 1 | ≥ 70% | `low` |
-| 1 | < 70% | `medium` |
-| 2+ | ≥ 70% | `medium` |
-| 2+ | < 70% | `high` |
-| 3+ | < 60% | `critical` |
+| Impacted Streams | Average Confidence | Severity   |
+| ---------------- | ------------------ | ---------- |
+| 0                | Any                | `none`     |
+| 1                | ≥ 70%              | `low`      |
+| 1                | < 70%              | `medium`   |
+| 2+               | ≥ 70%              | `medium`   |
+| 2+               | < 70%              | `high`     |
+| 3+               | < 60%              | `critical` |
 
 These thresholds should be reviewed and tuned after the first 4–6 weeks of production data. Initial deployment should log severity assessments without triggering alerts, allowing the team to calibrate before enabling notifications.
 
@@ -1375,14 +1375,14 @@ The default view, showing metrics for a selected delivery stream (or all streams
 
 **Layout Zones:**
 
-| Zone | Position | Contents | Refresh |
-|---|---|---|---|
-| Stream Health Bar | Top | Summary metrics for selected stream: confidence, cycle time p85, flow efficiency, deploy frequency, CFR, defect escape rate | Real-time |
-| Real-Time Signals | Upper | WIP by Stage, Sprint Confidence Gauge, Cycle Time Scatter | Real-time |
-| Diagnostic Views | Middle | Flow Efficiency, Defect Escape Rate, PR Review Turnaround | Daily |
-| Trend Views | Lower-middle | Deployment Frequency Trend, Change Failure Rate Trend, Time to Restore Trend | On event |
-| Forecast | Lower | Monte Carlo Delivery Forecast | Daily |
-| Team Health | Bottom | Pulse Survey Results | Monthly |
+| Zone              | Position     | Contents                                                                                                                    | Refresh   |
+| ----------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Stream Health Bar | Top          | Summary metrics for selected stream: confidence, cycle time p85, flow efficiency, deploy frequency, CFR, defect escape rate | Real-time |
+| Real-Time Signals | Upper        | WIP by Stage, Sprint Confidence Gauge, Cycle Time Scatter                                                                   | Real-time |
+| Diagnostic Views  | Middle       | Flow Efficiency, Defect Escape Rate, PR Review Turnaround                                                                   | Daily     |
+| Trend Views       | Lower-middle | Deployment Frequency Trend, Change Failure Rate Trend, Time to Restore Trend                                                | On event  |
+| Forecast          | Lower        | Monte Carlo Delivery Forecast                                                                                               | Daily     |
+| Team Health       | Bottom       | Pulse Survey Results                                                                                                        | Monthly   |
 
 #### 7.1.2 Cross-Stream View
 
@@ -1410,12 +1410,12 @@ Platform administration, accessible to `platform_admin` role only.
 
 All dashboard views support the following filters:
 
-| Filter | Type | Behaviour |
-|---|---|---|
-| Delivery Stream | Single-select dropdown (with "All" option) | Filters all metrics to the selected delivery stream. "All" aggregates across streams. |
+| Filter            | Type                                       | Behaviour                                                                                                                                      |
+| ----------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Delivery Stream   | Single-select dropdown (with "All" option) | Filters all metrics to the selected delivery stream. "All" aggregates across streams.                                                          |
 | Technology Stream | Single-select dropdown (with "All" option) | Filters to metrics related to the selected technology stream. Activates cross-stream correlation view when a specific tech stream is selected. |
-| Time Range | Preset options (sprint, 30d, 90d, custom) | Adjusts the rolling window for trend and diagnostic metrics. Does not affect real-time metrics. |
-| Metric Zone | Multi-select toggle | Shows/hides dashboard zones (Real-Time, Diagnostic, Trend, Forecast, Health). |
+| Time Range        | Preset options (sprint, 30d, 90d, custom)  | Adjusts the rolling window for trend and diagnostic metrics. Does not affect real-time metrics.                                                |
+| Metric Zone       | Multi-select toggle                        | Shows/hides dashboard zones (Real-Time, Diagnostic, Trend, Forecast, Health).                                                                  |
 
 Filters are persisted in the URL query string, allowing users to bookmark and share specific views.
 
@@ -1431,37 +1431,37 @@ All endpoints are prefixed with `/api/v1/`. Breaking changes require a new versi
 
 **Configuration:**
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/v1/streams/delivery` | List delivery streams |
-| GET | `/api/v1/streams/tech` | List technology streams |
-| GET | `/api/v1/sprints?stream={id}&state={state}` | List sprints |
+| Method | Endpoint                                    | Description             |
+| ------ | ------------------------------------------- | ----------------------- |
+| GET    | `/api/v1/streams/delivery`                  | List delivery streams   |
+| GET    | `/api/v1/streams/tech`                      | List technology streams |
+| GET    | `/api/v1/sprints?stream={id}&state={state}` | List sprints            |
 
 **Metrics:**
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/v1/metrics/realtime?stream={id}` | Current WIP, confidence, cycle time scatter data |
-| GET | `/api/v1/metrics/diagnostic?stream={id}&window={days}` | Flow efficiency, defect escape, review turnaround |
-| GET | `/api/v1/metrics/trends?stream={id}&window={days}` | DORA metrics time series |
-| GET | `/api/v1/metrics/forecast?stream={id}` | Monte Carlo forecast results |
-| GET | `/api/v1/metrics/pulse?stream={id}&periods={n}` | Pulse survey aggregates |
-| GET | `/api/v1/metrics/cross-stream?tech_stream={id}` | Cross-stream correlation data |
+| Method | Endpoint                                               | Description                                       |
+| ------ | ------------------------------------------------------ | ------------------------------------------------- |
+| GET    | `/api/v1/metrics/realtime?stream={id}`                 | Current WIP, confidence, cycle time scatter data  |
+| GET    | `/api/v1/metrics/diagnostic?stream={id}&window={days}` | Flow efficiency, defect escape, review turnaround |
+| GET    | `/api/v1/metrics/trends?stream={id}&window={days}`     | DORA metrics time series                          |
+| GET    | `/api/v1/metrics/forecast?stream={id}`                 | Monte Carlo forecast results                      |
+| GET    | `/api/v1/metrics/pulse?stream={id}&periods={n}`        | Pulse survey aggregates                           |
+| GET    | `/api/v1/metrics/cross-stream?tech_stream={id}`        | Cross-stream correlation data                     |
 
 **Event Ingestion (for external systems):**
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/v1/events/deployment` | Push deployment events |
-| POST | `/api/v1/events/incident` | Push incident events |
+| Method | Endpoint                    | Description            |
+| ------ | --------------------------- | ---------------------- |
+| POST   | `/api/v1/events/deployment` | Push deployment events |
+| POST   | `/api/v1/events/incident`   | Push incident events   |
 
 **Administration:**
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/v1/admin/data-quality` | Data quality metrics |
-| GET | `/api/v1/admin/integration-health` | Integration status and error rates |
-| POST | `/api/v1/admin/backfill/{source}/{org}` | Trigger historical backfill |
+| Method | Endpoint                                | Description                        |
+| ------ | --------------------------------------- | ---------------------------------- |
+| GET    | `/api/v1/admin/data-quality`            | Data quality metrics               |
+| GET    | `/api/v1/admin/integration-health`      | Integration status and error rates |
+| POST   | `/api/v1/admin/backfill/{source}/{org}` | Trigger historical backfill        |
 
 #### 7.3.3 Response Format
 
@@ -1470,7 +1470,7 @@ All API responses use JSON with a consistent envelope:
 ```json
 {
   "status": "ok",
-  "data": { },
+  "data": {},
   "meta": {
     "stream_type": "delivery",
     "stream_id": "uuid",
@@ -1496,14 +1496,14 @@ Error responses:
 
 Dashboard API responses should be cached at the API layer to avoid repeated metric computation.
 
-| Endpoint Category | Cache TTL | Invalidation |
-|---|---|---|
-| Real-time metrics | 30 seconds | On relevant event ingestion |
-| Diagnostic metrics | 15 minutes | On daily recomputation |
-| Trend metrics | 5 minutes | On relevant event ingestion |
-| Forecast | 1 hour | On daily recomputation |
-| Pulse survey | 24 hours | On monthly aggregation |
-| Configuration | 5 minutes | On configuration change |
+| Endpoint Category  | Cache TTL  | Invalidation                |
+| ------------------ | ---------- | --------------------------- |
+| Real-time metrics  | 30 seconds | On relevant event ingestion |
+| Diagnostic metrics | 15 minutes | On daily recomputation      |
+| Trend metrics      | 5 minutes  | On relevant event ingestion |
+| Forecast           | 1 hour     | On daily recomputation      |
+| Pulse survey       | 24 hours   | On monthly aggregation      |
+| Configuration      | 5 minutes  | On configuration change     |
 
 ---
 
@@ -1511,75 +1511,75 @@ Dashboard API responses should be cached at the API layer to avoid repeated metr
 
 ### 8.1 Performance
 
-| Requirement | Target |
-|---|---|
-| Dashboard initial load time | < 3 seconds (cached data), < 8 seconds (cold) |
+| Requirement                      | Target                                        |
+| -------------------------------- | --------------------------------------------- |
+| Dashboard initial load time      | < 3 seconds (cached data), < 8 seconds (cold) |
 | Webhook event processing latency | < 5 seconds from receipt to event store write |
-| API response time (cached) | < 200ms (p95) |
-| API response time (uncached) | < 2 seconds (p95) |
-| Monte Carlo simulation | < 30 seconds for 10,000 iterations |
-| Concurrent dashboard users | Support at least 50 simultaneous users |
+| API response time (cached)       | < 200ms (p95)                                 |
+| API response time (uncached)     | < 2 seconds (p95)                             |
+| Monte Carlo simulation           | < 30 seconds for 10,000 iterations            |
+| Concurrent dashboard users       | Support at least 50 simultaneous users        |
 
 ### 8.2 Availability
 
-| Requirement | Target |
-|---|---|
-| Platform availability | 99.5% during business hours (08:00–20:00 local) |
-| Planned maintenance | Performed outside business hours with 48hr notice |
-| Event ingestion | Designed for eventual consistency; brief outages acceptable if events are buffered and reprocessed. No event loss. |
+| Requirement           | Target                                                                                                             |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Platform availability | 99.5% during business hours (08:00–20:00 local)                                                                    |
+| Planned maintenance   | Performed outside business hours with 48hr notice                                                                  |
+| Event ingestion       | Designed for eventual consistency; brief outages acceptable if events are buffered and reprocessed. No event loss. |
 
 ### 8.3 Data Retention
 
-| Data Type | Retention Period |
-|---|---|
-| Raw events | 24 months minimum |
-| Computed daily metrics | 36 months minimum |
-| Work item cycle data | 36 months minimum |
-| PR cycle data | 24 months minimum |
-| Deployment records | 24 months minimum |
-| Forecast snapshots | 12 months minimum |
-| Pulse survey aggregates | Indefinite |
-| Pulse survey raw responses | 12 months, then deleted |
+| Data Type                       | Retention Period                    |
+| ------------------------------- | ----------------------------------- |
+| Raw events                      | 24 months minimum                   |
+| Computed daily metrics          | 36 months minimum                   |
+| Work item cycle data            | 36 months minimum                   |
+| PR cycle data                   | 24 months minimum                   |
+| Deployment records              | 24 months minimum                   |
+| Forecast snapshots              | 12 months minimum                   |
+| Pulse survey aggregates         | Indefinite                          |
+| Pulse survey raw responses      | 12 months, then deleted             |
 | Archived event log (file-based) | Indefinite (long-term storage tier) |
 
 ### 8.4 Security
 
-| Requirement | Detail |
-|---|---|
-| Transport | All communication over TLS 1.2+ |
-| Authentication | See §3 — OIDC (production), database auth (non-production), API keys (service-to-service) |
-| Authorisation | RBAC with stream-level scoping (§3.3) |
-| Secrets | Stored in a dedicated secrets management service, never in configuration files, environment variables, or source code |
-| Webhook verification | All GitHub webhooks verified via HMAC-SHA256 signature |
-| API key storage | Hashed with a one-way function, never stored in plain text |
-| Anonymisation | Individual identifiers hashed with HMAC-SHA256 (§4.6) |
-| Audit log | Authentication events, configuration changes, and API key usage logged with timestamp and actor |
-| Database | Encrypted at rest. Access restricted to platform service accounts. No direct user access. |
+| Requirement          | Detail                                                                                                                |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Transport            | All communication over TLS 1.2+                                                                                       |
+| Authentication       | See §3 — OIDC (production), database auth (non-production), API keys (service-to-service)                             |
+| Authorisation        | RBAC with stream-level scoping (§3.3)                                                                                 |
+| Secrets              | Stored in a dedicated secrets management service, never in configuration files, environment variables, or source code |
+| Webhook verification | All GitHub webhooks verified via HMAC-SHA256 signature                                                                |
+| API key storage      | Hashed with a one-way function, never stored in plain text                                                            |
+| Anonymisation        | Individual identifiers hashed with HMAC-SHA256 (§4.6)                                                                 |
+| Audit log            | Authentication events, configuration changes, and API key usage logged with timestamp and actor                       |
+| Database             | Encrypted at rest. Access restricted to platform service accounts. No direct user access.                             |
 
 ### 8.5 Monitoring and Alerting
 
 The platform must monitor its own health and alert on the following conditions:
 
-| Condition | Severity | Action |
-|---|---|---|
-| Webhook ingestion failure rate > 5% over 15 minutes | High | Investigate integration health |
-| Event processing queue depth > 1000 | Medium | Scale processing capacity |
-| Metric computation failure | High | Rerun computation, investigate data |
-| API response time p95 > 5 seconds | Medium | Investigate performance |
-| Data quality metric below target (§5.6) | Low | Notify platform admin |
-| Pulse survey response rate < 40% | Low | Remind team leads |
-| GitHub API rate limit remaining < 200 for any org | Medium | Defer non-critical API calls |
-| Database connection pool exhaustion | Critical | Immediate investigation |
+| Condition                                           | Severity | Action                              |
+| --------------------------------------------------- | -------- | ----------------------------------- |
+| Webhook ingestion failure rate > 5% over 15 minutes | High     | Investigate integration health      |
+| Event processing queue depth > 1000                 | Medium   | Scale processing capacity           |
+| Metric computation failure                          | High     | Rerun computation, investigate data |
+| API response time p95 > 5 seconds                   | Medium   | Investigate performance             |
+| Data quality metric below target (§5.6)             | Low      | Notify platform admin               |
+| Pulse survey response rate < 40%                    | Low      | Remind team leads                   |
+| GitHub API rate limit remaining < 200 for any org   | Medium   | Defer non-critical API calls        |
+| Database connection pool exhaustion                 | Critical | Immediate investigation             |
 
 ### 8.6 Disaster Recovery
 
-| Requirement | Approach |
-|---|---|
-| Event durability | All raw events written to both the relational database and an immutable file-based archive. The file archive serves as the disaster recovery source. |
-| Metric recomputation | All computed metric tables can be dropped and rebuilt from the event tables. Recomputation may take several hours for a full rebuild. |
-| Database backup | Automated daily backups with point-in-time recovery capability. Retention: 30 days. |
-| Recovery time objective (RTO) | 4 hours during business hours |
-| Recovery point objective (RPO) | 1 hour (no more than 1 hour of events lost in worst case) |
+| Requirement                    | Approach                                                                                                                                             |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Event durability               | All raw events written to both the relational database and an immutable file-based archive. The file archive serves as the disaster recovery source. |
+| Metric recomputation           | All computed metric tables can be dropped and rebuilt from the event tables. Recomputation may take several hours for a full rebuild.                |
+| Database backup                | Automated daily backups with point-in-time recovery capability. Retention: 30 days.                                                                  |
+| Recovery time objective (RTO)  | 4 hours during business hours                                                                                                                        |
+| Recovery point objective (RPO) | 1 hour (no more than 1 hour of events lost in worst case)                                                                                            |
 
 ---
 
@@ -1697,45 +1697,45 @@ The platform must monitor its own health and alert on the following conditions:
 
 ## 10. Risks and Mitigations
 
-| Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| Jira workflow inconsistency across projects | High | Medium | The status_mappings table accommodates per-project mapping. Conduct a Jira workflow audit in Phase 1 to identify all status names in use. |
-| Low adoption of Jira custom fields (delivery_stream, tech_stream) | Medium | High | Provide fallback derivation methods (§5.2.4). Track tagging rate as a data quality metric. Consider making fields required in Jira workflows. |
-| Branch naming convention not followed | Medium | Medium | Track PR linkage rate (§5.6). Provide a pre-commit hook or CI check that validates branch names. Non-linked PRs are still stored but reduce metric accuracy. |
-| GitHub API rate limits during backfill | Medium | Low | Backfill runs off-peak, one org at a time, with rate-limit awareness (§5.3.7). GraphQL API reduces call count. |
-| Metric gaming (e.g. inflating deployment count) | Low | High | Combine metrics that balance each other (deployment frequency + change failure rate). Use the platform to drive conversations, not incentive structures. Display activity metrics as context, never as targets. |
-| Pulse survey fatigue / declining participation | Medium | Medium | Limit to 3 questions. Keep the survey window short. Ensure visible action results from survey findings. Track and display response rate. |
-| Cross-stream correlation producing false positives | Medium | Low | Use configurable thresholds for severity assignment. Present correlations as signals to investigate, not as definitive diagnoses. |
-| Entra ID group structure doesn't map cleanly to platform roles | Low | Medium | Provide a flexible group → role mapping table. Support regex matching on group names. Allow manual role assignment as an override. |
+| Risk                                                              | Likelihood | Impact | Mitigation                                                                                                                                                                                                      |
+| ----------------------------------------------------------------- | ---------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Jira workflow inconsistency across projects                       | High       | Medium | The status_mappings table accommodates per-project mapping. Conduct a Jira workflow audit in Phase 1 to identify all status names in use.                                                                       |
+| Low adoption of Jira custom fields (delivery_stream, tech_stream) | Medium     | High   | Provide fallback derivation methods (§5.2.4). Track tagging rate as a data quality metric. Consider making fields required in Jira workflows.                                                                   |
+| Branch naming convention not followed                             | Medium     | Medium | Track PR linkage rate (§5.6). Provide a pre-commit hook or CI check that validates branch names. Non-linked PRs are still stored but reduce metric accuracy.                                                    |
+| GitHub API rate limits during backfill                            | Medium     | Low    | Backfill runs off-peak, one org at a time, with rate-limit awareness (§5.3.7). GraphQL API reduces call count.                                                                                                  |
+| Metric gaming (e.g. inflating deployment count)                   | Low        | High   | Combine metrics that balance each other (deployment frequency + change failure rate). Use the platform to drive conversations, not incentive structures. Display activity metrics as context, never as targets. |
+| Pulse survey fatigue / declining participation                    | Medium     | Medium | Limit to 3 questions. Keep the survey window short. Ensure visible action results from survey findings. Track and display response rate.                                                                        |
+| Cross-stream correlation producing false positives                | Medium     | Low    | Use configurable thresholds for severity assignment. Present correlations as signals to investigate, not as definitive diagnoses.                                                                               |
+| Entra ID group structure doesn't map cleanly to platform roles    | Low        | Medium | Provide a flexible group → role mapping table. Support regex matching on group names. Allow manual role assignment as an override.                                                                              |
 
 ---
 
 ## 11. Glossary
 
-| Term | Definition |
-|---|---|
-| DORA | DevOps Research and Assessment — the four key metrics of software delivery performance. |
-| SPACE | Satisfaction, Performance, Activity, Communication, Efficiency — a framework for developer productivity. |
-| OKR | Objectives and Key Results — a goal-setting framework. |
-| Monte Carlo Simulation | A statistical technique that uses repeated random sampling from historical distributions to model probabilistic outcomes. |
-| Flow Efficiency | The ratio of active work time to total elapsed time for a work item. |
-| Cycle Time | The elapsed time from when work begins on an item (first transition to an active stage) to completion. |
-| Lead Time | The elapsed time from when a change is initiated (PR opened, or first commit if configured) to when it is deployed to production. See §6.4.4 for computation methods. |
-| WIP | Work In Progress — the count of items currently in active pipeline stages. |
-| p85 | The 85th percentile of a distribution — "85% of items are at or below this value." |
-| CFR | Change Failure Rate — the percentage of deployments that cause failures. |
-| TTR | Time to Restore — the time to recover from a production failure. This platform reports the median (p50) as the primary value. DORA's standard definition uses the mean; both are computed and available. |
-| Bus Factor | The number of team members who would need to be unavailable before a team loses critical knowledge. |
-| HMAC | Hash-based Message Authentication Code — used for webhook verification and identity anonymisation. |
+| Term                   | Definition                                                                                                                                                                                               |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| DORA                   | DevOps Research and Assessment — the four key metrics of software delivery performance.                                                                                                                  |
+| SPACE                  | Satisfaction, Performance, Activity, Communication, Efficiency — a framework for developer productivity.                                                                                                 |
+| OKR                    | Objectives and Key Results — a goal-setting framework.                                                                                                                                                   |
+| Monte Carlo Simulation | A statistical technique that uses repeated random sampling from historical distributions to model probabilistic outcomes.                                                                                |
+| Flow Efficiency        | The ratio of active work time to total elapsed time for a work item.                                                                                                                                     |
+| Cycle Time             | The elapsed time from when work begins on an item (first transition to an active stage) to completion.                                                                                                   |
+| Lead Time              | The elapsed time from when a change is initiated (PR opened, or first commit if configured) to when it is deployed to production. See §6.4.4 for computation methods.                                    |
+| WIP                    | Work In Progress — the count of items currently in active pipeline stages.                                                                                                                               |
+| p85                    | The 85th percentile of a distribution — "85% of items are at or below this value."                                                                                                                       |
+| CFR                    | Change Failure Rate — the percentage of deployments that cause failures.                                                                                                                                 |
+| TTR                    | Time to Restore — the time to recover from a production failure. This platform reports the median (p50) as the primary value. DORA's standard definition uses the mean; both are computed and available. |
+| Bus Factor             | The number of team members who would need to be unavailable before a team loses critical knowledge.                                                                                                      |
+| HMAC                   | Hash-based Message Authentication Code — used for webhook verification and identity anonymisation.                                                                                                       |
 
 ---
 
 ## 12. Document History
 
-| Version | Date | Author | Changes |
-|---|---|---|---|
-| 1.0 | 2026-02-18 | Technical Product Owner | Initial specification |
-| 1.1 | 2026-02-18 | Technical Product Owner | Revised per review feedback: per-table idempotency constraints (replacing shared external_id); append-only defect attribution model; TTR nomenclature (median vs mean); small-team anonymisation safeguard; PR linking fallback chain; Monte Carlo low-data fallback; configurable cross-stream severity thresholds; lead time computation method clarification; stateless API key auth; dashboard data confidence warnings |
+| Version | Date       | Author                  | Changes                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------- | ---------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0     | 2026-02-18 | Technical Product Owner | Initial specification                                                                                                                                                                                                                                                                                                                                                                                                       |
+| 1.1     | 2026-02-18 | Technical Product Owner | Revised per review feedback: per-table idempotency constraints (replacing shared external_id); append-only defect attribution model; TTR nomenclature (median vs mean); small-team anonymisation safeguard; PR linking fallback chain; Monte Carlo low-data fallback; configurable cross-stream severity thresholds; lead time computation method clarification; stateless API key auth; dashboard data confidence warnings |
 
 ---
 
@@ -1745,13 +1745,13 @@ The platform must monitor its own health and alert on the following conditions:
 
 The following custom fields are recommended for Jira tickets to support the platform's data model:
 
-| Field Name | Type | Required | Purpose |
-|---|---|---|---|
-| Delivery Stream | Single-select dropdown | Yes (workflow enforced) | Primary stream attribution for work items |
-| Technology Streams | Multi-select checkboxes | Recommended | Tech stream attribution — especially for cross-cutting work |
-| Found In Stage | Single-select dropdown (on Bug type) | Yes for bugs | Stage where defect was discovered |
-| Introduced In Stage | Single-select dropdown (on Bug type) | Recommended for bugs | Stage where defect is believed to have originated |
-| Blocking Technology | Single-select dropdown | When flagged/blocked | Which tech stream is causing the block |
+| Field Name          | Type                                 | Required                | Purpose                                                     |
+| ------------------- | ------------------------------------ | ----------------------- | ----------------------------------------------------------- |
+| Delivery Stream     | Single-select dropdown               | Yes (workflow enforced) | Primary stream attribution for work items                   |
+| Technology Streams  | Multi-select checkboxes              | Recommended             | Tech stream attribution — especially for cross-cutting work |
+| Found In Stage      | Single-select dropdown (on Bug type) | Yes for bugs            | Stage where defect was discovered                           |
+| Introduced In Stage | Single-select dropdown (on Bug type) | Recommended for bugs    | Stage where defect is believed to have originated           |
+| Blocking Technology | Single-select dropdown               | When flagged/blocked    | Which tech stream is causing the block                      |
 
 ### Appendix B: Branch Naming Convention
 
@@ -1778,17 +1778,17 @@ hotfix/CORE-901-null-check
 
 ### Appendix C: Example Status Mapping
 
-| Jira Project | Jira Status | Pipeline Stage | Is Active Work |
-|---|---|---|---|
-| PAY | To Do | backlog | No |
-| PAY | In Analysis | ba | Yes |
-| PAY | Ready for Dev | dev (queue) | No |
-| PAY | In Development | dev | Yes |
-| PAY | In Code Review | code_review | Yes |
-| PAY | Ready for QA | qa (queue) | No |
-| PAY | In QA | qa | Yes |
-| PAY | Ready for UAT | uat (queue) | No |
-| PAY | In UAT | uat | Yes |
-| PAY | Done | done | N/A |
+| Jira Project | Jira Status    | Pipeline Stage | Is Active Work |
+| ------------ | -------------- | -------------- | -------------- |
+| PAY          | To Do          | backlog        | No             |
+| PAY          | In Analysis    | ba             | Yes            |
+| PAY          | Ready for Dev  | dev (queue)    | No             |
+| PAY          | In Development | dev            | Yes            |
+| PAY          | In Code Review | code_review    | Yes            |
+| PAY          | Ready for QA   | qa (queue)     | No             |
+| PAY          | In QA          | qa             | Yes            |
+| PAY          | Ready for UAT  | uat (queue)    | No             |
+| PAY          | In UAT         | uat            | Yes            |
+| PAY          | Done           | done           | N/A            |
 
 Note: The distinction between active and queue sub-states within a stage is what enables flow efficiency computation. Without this mapping, the platform cannot distinguish work time from wait time.

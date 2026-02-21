@@ -22,9 +22,7 @@ export default class ApiStreamsController {
   }
 
   async tech({ response }: HttpContext) {
-    const streams = await TechStream.query()
-      .where('is_active', true)
-      .orderBy('display_name', 'asc')
+    const streams = await TechStream.query().where('is_active', true).orderBy('display_name', 'asc')
 
     return response.ok({
       status: 'ok',

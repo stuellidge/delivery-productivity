@@ -55,9 +55,7 @@ test.group('Jira Webhooks | issue_created', (group) => {
       isActive: true,
     })
 
-    const response = await client
-      .post(WEBHOOK_PATH)
-      .json(issueCreatedPayload)
+    const response = await client.post(WEBHOOK_PATH).json(issueCreatedPayload)
 
     response.assertStatus(200)
 
@@ -244,10 +242,7 @@ test.group('Jira Webhooks | delivery stream resolution', (group) => {
 test.group('Jira Webhooks | stage resolution with null fromString', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
-  test('sets from_stage to null when changelog fromString is null', async ({
-    client,
-    assert,
-  }) => {
+  test('sets from_stage to null when changelog fromString is null', async ({ client, assert }) => {
     await DeliveryStream.create({ name: 'payments', displayName: 'Payments', isActive: true })
     await StatusMapping.create({
       jiraProjectKey: 'PAY',

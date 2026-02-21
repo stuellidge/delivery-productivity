@@ -2,13 +2,21 @@
   @slot('main')
     <nav aria-label="breadcrumb">
       <ul>
-        <li><a href="/admin">Admin</a></li>
-        <li><a href="/admin/streams/delivery">Delivery Streams</a></li>
-        <li>New Stream</li>
+        <li>
+          <a href="/admin">Admin</a>
+        </li>
+        <li>
+          <a href="/admin/streams/delivery">Delivery Streams</a>
+        </li>
+        <li>
+          New Stream
+        </li>
       </ul>
     </nav>
 
-    <h1>New Delivery Stream</h1>
+    <h1>
+      New Delivery Stream
+    </h1>
 
     <form method="POST" action="/admin/streams/delivery">
       {{ csrfField() }}
@@ -24,7 +32,7 @@
           pattern="[a-z0-9\-_]+"
           required
           {{ flashMessages.has('errors.name') ? 'aria-invalid="true"' : '' }}
-        >
+        />
         @if(flashMessages.has('errors.name'))
           <small>{{ flashMessages.get('errors.name') }}</small>
         @end
@@ -40,7 +48,7 @@
           placeholder="Payments"
           required
           {{ flashMessages.has('errors.displayName') ? 'aria-invalid="true"' : '' }}
-        >
+        />
         @if(flashMessages.has('errors.displayName'))
           <small>{{ flashMessages.get('errors.displayName') }}</small>
         @end
@@ -48,11 +56,7 @@
 
       <label for="description">
         Description (optional)
-        <textarea
-          id="description"
-          name="description"
-          placeholder="Describe this delivery stream..."
-        >{{ flashMessages.get('description', '') }}</textarea>
+        <textarea id="description" name="description" placeholder="Describe this delivery stream...">{{ flashMessages.get('description', '') }}</textarea>
       </label>
 
       <div class="form-actions">

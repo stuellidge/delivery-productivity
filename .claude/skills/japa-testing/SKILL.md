@@ -34,11 +34,7 @@ export const configureSuite: Config['configureSuite'] = (suite) => {
 }
 
 // Core plugins (always needed)
-export const plugins: Config['plugins'] = [
-  assert(),
-  apiClient(),
-  pluginAdonisJS(app),
-]
+export const plugins: Config['plugins'] = [assert(), apiClient(), pluginAdonisJS(app)]
 
 // For web apps with session auth, also add:
 // import { sessionApiClient } from '@adonisjs/session/plugins/api_client'
@@ -142,10 +138,10 @@ client.options('/path')
 
 ```typescript
 response.assertStatus(200)
-response.assertBody({ key: 'value' })           // exact match
-response.assertBodyContains({ key: 'value' })    // partial match
+response.assertBody({ key: 'value' }) // exact match
+response.assertBodyContains({ key: 'value' }) // partial match
 response.assertHeader('content-type', 'application/json')
-response.assertRedirectsTo('/login')              // after auto-follow
+response.assertRedirectsTo('/login') // after auto-follow
 
 // Access response data
 response.body()
@@ -247,7 +243,7 @@ test.group('Users', (group) => {
 test.group('Users', (group) => {
   group.each.setup(async () => {
     await createTables()
-    return async () => await dropTables()  // cleanup after each
+    return async () => await dropTables() // cleanup after each
   })
 
   group.each.teardown(async () => {
@@ -262,13 +258,13 @@ test.group('Users', (group) => {
 test('slow operation', async ({ assert }) => {
   // test code
 })
-.setup(async () => {
-  // before this specific test
-  return () => {
-    // cleanup after this specific test
-  }
-})
-.timeout(30_000)
+  .setup(async () => {
+    // before this specific test
+    return () => {
+      // cleanup after this specific test
+    }
+  })
+  .timeout(30_000)
 ```
 
 ## Datasets
@@ -277,11 +273,7 @@ Run the same test with multiple inputs:
 
 ```typescript
 test('validates email format')
-  .with([
-    'user@example.com',
-    'user+tag@example.com',
-    'user@123.123.123.123',
-  ])
+  .with(['user@example.com', 'user+tag@example.com', 'user@123.123.123.123'])
   .run(({ assert }, email) => {
     assert.isTrue(validateEmail(email))
   })
@@ -309,7 +301,7 @@ test('example', ({ assert }) => {
   assert.isFalse(value)
   assert.isNull(value)
   assert.isNotNull(value)
-  assert.exists(value)             // not null or undefined
+  assert.exists(value) // not null or undefined
   assert.lengthOf(array, 3)
   assert.include(string, 'sub')
   assert.include(array, item)
@@ -357,12 +349,10 @@ const record = await MyModel.query()
 
 ```typescript
 test('list posts', async ({ client }) => {
-  const response = await client
-    .get('/posts')
-    .setup(async () => {
-      await PostFactory.createMany(20)
-      return () => clearDatabase()
-    })
+  const response = await client.get('/posts').setup(async () => {
+    await PostFactory.createMany(20)
+    return () => clearDatabase()
+  })
   response.assertStatus(200)
 })
 ```
@@ -411,10 +401,7 @@ test.group('Posts | create', (group) => {
   })
 
   test('rejects without CSRF token', async ({ client, assert }) => {
-    await client
-      .post('/posts')
-      .loginAs(user)
-      .fields({ title: 'Hack Attempt' })
+    await client.post('/posts').loginAs(user).fields({ title: 'Hack Attempt' })
     // Verify the post wasn't created
     const post = await Post.findBy('title', 'Hack Attempt')
     assert.isNull(post)

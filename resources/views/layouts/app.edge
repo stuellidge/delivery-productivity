@@ -1,48 +1,54 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ title ?? 'Delivery Performance Platform' }}</title>
-  @vite(['resources/css/app.css', 'resources/js/app.js'])
-  @stack('head')
-</head>
-<body>
-  <nav class="container-fluid">
-    <ul>
-      <li><strong><a href="/dashboard" class="contrast">DPP</a></strong></li>
-    </ul>
-    <ul>
-      @if(auth.isAuthenticated)
-        <li><a href="/dashboard">Dashboard</a></li>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {{ title ?? 'Delivery Performance Platform' }}
+    </title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('head')
+  </head>
+  <body>
+    <nav class="container-fluid">
+      <ul>
         <li>
-          <form method="POST" action="/logout?_method=POST" style="margin: 0; display: inline">
-            {{ csrfField() }}
-            <button type="submit" class="outline secondary" style="padding: 0.4rem 0.8rem">
-              Sign out
-            </button>
-          </form>
+          <strong>            <a href="/dashboard" class="contrast">DPP</a></strong>
         </li>
+      </ul>
+      <ul>
+        @if(auth.isAuthenticated)
+          <li>
+            <a href="/dashboard">Dashboard</a>
+          </li>
+          <li>
+            <form method="POST" action="/logout?_method=POST" style="margin: 0; display: inline">
+              {{ csrfField() }}
+            <button type="submit" class="outline secondary" style="padding: 0.4rem 0.8rem">
+                Sign out
+            </button>
+            </form>
+          </li>
+        @end
+      </ul>
+    </nav>
+
+    <main class="container">
+      @if(flashMessages.has('success'))
+        <article class="flash-success">
+          {{ flashMessages.get('success') }}
+        </article>
       @end
-    </ul>
-  </nav>
+      
+      @if(flashMessages.has('error'))
+        <article class="flash-error">
+          {{ flashMessages.get('error') }}
+        </article>
+      @end
+      
+      {{{ await $slots.main() }}}
+    </main>
 
-  <main class="container">
-    @if(flashMessages.has('success'))
-      <article class="flash-success">
-        {{ flashMessages.get('success') }}
-      </article>
-    @end
-
-    @if(flashMessages.has('error'))
-      <article class="flash-error">
-        {{ flashMessages.get('error') }}
-      </article>
-    @end
-
-    {{{ await $slots.main() }}}
-  </main>
-
-  @stack('js')
-</body>
+    @stack('js')
+  </body>
 </html>

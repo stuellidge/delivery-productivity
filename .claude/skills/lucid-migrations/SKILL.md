@@ -45,35 +45,39 @@ export default class extends BaseSchema {
 ## Column Types
 
 ### Numeric
+
 ```typescript
-table.increments('id')                    // Auto-increment primary key (serial in PG)
-table.integer('count')                    // Standard integer
-table.bigInteger('large_count')           // For values > 2^31
-table.decimal('price', 8, 2)             // Precision and scale
-table.float('score')                      // Floating point
-table.boolean('is_active')               // Boolean
+table.increments('id') // Auto-increment primary key (serial in PG)
+table.integer('count') // Standard integer
+table.bigInteger('large_count') // For values > 2^31
+table.decimal('price', 8, 2) // Precision and scale
+table.float('score') // Floating point
+table.boolean('is_active') // Boolean
 ```
 
 ### String / Text
+
 ```typescript
-table.string('name', 255)                // VARCHAR(255) — always specify length
-table.text('body')                        // Unlimited text
-table.uuid('uuid')                        // UUID type
+table.string('name', 255) // VARCHAR(255) — always specify length
+table.text('body') // Unlimited text
+table.uuid('uuid') // UUID type
 table.enum('status', ['pending', 'done']) // Enum column
-table.json('metadata')                    // JSON column
-table.jsonb('metadata')                   // JSONB column (PostgreSQL — prefer this)
+table.json('metadata') // JSON column
+table.jsonb('metadata') // JSONB column (PostgreSQL — prefer this)
 ```
 
 ### Date / Time
+
 ```typescript
-table.timestamp('created_at', { useTz: true })   // Timestamp with timezone
-table.date('date_of_birth')                       // Date only (no time)
-table.dateTime('scheduled_at', { useTz: true })   // Alias for timestamp
+table.timestamp('created_at', { useTz: true }) // Timestamp with timezone
+table.date('date_of_birth') // Date only (no time)
+table.dateTime('scheduled_at', { useTz: true }) // Alias for timestamp
 ```
 
 ### Binary
+
 ```typescript
-table.binary('file_data')                // Binary/blob data
+table.binary('file_data') // Binary/blob data
 ```
 
 ## Column Modifiers
@@ -81,27 +85,20 @@ table.binary('file_data')                // Binary/blob data
 ```typescript
 table.string('email').notNullable().unique()
 table.integer('sort_order').defaultTo(0)
-table.string('nickname').nullable()           // columns are nullable by default in PG
-table.string('slug').index()                  // single column index
-table.integer('user_id').unsigned()           // required for FK references to increments()
+table.string('nickname').nullable() // columns are nullable by default in PG
+table.string('slug').index() // single column index
+table.integer('user_id').unsigned() // required for FK references to increments()
 ```
 
 ## Foreign Keys
 
 ```typescript
 // Inline (preferred for simple cases)
-table.integer('user_id')
-  .unsigned()
-  .references('id')
-  .inTable('users')
-  .onDelete('CASCADE')
+table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE')
 
 // Separate constraint (for composite or named constraints)
 table.integer('user_id').unsigned()
-table.foreign('user_id')
-  .references('users.id')
-  .onDelete('CASCADE')
-  .onUpdate('CASCADE')
+table.foreign('user_id').references('users.id').onDelete('CASCADE').onUpdate('CASCADE')
 ```
 
 ## Indexes
@@ -185,7 +182,7 @@ node ace migration:fresh --seed              # Drop all + re-run + seed
 node ace migration:status                    # Show migration status
 ```
 
-***Preferred: create a Lucid model and migration together with `node ace make:model Post -m`.***
+**_Preferred: create a Lucid model and migration together with `node ace make:model Post -m`._**
 
 ## Running Migrations for Tests
 
@@ -213,18 +210,21 @@ migrations: {
 ## Common Patterns
 
 ### Soft Deletes
+
 ```typescript
 table.timestamp('deleted_at', { useTz: true }).nullable()
 ```
 
 ### Polymorphic Columns
+
 ```typescript
-table.string('commentable_type')   // e.g. 'Post', 'Video'
+table.string('commentable_type') // e.g. 'Post', 'Video'
 table.integer('commentable_id').unsigned()
 table.index(['commentable_type', 'commentable_id'])
 ```
 
 ### Pivot Table (many-to-many)
+
 ```typescript
 // Convention: singular model names in alphabetical order → post_tag
 this.schema.createTable('post_tag', (table) => {

@@ -1,4 +1,12 @@
-import { Chart, ScatterController, LinearScale, TimeScale, PointElement, Tooltip, Legend } from 'chart.js'
+import {
+  Chart,
+  ScatterController,
+  LinearScale,
+  TimeScale,
+  PointElement,
+  Tooltip,
+  Legend,
+} from 'chart.js'
 import 'chartjs-adapter-luxon'
 
 Chart.register(ScatterController, LinearScale, TimeScale, PointElement, Tooltip, Legend)

@@ -12,6 +12,7 @@ description: >
 ## Critical: v6 Syntax Changes
 
 Edge.js v6 replaced several APIs. If using legacy code, note:
+
 - `@set` → `@let` (define) and `@assign` (update)
 - `{{ e(value) }}` → `{{ html.escape(value) }}`
 - `{{ safe(value) }}` → `{{ html.safe(value) }}`
@@ -27,10 +28,8 @@ Edge.js v6 replaced several APIs. If using legacy code, note:
 {{ user.username.toUpperCase() }}
 {{ (2 + 2) * 3 }}
 {{ (await getUser()).username }}
-
 {{-- Triple curly braces output raw HTML (unescaped) --}}
 {{{ markdownToHtml(post.body) }}}
-
 {{-- Comments (not rendered in output) --}}
 {{-- This is a comment --}}
 ```
@@ -53,11 +52,17 @@ Edge.js v6 replaced several APIs. If using legacy code, note:
 
 ```edge
 @if(user.isAdmin)
-  <p>Welcome, admin!</p>
+  <p>
+    Welcome, admin!
+  </p>
 @elseif(user.isEditor)
-  <p>Welcome, editor!</p>
+  <p>
+    Welcome, editor!
+  </p>
 @else
-  <p>Welcome, guest!</p>
+  <p>
+    Welcome, guest!
+  </p>
 @end
 
 {{-- Unless (inverse of if) --}}
@@ -71,20 +76,30 @@ Edge.js v6 replaced several APIs. If using legacy code, note:
 ```edge
 {{-- Array iteration --}}
 @each(post in posts)
-  <h2>{{ post.title }}</h2>
-  <p>{{ post.body }}</p>
+  <h2>
+    {{ post.title }}
+  </h2>
+  <p>
+    {{ post.body }}
+  </p>
 @end
 
 {{-- With index --}}
 @each((post, index) in posts)
-  <p>{{ index + 1 }}. {{ post.title }}</p>
+  <p>
+    {{ index + 1 }}. {{ post.title }}
+  </p>
 @end
 
 {{-- Empty state --}}
 @each(post in posts)
-  <h2>{{ post.title }}</h2>
+  <h2>
+    {{ post.title }}
+  </h2>
 @else
-  <p>No posts found.</p>
+  <p>
+    No posts found.
+  </p>
 @end
 ```
 
@@ -95,26 +110,32 @@ Define a layout in `resources/views/layouts/app.edge`:
 ```edge
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>{{ title ?? 'Default Title' }}</title>
-  @vite(['resources/css/app.css', 'resources/js/app.js'])
-  @stack('head')
-</head>
-<body>
-  @slot('header')
-    <header>Default header</header>
-  @end
-
-  @slot('main')
-  @end
-
-  @slot('footer')
-    <footer>Default footer</footer>
-  @end
-
-  @stack('js')
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>
+      {{ title ?? 'Default Title' }}
+    </title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('head')
+  </head>
+  <body>
+    @slot('header')
+      <header>
+        Default header
+      </header>
+    @end
+    
+    @slot('main')
+    @end
+    
+    @slot('footer')
+      <footer>
+        Default footer
+      </footer>
+    @end
+    
+    @stack('js')
+  </body>
 </html>
 ```
 
@@ -123,8 +144,12 @@ Use the layout in a page (use `@component`, NOT `@layout.app()`):
 ```edge
 @component('layouts/app', { title: 'My Page' })
   @slot('main')
-    <h1>Hello world</h1>
-    <p>Page content here.</p>
+    <h1>
+      Hello world
+    </h1>
+    <p>
+      Page content here.
+    </p>
   @end
 @end
 ```
@@ -135,7 +160,9 @@ Use the layout in a page (use `@component`, NOT `@layout.app()`):
 {{-- Include a partial --}}
 @include('partials/header')
 
-<main>Content</main>
+<main>
+  Content
+</main>
 
 @include('partials/footer')
 
@@ -176,16 +203,12 @@ File: `resources/views/components/button.edge`
 ```edge
 {{-- Get a specific prop --}}
 {{ $props.get('text') }}
-
 {{-- Render all props as HTML attributes --}}
 {{ $props.toAttrs() }}
-
 {{-- Exclude specific props from attributes --}}
 {{ $props.except(['text', 'icon']).toAttrs() }}
-
 {{-- Include only specific props --}}
 {{ $props.only(['class', 'id']).toAttrs() }}
-
 {{-- Merge with defaults --}}
 {{ $props.merge({ class: 'btn' }).toAttrs() }}
 ```
@@ -217,13 +240,17 @@ File: `resources/views/components/card.edge`
 ```edge
 @card()
   @slot('header')
-    <h2>Card Title</h2>
+    <h2>
+      Card Title
+    </h2>
   @end
-
+  
   @slot('main')
-    <p>Card content goes here.</p>
+    <p>
+      Card content goes here.
+    </p>
   @end
-
+  
   @slot('footer')
     <button>Action</button>
   @end
@@ -255,13 +282,10 @@ Stacks collect content from child templates/components for injection into layout
 {{-- Excerpt: strip HTML, truncate --}}
 {{ excerpt(post.body, 200) }}
 {{ excerpt(post.body, 200, { suffix: '... [Read more]' }) }}
-
 {{-- Escape HTML --}}
 {{ html.escape(userInput) }}
-
 {{-- Raw HTML (unescaped) --}}
 {{{ html.safe(trustedHtml) }}}
-
 {{-- JSON in templates --}}
 {{ js.stringify(data) }}
 ```
@@ -275,7 +299,7 @@ Always include `{{ csrfField() }}` in forms:
 ```edge
 <form method="POST" action="{{ route('posts.store') }}">
   {{ csrfField() }}
-  <input type="text" name="title" value="{{ flashMessages.get('title', '') }}">
+  <input type="text" name="title" value="{{ flashMessages.get('title', '') }}" />
   <button type="submit">Create</button>
 </form>
 ```
@@ -296,7 +320,7 @@ AdonisJS v6 requires `_method` in the **URL query string**, not as a hidden form
 
 {{-- ❌ Wrong — hidden field is ignored --}}
 <form method="POST" action="{{ route('posts.update', { id: post.id }) }}">
-  <input type="hidden" name="_method" value="PUT">
+  <input type="hidden" name="_method" value="PUT" />
 </form>
 ```
 
@@ -305,15 +329,19 @@ AdonisJS v6 requires `_method` in the **URL query string**, not as a hidden form
 ```edge
 {{-- Display flash messages --}}
 @if(flashMessages.has('success'))
-  <div class="flash-success" role="alert">{{ flashMessages.get('success') }}</div>
+  <div class="flash-success" role="alert">
+    {{ flashMessages.get('success') }}
+  </div>
 @end
 
 @if(flashMessages.has('error'))
-  <div class="flash-error" role="alert">{{ flashMessages.get('error') }}</div>
+  <div class="flash-error" role="alert">
+    {{ flashMessages.get('error') }}
+  </div>
 @end
 
 {{-- Repopulate form fields with old input --}}
-<input type="text" name="title" value="{{ flashMessages.get('title', '') }}">
+<input type="text" name="title" value="{{ flashMessages.get('title', '') }}" />
 
 {{-- Display validation errors --}}
 @if(flashMessages.has('errors.title'))
@@ -331,7 +359,7 @@ AdonisJS v6 requires `_method` in the **URL query string**, not as a hidden form
   id="title"
   value="{{ flashMessages.get('title', '') }}"
   {{ flashMessages.has('errors.title') ? 'aria-invalid="true"' : '' }}
->
+/>
 @if(flashMessages.has('errors.title'))
   <small>{{ flashMessages.get('errors.title') }}</small>
 @end
@@ -387,7 +415,6 @@ Use index-based comparison instead:
 {{-- ❌ WRONG — arrow functions fail silently --}}
 {{ items.filter(i => i.active).length }}
 {{ items.map(i => i.name).join(', ') }}
-
 {{-- ✅ CORRECT — use @each/@if, or compute in controller --}}
 ```
 

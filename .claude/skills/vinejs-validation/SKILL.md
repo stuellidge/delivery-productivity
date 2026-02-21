@@ -43,14 +43,12 @@ export const createPostValidator = vine.compile(
 )
 
 // Validator with metadata (for update uniqueness checks)
-export const updatePostValidator = vine
-  .withMetaData<{ resourceId: number }>()
-  .compile(
-    vine.object({
-      title: vine.string().trim().minLength(1).maxLength(255),
-      body: vine.string().trim().optional(),
-    })
-  )
+export const updatePostValidator = vine.withMetaData<{ resourceId: number }>().compile(
+  vine.object({
+    title: vine.string().trim().minLength(1).maxLength(255),
+    body: vine.string().trim().optional(),
+  })
+)
 ```
 
 ## Using Validators in Controllers
@@ -90,24 +88,24 @@ in Edge.js templates via `flashMessages.get('errors.fieldName')`.
 ### String — `vine.string()`
 
 ```typescript
-vine.string()                           // required string
-vine.string().trim()                    // trim whitespace (always use this)
-vine.string().minLength(1)              // minimum length
-vine.string().maxLength(255)            // maximum length
-vine.string().fixedLength(10)           // exact length
-vine.string().email()                   // email validation
-vine.string().url()                     // URL validation
-vine.string().uuid()                    // UUID validation
-vine.string().regex(/^\d{3}-\d{4}$/)   // custom regex
-vine.string().alpha()                   // letters only
-vine.string().alphaNumeric()            // letters and numbers only
-vine.string().confirmed()              // requires matching _confirmation field
-vine.string().toLowerCase()             // transform to lowercase
-vine.string().toUpperCase()             // transform to uppercase
-vine.string().escape()                  // HTML-escape the value
-vine.string().ipAddress()               // IP address (v4 or v6)
-vine.string().creditCard()              // credit card number
-vine.string().mobile({ locale: ['en-GB'] })  // phone number
+vine.string() // required string
+vine.string().trim() // trim whitespace (always use this)
+vine.string().minLength(1) // minimum length
+vine.string().maxLength(255) // maximum length
+vine.string().fixedLength(10) // exact length
+vine.string().email() // email validation
+vine.string().url() // URL validation
+vine.string().uuid() // UUID validation
+vine.string().regex(/^\d{3}-\d{4}$/) // custom regex
+vine.string().alpha() // letters only
+vine.string().alphaNumeric() // letters and numbers only
+vine.string().confirmed() // requires matching _confirmation field
+vine.string().toLowerCase() // transform to lowercase
+vine.string().toUpperCase() // transform to uppercase
+vine.string().escape() // HTML-escape the value
+vine.string().ipAddress() // IP address (v4 or v6)
+vine.string().creditCard() // credit card number
+vine.string().mobile({ locale: ['en-GB'] }) // phone number
 vine.string().postalCode({ countryCode: ['GB'] })
 
 // Chaining multiple rules
@@ -117,39 +115,39 @@ vine.string().trim().minLength(1).maxLength(255).toLowerCase()
 ### Number — `vine.number()`
 
 ```typescript
-vine.number()                           // required number (coerces strings)
-vine.number({ strict: true })           // no string-to-number coercion
-vine.number().min(0)                    // minimum value
-vine.number().max(100)                  // maximum value
-vine.number().range([1, 10])            // value between 1 and 10
-vine.number().positive()                // must be > 0
-vine.number().negative()                // must be < 0
-vine.number().nonNegative()             // must be >= 0
-vine.number().decimal([2, 4])           // 2–4 decimal places
-vine.number().withoutDecimals()         // integer only
-vine.number().in([10, 20, 30])          // allowed values
+vine.number() // required number (coerces strings)
+vine.number({ strict: true }) // no string-to-number coercion
+vine.number().min(0) // minimum value
+vine.number().max(100) // maximum value
+vine.number().range([1, 10]) // value between 1 and 10
+vine.number().positive() // must be > 0
+vine.number().negative() // must be < 0
+vine.number().nonNegative() // must be >= 0
+vine.number().decimal([2, 4]) // 2–4 decimal places
+vine.number().withoutDecimals() // integer only
+vine.number().in([10, 20, 30]) // allowed values
 ```
 
 ### Boolean — `vine.boolean()`
 
 ```typescript
-vine.boolean()                          // accepts true/false, 1/0, 'true'/'false'
-vine.boolean({ strict: true })          // only true/false
-vine.boolean().accepted()               // must be truthy (for checkboxes/ToS)
+vine.boolean() // accepts true/false, 1/0, 'true'/'false'
+vine.boolean({ strict: true }) // only true/false
+vine.boolean().accepted() // must be truthy (for checkboxes/ToS)
 ```
 
 ### Date — `vine.date()`
 
 ```typescript
-vine.date()                             // any parseable date
-vine.date({ formats: ['YYYY-MM-DD'] })  // specific format(s)
-vine.date().before('today')             // must be in the past
-vine.date().after('today')              // must be in the future
+vine.date() // any parseable date
+vine.date({ formats: ['YYYY-MM-DD'] }) // specific format(s)
+vine.date().before('today') // must be in the past
+vine.date().after('today') // must be in the future
 vine.date().beforeOrEqual('2025-12-31')
 vine.date().afterOrEqual('2020-01-01')
-vine.date().afterField('startDate')     // compare to another field
-vine.date().weekday()                   // must be a weekday
-vine.date().weekend()                   // must be a weekend
+vine.date().afterField('startDate') // compare to another field
+vine.date().weekday() // must be a weekday
+vine.date().weekend() // must be a weekend
 ```
 
 ### Enum — `vine.enum()`
@@ -162,7 +160,10 @@ vine.enum(['draft', 'published', 'archived'])
 vine.enum(['draft', 'published', 'archived'] as const)
 
 // TypeScript enum
-enum Status { Draft = 'draft', Published = 'published' }
+enum Status {
+  Draft = 'draft',
+  Published = 'published',
+}
 vine.enum(Status)
 
 // Dynamic values from metadata
@@ -187,17 +188,15 @@ vine.array(
 )
 
 // Modifiers
-vine.array(vine.number()).minLength(1)     // at least one item
-vine.array(vine.number()).maxLength(10)    // at most 10 items
-vine.array(vine.number()).fixedLength(3)   // exactly 3 items
-vine.array(vine.number()).notEmpty()       // alias for minLength(1)
-vine.array(vine.number()).distinct()       // unique values only
-vine.array(vine.number()).compact()        // remove null/undefined/empty strings
+vine.array(vine.number()).minLength(1) // at least one item
+vine.array(vine.number()).maxLength(10) // at most 10 items
+vine.array(vine.number()).fixedLength(3) // exactly 3 items
+vine.array(vine.number()).notEmpty() // alias for minLength(1)
+vine.array(vine.number()).distinct() // unique values only
+vine.array(vine.number()).compact() // remove null/undefined/empty strings
 
 // Distinct by field (for arrays of objects)
-vine.array(
-  vine.object({ email: vine.string() })
-).distinct('email')
+vine.array(vine.object({ email: vine.string() })).distinct('email')
 ```
 
 ### Object — `vine.object()`
@@ -231,9 +230,7 @@ const paymentMethod = vine.group([
 ])
 
 // Merge the group into a parent object
-const schema = vine
-  .object({ type: vine.enum(['stripe', 'paypal']) })
-  .merge(paymentMethod)
+const schema = vine.object({ type: vine.enum(['stripe', 'paypal']) }).merge(paymentMethod)
 
 // Union of simple types (for a single field)
 vine.unionOfTypes([vine.string(), vine.boolean()])
@@ -266,19 +263,25 @@ VineJS provides `.unique()` for async database validation:
 // CREATE — check name is unique in the table
 export const createArtistValidator = vine.compile(
   vine.object({
-    name: vine.string().trim().minLength(1).unique(async (db, value) => {
-      const row = await db.from('artists').where('name', value).first()
-      return !row  // return true if unique
-    }),
+    name: vine
+      .string()
+      .trim()
+      .minLength(1)
+      .unique(async (db, value) => {
+        const row = await db.from('artists').where('name', value).first()
+        return !row // return true if unique
+      }),
   })
 )
 
 // UPDATE — exclude current record from uniqueness check
-export const updateArtistValidator = vine
-  .withMetaData<{ resourceId: number }>()
-  .compile(
-    vine.object({
-      name: vine.string().trim().minLength(1).unique(async (db, value, field) => {
+export const updateArtistValidator = vine.withMetaData<{ resourceId: number }>().compile(
+  vine.object({
+    name: vine
+      .string()
+      .trim()
+      .minLength(1)
+      .unique(async (db, value, field) => {
         const row = await db
           .from('artists')
           .where('name', value)
@@ -286,8 +289,8 @@ export const updateArtistValidator = vine
           .first()
         return !row
       }),
-    })
-  )
+  })
+)
 ```
 
 **Important:** The `.unique()` callback receives the Lucid `db` query builder.
@@ -330,11 +333,7 @@ const isActiveUser = vine.createRule(
 // Rule with typed options
 const divisibleBy = vine.createRule<{ divisor: number }>((value, options, field) => {
   if (typeof value === 'number' && value % options.divisor !== 0) {
-    field.report(
-      `The {{ field }} must be divisible by ${options.divisor}`,
-      'divisibleBy',
-      field
-    )
+    field.report(`The {{ field }} must be divisible by ${options.divisor}`, 'divisibleBy', field)
   }
 })
 
@@ -379,6 +378,7 @@ vine.messagesProvider = new SimpleMessagesProvider(
 ```
 
 You can also pass messages per-validation:
+
 ```typescript
 await validator.validate(data, {
   messagesProvider: new SimpleMessagesProvider(messages),
@@ -402,16 +402,14 @@ export const createPostValidator = vine.compile(
   })
 )
 
-export const updatePostValidator = vine
-  .withMetaData<{ resourceId: number }>()
-  .compile(
-    vine.object({
-      title: vine.string().trim().minLength(1).maxLength(255),
-      body: vine.string().trim(),
-      status: vine.enum(['draft', 'published']),
-      tags: vine.array(vine.number()).optional(),
-    })
-  )
+export const updatePostValidator = vine.withMetaData<{ resourceId: number }>().compile(
+  vine.object({
+    title: vine.string().trim().minLength(1).maxLength(255),
+    body: vine.string().trim(),
+    status: vine.enum(['draft', 'published']),
+    tags: vine.array(vine.number()).optional(),
+  })
+)
 ```
 
 ### Validator Factory for Repetitive Entities
@@ -425,10 +423,14 @@ import vine from '@vinejs/vine'
 export function createNameValidator(tableName: string) {
   return vine.compile(
     vine.object({
-      name: vine.string().trim().minLength(1).unique(async (db, value) => {
-        const row = await db.from(tableName).where('name', value).first()
-        return !row
-      }),
+      name: vine
+        .string()
+        .trim()
+        .minLength(1)
+        .unique(async (db, value) => {
+          const row = await db.from(tableName).where('name', value).first()
+          return !row
+        }),
     })
   )
 }
@@ -436,14 +438,18 @@ export function createNameValidator(tableName: string) {
 export function updateNameValidator(tableName: string) {
   return vine.withMetaData<{ resourceId: number }>().compile(
     vine.object({
-      name: vine.string().trim().minLength(1).unique(async (db, value, field) => {
-        const row = await db
-          .from(tableName)
-          .where('name', value)
-          .whereNot('id', field.meta.resourceId)
-          .first()
-        return !row
-      }),
+      name: vine
+        .string()
+        .trim()
+        .minLength(1)
+        .unique(async (db, value, field) => {
+          const row = await db
+            .from(tableName)
+            .where('name', value)
+            .whereNot('id', field.meta.resourceId)
+            .first()
+          return !row
+        }),
     })
   )
 }
@@ -452,6 +458,7 @@ export function updateNameValidator(tableName: string) {
 ## Common Real-World Patterns
 
 ### Login Form
+
 ```typescript
 export const loginValidator = vine.compile(
   vine.object({
@@ -462,42 +469,52 @@ export const loginValidator = vine.compile(
 ```
 
 ### Registration Form
+
 ```typescript
 export const registerValidator = vine.compile(
   vine.object({
     username: vine.string().trim().minLength(3).maxLength(30).alphaNumeric(),
-    email: vine.string().trim().email().unique(async (db, value) => {
-      const row = await db.from('users').where('email', value).first()
-      return !row
-    }),
+    email: vine
+      .string()
+      .trim()
+      .email()
+      .unique(async (db, value) => {
+        const row = await db.from('users').where('email', value).first()
+        return !row
+      }),
     password: vine.string().minLength(8).maxLength(32).confirmed(),
   })
 )
 ```
 
 ### Multi-select / Many-to-Many
+
 ```typescript
 // For checkbox groups or multi-select dropdowns
 vine.object({
-  genres: vine.array(vine.number()).optional(),   // array of IDs
+  genres: vine.array(vine.number()).optional(), // array of IDs
   tags: vine.array(vine.number()).optional(),
 })
 ```
 
 ### Enum with Optional
+
 ```typescript
 vine.object({
   status: vine.enum(['draft', 'published', 'archived']),
-  priority: vine
-    .enum(['low', 'medium', 'high', 'critical'])
-    .optional(),
+  priority: vine.enum(['low', 'medium', 'high', 'critical']).optional(),
 })
 ```
 
 ### Regex Pattern (e.g. duration mm:ss)
+
 ```typescript
 vine.object({
-  duration: vine.string().trim().regex(/^\d{1,3}:[0-5]\d$/).optional(),
+  duration: vine
+    .string()
+    .trim()
+    .regex(/^\d{1,3}:[0-5]\d$/)
+    .optional(),
 })
 ```
 

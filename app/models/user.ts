@@ -47,8 +47,8 @@ export default class User extends compose(BaseModel, AuthFinder) {
     roleName: RoleName,
     options?: { deliveryStreamId?: number; techStreamId?: number }
   ): Promise<boolean> {
-    await this.load('roles')
-    return this.roles.some((role) => {
+    const roles = await UserRole.query().where('user_id', this.id)
+    return roles.some((role) => {
       if (role.role !== roleName) return false
       if (options?.deliveryStreamId && role.deliveryStreamId !== null) {
         return role.deliveryStreamId === options.deliveryStreamId

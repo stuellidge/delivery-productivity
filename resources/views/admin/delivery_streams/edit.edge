@@ -2,13 +2,21 @@
   @slot('main')
     <nav aria-label="breadcrumb">
       <ul>
-        <li><a href="/admin">Admin</a></li>
-        <li><a href="/admin/streams/delivery">Delivery Streams</a></li>
-        <li>Edit {{ stream.displayName }}</li>
+        <li>
+          <a href="/admin">Admin</a>
+        </li>
+        <li>
+          <a href="/admin/streams/delivery">Delivery Streams</a>
+        </li>
+        <li>
+          Edit {{ stream.displayName }}
+        </li>
       </ul>
     </nav>
 
-    <h1>Edit Delivery Stream</h1>
+    <h1>
+      Edit Delivery Stream
+    </h1>
 
     <form method="POST" action="/admin/streams/delivery/{{ stream.id }}?_method=PUT">
       {{ csrfField() }}
@@ -23,7 +31,7 @@
           pattern="[a-z0-9\-_]+"
           required
           {{ flashMessages.has('errors.name') ? 'aria-invalid="true"' : '' }}
-        >
+        />
         @if(flashMessages.has('errors.name'))
           <small>{{ flashMessages.get('errors.name') }}</small>
         @end
@@ -38,7 +46,7 @@
           value="{{ flashMessages.get('displayName', stream.displayName) }}"
           required
           {{ flashMessages.has('errors.displayName') ? 'aria-invalid="true"' : '' }}
-        >
+        />
         @if(flashMessages.has('errors.displayName'))
           <small>{{ flashMessages.get('errors.displayName') }}</small>
         @end
@@ -46,19 +54,11 @@
 
       <label for="description">
         Description (optional)
-        <textarea
-          id="description"
-          name="description"
-        >{{ flashMessages.get('description', stream.description ?? '') }}</textarea>
+        <textarea id="description" name="description">{{ flashMessages.get('description', stream.description ?? '') }}</textarea>
       </label>
 
       <label>
-        <input
-          type="checkbox"
-          name="isActive"
-          value="1"
-          {{ stream.isActive ? 'checked' : '' }}
-        >
+        <input type="checkbox" name="isActive" value="1" {{ stream.isActive ? 'checked' : '' }} />
         Active
       </label>
 

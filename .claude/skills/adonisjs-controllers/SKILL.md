@@ -88,14 +88,17 @@ router.resource('posts', PostsController)
 router.resource('posts', PostsController).apiOnly()
 
 // Nested resource routes
-router.resource('posts.comments', CommentsController)
+router
+  .resource('posts.comments', CommentsController)
   .only(['create', 'store', 'edit', 'update', 'destroy'])
 
 // Route groups
-router.group(() => {
-  router.resource('posts', PostsController)
-  router.resource('users', UsersController)
-}).prefix('/api/v1')
+router
+  .group(() => {
+    router.resource('posts', PostsController)
+    router.resource('users', UsersController)
+  })
+  .prefix('/api/v1')
 
 // HTTP methods
 router.get('path', handler)
@@ -103,7 +106,7 @@ router.post('path', handler)
 router.put('path', handler)
 router.patch('path', handler)
 router.delete('path', handler)
-router.any('path', handler)         // all standard methods
+router.any('path', handler) // all standard methods
 router.route('/', ['TRACE'], handler) // custom methods
 ```
 
@@ -148,15 +151,15 @@ import { middleware } from '#start/kernel'
 router.get('/dashboard', [DashboardController, 'index']).use(middleware.auth())
 
 // With parameters
-router.get('/payments', [PaymentsController, 'index']).use(
-  middleware.auth({ guards: ['web'] })
-)
+router.get('/payments', [PaymentsController, 'index']).use(middleware.auth({ guards: ['web'] }))
 
 // Route group
-router.group(() => {
-  router.get('/dashboard', [DashboardController, 'index'])
-  router.get('/profile', [ProfileController, 'show'])
-}).use(middleware.auth())
+router
+  .group(() => {
+    router.get('/dashboard', [DashboardController, 'index'])
+    router.get('/profile', [ProfileController, 'show'])
+  })
+  .use(middleware.auth())
 
 // Silent auth for public pages with auth-dependent UI
 router.on('/').render('pages/home').use(middleware.silentAuth())
@@ -280,7 +283,7 @@ export const http = defineConfig({
 
 <!-- ❌ Wrong — hidden field is ignored -->
 <form method="POST" action="/posts/1">
-  <input type="hidden" name="_method" value="PUT">
+  <input type="hidden" name="_method" value="PUT" />
 </form>
 ```
 
@@ -339,19 +342,26 @@ Genres, Tags), create an abstract base controller to eliminate boilerplate:
 // app/controllers/base/simple_resource_controller.ts
 export default abstract class SimpleResourceController {
   protected abstract model: typeof BaseModel
-  protected abstract resourceName: string       // singular, camelCase
-  protected abstract routePrefix: string        // URL prefix
+  protected abstract resourceName: string // singular, camelCase
+  protected abstract routePrefix: string // URL prefix
   protected abstract createValidator: VineValidator
   protected abstract updateValidator: VineValidator
 
-  async index({ view }: HttpContext) { /* shared index logic */ }
-  async create({ view }: HttpContext) { /* shared create form */ }
-  async store({ request, response, session }: HttpContext) { /* shared store */ }
+  async index({ view }: HttpContext) {
+    /* shared index logic */
+  }
+  async create({ view }: HttpContext) {
+    /* shared create form */
+  }
+  async store({ request, response, session }: HttpContext) {
+    /* shared store */
+  }
   // ... etc
 }
 ```
 
 Concrete controllers then become config-only:
+
 ```typescript
 export default class CategoriesController extends SimpleResourceController {
   protected model = Category

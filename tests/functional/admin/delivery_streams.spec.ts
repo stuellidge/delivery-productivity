@@ -132,9 +132,7 @@ test.group('Admin | Delivery Streams | edit', (group) => {
       isActive: true,
     })
 
-    const response = await client
-      .get(`/admin/streams/delivery/${stream.id}/edit`)
-      .loginAs(admin)
+    const response = await client.get(`/admin/streams/delivery/${stream.id}/edit`).loginAs(admin)
 
     response.assertStatus(200)
     response.assertTextIncludes('Payments')

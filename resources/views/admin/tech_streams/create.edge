@@ -1,28 +1,48 @@
 @component('layouts/app', { title: 'New Technology Stream — Admin' })
   @slot('main')
-    <h1>New Technology Stream</h1>
+    <h1>
+      New Technology Stream
+    </h1>
 
     <form method="POST" action="/admin/streams/tech">
       {{ csrfField() }}
 
       <label for="name">
         Slug (e.g. <code>core-api</code>)
-        <input type="text" id="name" name="name" value="{{ flashMessages.get('name', '') }}" required>
+        <input type="text" id="name" name="name" value="{{ flashMessages.get('name', '') }}" required />
       </label>
 
       <label for="displayName">
         Display Name
-        <input type="text" id="displayName" name="displayName" value="{{ flashMessages.get('displayName', '') }}" required>
+        <input
+          type="text"
+          id="displayName"
+          name="displayName"
+          value="{{ flashMessages.get('displayName', '') }}"
+          required
+        />
       </label>
 
       <label for="githubOrg">
         GitHub Organisation
-        <input type="text" id="githubOrg" name="githubOrg" value="{{ flashMessages.get('githubOrg', '') }}" required>
+        <input
+          type="text"
+          id="githubOrg"
+          name="githubOrg"
+          value="{{ flashMessages.get('githubOrg', '') }}"
+          required
+        />
       </label>
 
       <label for="githubInstallId">
         GitHub App Installation ID
-        <input type="text" id="githubInstallId" name="githubInstallId" value="{{ flashMessages.get('githubInstallId', '') }}" required>
+        <input
+          type="text"
+          id="githubInstallId"
+          name="githubInstallId"
+          value="{{ flashMessages.get('githubInstallId', '') }}"
+          required
+        />
       </label>
 
       <label for="description">
