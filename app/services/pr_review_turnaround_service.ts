@@ -53,7 +53,7 @@ export default class PrReviewTurnaroundService {
 
     const reviewerConcentration: ReviewerConcentration[] = []
     for (const [reviewerHash, count] of reviewerCounts) {
-      const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0
+      const percentage = (count / totalReviews) * 100
       reviewerConcentration.push({
         reviewerHash,
         reviewCount: count,

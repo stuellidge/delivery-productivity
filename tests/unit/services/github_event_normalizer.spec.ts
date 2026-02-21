@@ -265,6 +265,43 @@ test.group('Github event normalizer | pull_request opened', (group) => {
   })
 })
 
+test.group('Github event normalizer | pull_request closed without merge', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('creates closed event when action=closed and pr.merged=false', async ({ assert }) => {
+    const { repo } = await seedTechStreamAndRepo()
+
+    const closedPayload = buildPullRequestPayload({
+      action: 'closed',
+      pull_request: {
+        number: 101,
+        title: 'Add feature',
+        body: null,
+        user: { login: 'alice' },
+        head: { ref: 'feat/add-feature' },
+        base: { ref: 'main' },
+        additions: 50,
+        deletions: 10,
+        changed_files: 3,
+        created_at: PR_OPENED_AT,
+        updated_at: PR_REVIEW_AT,
+        merged: false,
+      },
+    })
+
+    const service = new GithubEventNormalizerService(closedPayload, 'pull_request', undefined)
+    await service.process()
+
+    const event = await PrEvent.query()
+      .where('repo_id', repo.id)
+      .where('pr_number', 101)
+      .where('event_type', 'closed')
+      .first()
+
+    assert.isNotNull(event)
+  })
+})
+
 test.group('Github event normalizer | pull_request merged', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 

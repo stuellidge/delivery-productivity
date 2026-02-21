@@ -169,6 +169,33 @@ test.group('Github Webhooks | pull_request_review events', (group) => {
   })
 })
 
+test.group('Github Webhooks | unexpected errors', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('returns 500 when an unexpected error occurs in the service', async ({ client }) => {
+    await seedTechStreamAndRepo()
+
+    // Omitting pull_request causes TypeError inside the service (pr.number on undefined)
+    // This exercises the controller's re-throw path for non-InvalidSignatureErrors
+    const malformedPayload = {
+      action: 'opened',
+      installation: { id: 99001 },
+      repository: {
+        full_name: 'acme-org/backend',
+        name: 'backend',
+        owner: { login: 'acme-org' },
+      },
+    }
+
+    const response = await client
+      .post(WEBHOOK_PATH)
+      .header('x-github-event', 'pull_request')
+      .json(malformedPayload)
+
+    response.assertStatus(500)
+  })
+})
+
 test.group('Github Webhooks | signature verification', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 

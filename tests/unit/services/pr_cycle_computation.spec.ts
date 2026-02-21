@@ -221,6 +221,27 @@ test.group('PrCycleComputationService', (group) => {
     assert.equal(result!.mergedAt!.toISO()!.substring(0, 19), T3.toISO()!.substring(0, 19))
   })
 
+  test('computes cycle with no merge event — mergedAt and timeToMergeHrs are null', async ({
+    assert,
+  }) => {
+    const { repo, techStream } = await seedTechStreamAndRepo()
+
+    // opened + review only, no merge → covers null branches for mergedAt / timeToMergeHrs
+    // and uses openedEvent as the referenceEvent fallback
+    await createPrEvent(repo.id, techStream.id, 211, 'opened', T0, { linesAdded: 10, linesRemoved: 2 })
+    await createPrEvent(repo.id, techStream.id, 211, 'review_submitted', T1, {
+      reviewerHash: 'hash_bob',
+    })
+
+    const service = new PrCycleComputationService(repo.id, 211, techStream.id)
+    const result = await service.compute()
+
+    assert.isNotNull(result)
+    assert.isNull(result!.mergedAt)
+    assert.isNull(result!.timeToMergeHrs)
+    assert.isNotNull(result!.timeToFirstReviewHrs) // T0→T1 = 25h
+  })
+
   test('approved_at is set from approved event', async ({ assert }) => {
     const { repo, techStream } = await seedTechStreamAndRepo()
 

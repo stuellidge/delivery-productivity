@@ -3,6 +3,7 @@ import testUtils from '@adonisjs/core/services/test_utils'
 import { DateTime } from 'luxon'
 import User from '#models/user'
 import DeliveryStream from '#models/delivery_stream'
+import TechStream from '#models/tech_stream'
 import WorkItemEvent from '#models/work_item_event'
 import WorkItemCycle from '#models/work_item_cycle'
 
@@ -148,5 +149,24 @@ test.group('Dashboard | GET /dashboard', (group) => {
 
     const response = await client.get('/dashboard').loginAs(user)
     assert.include(response.text(), 'cycleTimeChart')
+  })
+
+  test('renders Developer Experience section when tech streams are configured', async ({
+    client,
+    assert,
+  }) => {
+    const user = await createUser()
+    await DeliveryStream.create({ name: 'payments', displayName: 'Payments', isActive: true })
+    await TechStream.create({
+      name: 'platform',
+      displayName: 'Platform',
+      githubOrg: 'acme-platform',
+      githubInstallId: '12345',
+      isActive: true,
+    })
+
+    const response = await client.get('/dashboard').loginAs(user)
+    response.assertStatus(200)
+    assert.include(response.text(), 'Connect your GitHub webhook')
   })
 })
