@@ -1,0 +1,49 @@
+@component('layouts/app', { title: 'Status Mappings — Admin' })
+  @slot('main')
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem">
+      <h1>Jira Status Mappings</h1>
+      <a href="/admin/status-mappings/create" role="button">New Mapping</a>
+    </div>
+
+    <p>Configure how Jira workflow statuses map to DPP pipeline stages.</p>
+
+    @if(mappings.length === 0)
+      <article>
+        <p>No status mappings configured yet. <a href="/admin/status-mappings/create">Create the first one</a>.</p>
+      </article>
+    @else
+      <figure>
+        <table>
+          <thead>
+            <tr>
+              <th>Jira Project</th>
+              <th>Jira Status</th>
+              <th>Pipeline Stage</th>
+              <th>Active Work?</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @each(mapping in mappings)
+              <tr>
+                <td><code>{{ mapping.jiraProjectKey }}</code></td>
+                <td>{{ mapping.jiraStatusName }}</td>
+                <td><code>{{ mapping.pipelineStage }}</code></td>
+                <td>{{ mapping.isActiveWork ? 'Yes' : 'No' }}</td>
+                <td>
+                  <div class="form-actions">
+                    <a href="/admin/status-mappings/{{ mapping.id }}/edit" class="outline">Edit</a>
+                    <form method="POST" action="/admin/status-mappings/{{ mapping.id }}?_method=DELETE">
+                      {{ csrfField() }}
+                      <button type="submit" class="secondary outline">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            @end
+          </tbody>
+        </table>
+      </figure>
+    @end
+  @end
+@end

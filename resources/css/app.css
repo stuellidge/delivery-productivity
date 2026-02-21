@@ -1,0 +1,87 @@
+@import '@picocss/pico';
+
+/* DPP Custom Styles */
+:root {
+  --pico-font-size: 15px;
+}
+
+/* Flash message styles */
+.flash-success {
+  background: var(--pico-ins-color, #2d6a4f);
+  color: white;
+  padding: var(--pico-spacing);
+  border-radius: var(--pico-border-radius);
+  margin-bottom: var(--pico-spacing);
+}
+
+.flash-error {
+  background: var(--pico-del-color, #d62828);
+  color: white;
+  padding: var(--pico-spacing);
+  border-radius: var(--pico-border-radius);
+  margin-bottom: var(--pico-spacing);
+}
+
+/* Metrics dashboard styles */
+.metric-card {
+  padding: var(--pico-spacing);
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  margin-bottom: var(--pico-spacing);
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.metric-label {
+  font-size: 0.85rem;
+  color: var(--pico-muted-color);
+}
+
+.wip-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--pico-spacing);
+}
+
+.wip-stage {
+  text-align: center;
+  padding: var(--pico-spacing);
+  background: var(--pico-card-background-color);
+  border-radius: var(--pico-border-radius);
+  border: 1px solid var(--pico-muted-border-color);
+}
+
+.wip-count {
+  font-size: 2.5rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.wip-stage-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pico-muted-color);
+  margin-top: 0.25rem;
+}
+
+/* Inline form actions */
+.form-actions {
+  display: flex;
+  gap: var(--pico-spacing);
+  align-items: center;
+}
+
+.form-actions button,
+.form-actions [role='button'] {
+  width: auto;
+  margin-bottom: 0;
+}
+
+/* Navigation adjustments */
+nav .secondary {
+  --pico-background-color: transparent;
+}

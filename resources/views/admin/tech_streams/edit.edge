@@ -1,0 +1,44 @@
+@component('layouts/app', { title: 'Edit Technology Stream — Admin' })
+  @slot('main')
+    <h1>Edit Technology Stream</h1>
+
+    <form method="POST" action="/admin/streams/tech/{{ stream.id }}?_method=PUT">
+      {{ csrfField() }}
+
+      <label for="name">
+        Slug
+        <input type="text" id="name" name="name" value="{{ flashMessages.get('name', stream.name) }}" required>
+      </label>
+
+      <label for="displayName">
+        Display Name
+        <input type="text" id="displayName" name="displayName" value="{{ flashMessages.get('displayName', stream.displayName) }}" required>
+      </label>
+
+      <label for="githubOrg">
+        GitHub Organisation
+        <input type="text" id="githubOrg" name="githubOrg" value="{{ flashMessages.get('githubOrg', stream.githubOrg) }}" required>
+      </label>
+
+      <label for="githubInstallId">
+        GitHub App Installation ID
+        <input type="text" id="githubInstallId" name="githubInstallId" value="{{ flashMessages.get('githubInstallId', stream.githubInstallId) }}" required>
+      </label>
+
+      <label for="description">
+        Description
+        <textarea id="description" name="description">{{ flashMessages.get('description', stream.description ?? '') }}</textarea>
+      </label>
+
+      <label>
+        <input type="checkbox" name="isActive" value="1" {{ stream.isActive ? 'checked' : '' }}>
+        Active
+      </label>
+
+      <div class="form-actions">
+        <button type="submit">Save Changes</button>
+        <a href="/admin/streams/tech" class="secondary outline">Cancel</a>
+      </div>
+    </form>
+  @end
+@end

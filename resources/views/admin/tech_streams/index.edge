@@ -1,0 +1,47 @@
+@component('layouts/app', { title: 'Technology Streams — Admin' })
+  @slot('main')
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem">
+      <h1>Technology Streams</h1>
+      <a href="/admin/streams/tech/create" role="button">New Stream</a>
+    </div>
+
+    @if(streams.length === 0)
+      <article>
+        <p>No technology streams configured yet. <a href="/admin/streams/tech/create">Create the first one</a>.</p>
+      </article>
+    @else
+      <figure>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Display Name</th>
+              <th>GitHub Org</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @each(stream in streams)
+              <tr>
+                <td><code>{{ stream.name }}</code></td>
+                <td>{{ stream.displayName }}</td>
+                <td><code>{{ stream.githubOrg }}</code></td>
+                <td>{{ stream.isActive ? 'Active' : 'Inactive' }}</td>
+                <td>
+                  <div class="form-actions">
+                    <a href="/admin/streams/tech/{{ stream.id }}/edit" class="outline">Edit</a>
+                    <form method="POST" action="/admin/streams/tech/{{ stream.id }}?_method=DELETE">
+                      {{ csrfField() }}
+                      <button type="submit" class="secondary outline">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            @end
+          </tbody>
+        </table>
+      </figure>
+    @end
+  @end
+@end

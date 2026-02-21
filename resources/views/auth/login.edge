@@ -1,0 +1,53 @@
+@component('layouts/app', { title: 'Sign in — DPP' })
+  @slot('main')
+    <div style="max-width: 400px; margin: 4rem auto">
+      <hgroup>
+        <h1>Sign in</h1>
+        <p>Delivery Performance Platform</p>
+      </hgroup>
+
+      @if(flashMessages.has('errors.login'))
+        <article class="flash-error" role="alert">
+          {{ flashMessages.get('errors.login') }}
+        </article>
+      @end
+
+      <form method="POST" action="/login">
+        {{ csrfField() }}
+
+        <label for="email">
+          Email
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value="{{ flashMessages.get('email', '') }}"
+            autocomplete="email"
+            required
+            {{ flashMessages.has('errors.email') ? 'aria-invalid="true"' : '' }}
+          >
+          @if(flashMessages.has('errors.email'))
+            <small>{{ flashMessages.get('errors.email') }}</small>
+          @end
+        </label>
+
+        <label for="password">
+          Password
+          <input
+            type="password"
+            id="password"
+            name="password"
+            autocomplete="current-password"
+            required
+            {{ flashMessages.has('errors.password') ? 'aria-invalid="true"' : '' }}
+          >
+          @if(flashMessages.has('errors.password'))
+            <small>{{ flashMessages.get('errors.password') }}</small>
+          @end
+        </label>
+
+        <button type="submit">Sign in</button>
+      </form>
+    </div>
+  @end
+@end

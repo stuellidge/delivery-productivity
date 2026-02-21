@@ -1,0 +1,43 @@
+@component('layouts/app', { title: 'New Status Mapping — Admin' })
+  @slot('main')
+    <h1>New Status Mapping</h1>
+
+    <form method="POST" action="/admin/status-mappings">
+      {{ csrfField() }}
+
+      <label for="jiraProjectKey">
+        Jira Project Key (e.g. <code>PAY</code>)
+        <input type="text" id="jiraProjectKey" name="jiraProjectKey" value="{{ flashMessages.get('jiraProjectKey', '') }}" required>
+      </label>
+
+      <label for="jiraStatusName">
+        Jira Status Name (e.g. <code>In Development</code>)
+        <input type="text" id="jiraStatusName" name="jiraStatusName" value="{{ flashMessages.get('jiraStatusName', '') }}" required>
+      </label>
+
+      <label for="pipelineStage">
+        Pipeline Stage
+        <select id="pipelineStage" name="pipelineStage" required>
+          @each(stage in ['backlog', 'ba', 'dev', 'code_review', 'qa', 'uat', 'done', 'cancelled'])
+            <option value="{{ stage }}">{{ stage }}</option>
+          @end
+        </select>
+      </label>
+
+      <label>
+        <input type="checkbox" name="isActiveWork" value="1">
+        Is Active Work (checked = working, unchecked = waiting/queue)
+      </label>
+
+      <label for="displayOrder">
+        Display Order
+        <input type="number" id="displayOrder" name="displayOrder" value="{{ flashMessages.get('displayOrder', '0') }}" min="0">
+      </label>
+
+      <div class="form-actions">
+        <button type="submit">Create Mapping</button>
+        <a href="/admin/status-mappings" class="secondary outline">Cancel</a>
+      </div>
+    </form>
+  @end
+@end

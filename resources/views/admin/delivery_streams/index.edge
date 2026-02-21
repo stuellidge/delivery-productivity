@@ -1,0 +1,58 @@
+@component('layouts/app', { title: 'Delivery Streams — Admin' })
+  @slot('main')
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem">
+      <h1>Delivery Streams</h1>
+      <a href="/admin/streams/delivery/create" role="button">New Stream</a>
+    </div>
+
+    <nav aria-label="breadcrumb">
+      <ul>
+        <li><a href="/admin">Admin</a></li>
+        <li>Delivery Streams</li>
+      </ul>
+    </nav>
+
+    @if(streams.length === 0)
+      <article>
+        <p>No delivery streams configured yet. <a href="/admin/streams/delivery/create">Create the first one</a>.</p>
+      </article>
+    @else
+      <figure>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Display Name</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @each(stream in streams)
+              <tr>
+                <td><code>{{ stream.name }}</code></td>
+                <td>{{ stream.displayName }}</td>
+                <td>
+                  @if(stream.isActive)
+                    <mark>Active</mark>
+                  @else
+                    <del>Inactive</del>
+                  @end
+                </td>
+                <td>
+                  <div class="form-actions">
+                    <a href="/admin/streams/delivery/{{ stream.id }}/edit" class="outline">Edit</a>
+                    <form method="POST" action="/admin/streams/delivery/{{ stream.id }}?_method=DELETE">
+                      {{ csrfField() }}
+                      <button type="submit" class="secondary outline">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            @end
+          </tbody>
+        </table>
+      </figure>
+    @end
+  @end
+@end
