@@ -1,0 +1,83 @@
+@component('layouts/app', { title: 'New OIDC Group Mapping — Admin' })
+  @slot('main')
+    <nav aria-label="breadcrumb">
+      <ul>
+        <li><a href="/admin">Admin</a></li>
+        <li><a href="/admin/oidc-group-mappings">OIDC Group Mappings</a></li>
+        <li>New Mapping</li>
+      </ul>
+    </nav>
+
+    <h1>New OIDC Group Mapping</h1>
+
+    <form method="POST" action="/admin/oidc-group-mappings">
+      {{ csrfField() }}
+
+      <label for="provider">
+        Provider
+        <select id="provider" name="provider" required>
+          <option value="microsoft">Microsoft (Entra ID)</option>
+        </select>
+      </label>
+
+      <label for="group_pattern">
+        Group Pattern
+        <input
+          id="group_pattern"
+          name="group_pattern"
+          type="text"
+          placeholder="e.g. sg-platform-admin or ^sg-team-.*"
+          required
+        />
+        <small>Enter an exact group name or a regex pattern (check the Regex box below).</small>
+      </label>
+
+      <label for="is_regex">
+        <input id="is_regex" name="is_regex" type="checkbox" role="switch" value="1" />
+        Treat as regular expression
+      </label>
+
+      <label for="role">
+        Role
+        <select id="role" name="role" required>
+          <option value="">— select role —</option>
+          <option value="viewer">Viewer</option>
+          <option value="team_member">Team Member</option>
+          <option value="stream_lead">Stream Lead</option>
+          <option value="platform_admin">Platform Admin</option>
+        </select>
+      </label>
+
+      @if(deliveryStreams.length > 0)
+        <label for="delivery_stream_id">
+          Delivery Stream (optional)
+          <select id="delivery_stream_id" name="delivery_stream_id">
+            <option value="">— none (global role) —</option>
+            @each(ds in deliveryStreams)
+              <option value="{{ ds.id }}">{{ ds.displayName }}</option>
+            @end
+          </select>
+          <small>Restrict this role to a specific delivery stream.</small>
+        </label>
+      @end
+
+      @if(techStreams.length > 0)
+        <label for="tech_stream_id">
+          Tech Stream (optional)
+          <select id="tech_stream_id" name="tech_stream_id">
+            <option value="">— none (global role) —</option>
+            @each(ts in techStreams)
+              <option value="{{ ts.id }}">{{ ts.displayName }}</option>
+            @end
+          </select>
+          <small>Restrict this role to a specific tech stream.</small>
+        </label>
+      @end
+
+      <div class="form-actions">
+        <button type="submit">Create Mapping</button>
+        <a href="/admin/oidc-group-mappings" role="button" class="secondary outline">Cancel</a>
+      </div>
+    </form>
+  @end
+@end

@@ -6,6 +6,7 @@ import ApiKey from '#models/api_key'
 import DeliveryStream from '#models/delivery_stream'
 import WorkItemEvent from '#models/work_item_event'
 import WorkItemCycle from '#models/work_item_cycle'
+import { cache } from '#services/cache_service'
 
 const RAW_KEY = 'test-api-key-secret'
 const KEY_HASH = createHash('sha256').update(RAW_KEY).digest('hex')
@@ -21,6 +22,7 @@ async function seedApiKey() {
 
 test.group('API | GET /api/v1/metrics/realtime', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.teardown(() => cache.clear())
 
   test('returns 401 without API key', async ({ client }) => {
     const response = await client.get('/api/v1/metrics/realtime')
@@ -129,6 +131,7 @@ test.group('API | GET /api/v1/metrics/realtime', (group) => {
 
 test.group('API | GET /api/v1/metrics/diagnostic', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.teardown(() => cache.clear())
 
   test('returns 401 without API key', async ({ client }) => {
     const response = await client.get('/api/v1/metrics/diagnostic')

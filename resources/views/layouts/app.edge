@@ -21,6 +21,20 @@
           <li>
             <a href="/dashboard">Dashboard</a>
           </li>
+          @if(auth.user && await auth.user.isAdmin())
+            <li>
+              <details class="dropdown">
+                <summary>Admin</summary>
+                <ul dir="rtl">
+                  <li><a href="/admin/streams/delivery">Delivery Streams</a></li>
+                  <li><a href="/admin/streams/tech">Tech Streams</a></li>
+                  <li><a href="/admin/status-mappings">Status Mappings</a></li>
+                  <li><a href="/admin/api-keys">API Keys</a></li>
+                  <li><a href="/admin/oidc-group-mappings">OIDC Mappings</a></li>
+                </ul>
+              </details>
+            </li>
+          @end
           <li>
             <form method="POST" action="/logout?_method=POST" style="margin: 0; display: inline">
               {{ csrfField() }}

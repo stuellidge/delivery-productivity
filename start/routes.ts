@@ -11,10 +11,12 @@ import router from '@adonisjs/core/services/router'
 import { middleware } from '#start/kernel'
 
 const AuthController = () => import('#controllers/auth_controller')
+const SocialAuthController = () => import('#controllers/social_auth_controller')
 const DashboardController = () => import('#controllers/dashboard_controller')
 const DeliveryStreamsController = () => import('#controllers/admin/delivery_streams_controller')
 const TechStreamsController = () => import('#controllers/admin/tech_streams_controller')
 const StatusMappingsController = () => import('#controllers/admin/status_mappings_controller')
+const OidcGroupMappingsController = () => import('#controllers/admin/oidc_group_mappings_controller')
 const JiraWebhookController = () => import('#controllers/webhooks/jira_webhook_controller')
 const GithubWebhookController = () => import('#controllers/webhooks/github_webhook_controller')
 const ApiStreamsController = () => import('#controllers/api/streams_controller')
@@ -44,6 +46,15 @@ router.get('/login', [AuthController, 'showLogin']).as('auth.login').use(middlew
 router.post('/login', [AuthController, 'login']).as('auth.login.submit').use(middleware.guest())
 
 router.post('/logout', [AuthController, 'logout']).as('auth.logout').use(middleware.auth())
+
+// Social / OIDC auth — no CSRF needed (GET only, no state-changing body)
+router
+  .get('/auth/social/redirect', [SocialAuthController, 'redirect'])
+  .as('auth.social.redirect')
+
+router
+  .get('/auth/social/callback', [SocialAuthController, 'callback'])
+  .as('auth.social.callback')
 
 /*
 |--------------------------------------------------------------------------
@@ -93,6 +104,20 @@ router
     router.get('/api-keys/create', [AdminApiKeysController, 'create'])
     router.post('/api-keys', [AdminApiKeysController, 'store'])
     router.post('/api-keys/:id/revoke', [AdminApiKeysController, 'revoke'])
+
+    // OIDC group mappings
+    router
+      .get('/oidc-group-mappings', [OidcGroupMappingsController, 'index'])
+      .as('admin.oidc-group-mappings.index')
+    router
+      .get('/oidc-group-mappings/create', [OidcGroupMappingsController, 'create'])
+      .as('admin.oidc-group-mappings.create')
+    router
+      .post('/oidc-group-mappings', [OidcGroupMappingsController, 'store'])
+      .as('admin.oidc-group-mappings.store')
+    router
+      .delete('/oidc-group-mappings/:id', [OidcGroupMappingsController, 'destroy'])
+      .as('admin.oidc-group-mappings.destroy')
   })
   .prefix('/admin')
   .use([middleware.auth(), middleware.admin()])
@@ -127,6 +152,8 @@ router
     router.get('/metrics/pulse', [ApiMetricsController, 'pulse'])
     router.get('/metrics/cross-stream', [ApiMetricsController, 'crossStream'])
     router.get('/admin/data-quality', [AdminMetricsController, 'dataQuality'])
+    router.get('/admin/integration-health', [AdminMetricsController, 'integrationHealth'])
+    router.get('/admin/system-alerts', [AdminMetricsController, 'systemAlerts'])
     router.post('/events/deployment', [DeploymentEventsController, 'handle'])
     router.post('/events/incident', [IncidentEventsController, 'handle'])
   })

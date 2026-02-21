@@ -1,12 +1,17 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 import { loginValidator } from '#validators/auth_validator'
+import env from '#start/env'
 
 export default class AuthController {
   /**
-   * Show the login form (guest only)
+   * Show the login form (guest only).
+   * When AUTH_METHOD=oidc, redirect straight to the social auth flow.
    */
-  async showLogin({ view }: HttpContext) {
+  async showLogin({ view, response }: HttpContext) {
+    if (env.get('AUTH_METHOD') === 'oidc') {
+      return response.redirect().toRoute('auth.social.redirect')
+    }
     return view.render('auth/login')
   }
 

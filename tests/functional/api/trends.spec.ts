@@ -5,6 +5,7 @@ import { DateTime } from 'luxon'
 import ApiKey from '#models/api_key'
 import TechStream from '#models/tech_stream'
 import DeploymentRecord from '#models/deployment_record'
+import { cache } from '#services/cache_service'
 
 const RAW_KEY = 'test-trends-api-key'
 const KEY_HASH = createHash('sha256').update(RAW_KEY).digest('hex')
@@ -20,6 +21,7 @@ async function seedApiKey() {
 
 test.group('API | GET /api/v1/metrics/trends', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.teardown(() => cache.clear())
 
   test('returns 401 without API key', async ({ client }) => {
     const response = await client.get('/api/v1/metrics/trends')

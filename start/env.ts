@@ -66,4 +66,15 @@ export default await Env.create(new URL('../', import.meta.url), {
   |----------------------------------------------------------
   */
   AUTH_METHOD: Env.schema.enum.optional(['database', 'oidc'] as const),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for OIDC / Microsoft Entra ID
+  |----------------------------------------------------------
+  */
+  OIDC_CLIENT_ID: Env.schema.string.optional(),
+  OIDC_CLIENT_SECRET: Env.schema.string.optional(),
+  OIDC_REDIRECT_URI: Env.schema.string.optional(),
+  OIDC_TENANT_ID: Env.schema.string.optional(),
+  OIDC_GROUP_CLAIM: Env.schema.string.optional(),
 })
