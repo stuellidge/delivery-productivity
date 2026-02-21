@@ -1,10 +1,12 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 import DeliveryStream from '#models/delivery_stream'
+import TechStream from '#models/tech_stream'
 import WorkItemCycle from '#models/work_item_cycle'
 import WipMetricsService from '#services/wip_metrics_service'
 import CycleTimeService from '#services/cycle_time_service'
 import FlowEfficiencyService from '#services/flow_efficiency_service'
+import PrReviewTurnaroundService from '#services/pr_review_turnaround_service'
 
 const STAGE_ORDER = ['backlog', 'ba', 'dev', 'code_review', 'qa', 'uat']
 const STAGE_LABELS: Record<string, string> = {
@@ -28,11 +30,21 @@ export default class DashboardController {
       selectedStream = await DeliveryStream.find(selectedStreamId)
     }
 
+    const techStreams = await TechStream.query().where('is_active', true).orderBy('name')
+
     const [wipByStage, cycleTimeStats, flowEfficiency] = await Promise.all([
       new WipMetricsService().compute(selectedStreamId),
       new CycleTimeService().compute(selectedStreamId, windowDays),
       new FlowEfficiencyService().compute(selectedStreamId, windowDays),
     ])
+
+    // Compute PR review turnaround per active tech stream
+    const prMetrics = await Promise.all(
+      techStreams.map(async (ts) => {
+        const turnaround = await new PrReviewTurnaroundService(ts.id, windowDays).compute()
+        return { techStream: ts, turnaround }
+      })
+    )
 
     // Ordered WIP stages for display (exclude done/cancelled)
     const wipStages = STAGE_ORDER.map((stage) => ({
@@ -70,6 +82,7 @@ export default class DashboardController {
       cycleTimeStats,
       cycleScatterData,
       flowEfficiency,
+      prMetrics,
     })
   }
 }

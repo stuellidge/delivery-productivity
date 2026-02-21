@@ -17,7 +17,7 @@ const shieldConfig = defineConfig({
    */
   csrf: {
     enabled: true,
-    exceptRoutes: ['/api/v1/webhooks/jira'],
+    exceptRoutes: ['/api/v1/webhooks/jira', '/api/v1/webhooks/github'],
     enableXsrfCookie: false,
     methods: ['POST', 'PUT', 'PATCH', 'DELETE'],
   },

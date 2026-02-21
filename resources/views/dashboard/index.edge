@@ -1,21 +1,28 @@
 @component('layouts/app', { title: 'Dashboard — DPP' })
   @slot('main')
     <hgroup>
-      <h1>Dashboard</h1>
-      <p>Delivery Performance Platform</p>
+      <h1>
+        Dashboard
+      </h1>
+      <p>
+        Delivery Performance Platform
+      </p>
     </hgroup>
 
     {{-- Stream + window selector --}}
-    <form method="GET" action="/dashboard" style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap">
+    <form
+      method="GET"
+      action="/dashboard"
+      style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap"
+    >
       <label style="flex: 2; min-width: 160px; margin-bottom: 0">
         Delivery Stream
         <select name="stream" onchange="this.form.submit()">
-          <option value="">All Streams</option>
+          <option value="">
+            All Streams
+          </option>
           @each(stream in deliveryStreams)
-            <option
-              value="{{ stream.id }}"
-              {{ selectedStream && selectedStream.id === stream.id ? 'selected' : '' }}
-            >
+            <option value="{{ stream.id }}" {{ selectedStream && selectedStream.id === stream.id ? 'selected' : '' }}>
               {{ stream.displayName }}
             </option>
           @end
@@ -24,32 +31,52 @@
       <label style="flex: 1; min-width: 120px; margin-bottom: 0">
         Time Window
         <select name="window" onchange="this.form.submit()">
-          <option value="7"  {{ windowDays === 7  ? 'selected' : '' }}>7 days</option>
-          <option value="30" {{ windowDays === 30 ? 'selected' : '' }}>30 days</option>
-          <option value="90" {{ windowDays === 90 ? 'selected' : '' }}>90 days</option>
+          <option value="7" {{ windowDays === 7  ? 'selected' : '' }}>
+            7 days
+          </option>
+          <option value="30" {{ windowDays === 30 ? 'selected' : '' }}>
+            30 days
+          </option>
+          <option value="90" {{ windowDays === 90 ? 'selected' : '' }}>
+            90 days
+          </option>
         </select>
       </label>
     </form>
 
     @if(deliveryStreams.length === 0)
       <article>
-        <header>No delivery streams configured</header>
-        <p>Configure delivery streams in the <a href="/admin/streams/delivery">admin panel</a> to see metrics.</p>
+        <header>
+          No delivery streams configured
+        </header>
+        <p>
+          Configure delivery streams in the <a href="/admin/streams/delivery">admin panel</a>to see metrics.
+        </p>
       </article>
     @else
-
+    
       {{-- ═══════════════════════════════════════════════════
            ZONE 1 — Work in Progress by Stage
       ════════════════════════════════════════════════════ --}}
       <section>
-        <h2>Work in Progress by Stage</h2>
+        <h2>
+          Work in Progress by Stage
+        </h2>
         @if(wipStages.every(s => s.count === 0))
-          <p class="secondary">No active work items found. Connect your Jira webhook to start collecting data.</p>
+          <p class="secondary">
+            No active work items found. Connect your Jira webhook to start collecting data.
+          </p>
         @else
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.75rem; margin-bottom: 1rem">
+          <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.75rem; margin-bottom: 1rem"
+          >
             @each(stage in wipStages)
-              <article style="text-align: center; padding: 1rem 0.5rem; margin: 0 {{ stage.count > 0 ? '; border-top: 3px solid var(--pico-primary)' : '' }}">
-                <small style="display: block; text-transform: uppercase; letter-spacing: 0.05em; color: var(--pico-muted-color)">
+              <article
+                style="text-align: center; padding: 1rem 0.5rem; margin: 0 {{ stage.count > 0 ? '; border-top: 3px solid var(--pico-primary)' : '' }}"
+              >
+                <small
+                  style="display: block; text-transform: uppercase; letter-spacing: 0.05em; color: var(--pico-muted-color)"
+                >
                   {{ stage.label }}
                 </small>
                 <strong style="font-size: 2rem; line-height: 1.2">{{ stage.count }}</strong>
@@ -65,10 +92,15 @@
              ZONE 2 — Cycle Time
         ════════════════════════════════════════════════════ --}}
         <section>
-          <h2>Cycle Time</h2>
+          <h2>
+            Cycle Time
+          </h2>
           @if(cycleTimeStats.count === 0)
-            <p class="secondary">No completed items in the last {{ windowDays }} days.</p>
-            <canvas id="cycleTimeChart" style="display:none"></canvas>
+            <p class="secondary">
+              No completed items in the last {{ windowDays }} days.
+            </p>
+            <canvas id="cycleTimeChart" style="display:none">
+            </canvas>
           @else
             <div style="display: flex; gap: 2rem; margin-bottom: 1rem">
               <div style="text-align: center">
@@ -88,7 +120,8 @@
                 <strong style="font-size: 1.5rem">{{ cycleTimeStats.count }}</strong>
               </div>
             </div>
-            <canvas id="cycleTimeChart" style="max-height: 280px"></canvas>
+            <canvas id="cycleTimeChart" style="max-height: 280px">
+            </canvas>
           @end
         </section>
 
@@ -96,12 +129,18 @@
              ZONE 3 — Flow Efficiency
         ════════════════════════════════════════════════════ --}}
         <section>
-          <h2>Flow Efficiency</h2>
+          <h2>
+            Flow Efficiency
+          </h2>
           @if(flowEfficiency.count === 0)
-            <p class="secondary">No completed items in the last {{ windowDays }} days.</p>
+            <p class="secondary">
+              No completed items in the last {{ windowDays }} days.
+            </p>
           @else
             <div style="margin-bottom: 1.5rem">
-              <small style="display: block; color: var(--pico-muted-color); text-transform: uppercase; letter-spacing: 0.05em">Average</small>
+              <small
+                style="display: block; color: var(--pico-muted-color); text-transform: uppercase; letter-spacing: 0.05em"
+              >Average</small>
               <strong style="font-size: 2.5rem">{{ flowEfficiency.avgFlowEfficiencyPct.toFixed(1) }}%</strong>
               <small style="display: block; color: var(--pico-muted-color)">
                 of cycle time is active work ({{ flowEfficiency.count }} items)
@@ -109,12 +148,18 @@
             </div>
 
             @if(Object.keys(flowEfficiency.avgStageDurations).length > 0)
-              <h3 style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem">Avg. Days per Stage</h3>
+              <h3
+                style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem"
+              >
+                Avg. Days per Stage
+              </h3>
               <table style="margin: 0">
                 <tbody>
                   @each((duration, stage) in flowEfficiency.avgStageDurations)
                     <tr>
-                      <td>{{ stage }}</td>
+                      <td>
+                        {{ stage }}
+                      </td>
                       <td style="text-align: right; font-variant-numeric: tabular-nums">
                         {{ parseFloat(duration).toFixed(1) }}d
                       </td>
@@ -127,19 +172,86 @@
         </section>
 
       </div>
+
+      {{-- ═══════════════════════════════════════════════════
+           ZONE 4 — Developer Experience (PR Review Turnaround)
+      ════════════════════════════════════════════════════ --}}
+      @if(prMetrics.length > 0)
+        <section style="margin-top: 1.5rem">
+          <h2>
+            Developer Experience — PR Review Turnaround
+          </h2>
+          @if(prMetrics.every(m => m.turnaround.p50 === 0 && m.turnaround.p85 === 0))
+            <p class="secondary">
+              No merged PRs in the last {{ windowDays }} days. Connect your GitHub webhook to start collecting data.
+            </p>
+          @else
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem">
+              @each(item in prMetrics)
+                <article style="margin: 0">
+                  <header style="font-weight: bold">
+                    {{ item.techStream.displayName }}
+                  </header>
+
+                  <div style="display: flex; gap: 1.5rem; margin-bottom: 0.75rem">
+                    <div style="text-align: center">
+                      <small style="display: block; color: var(--pico-muted-color)">p50 review</small>
+                      <strong style="font-size: 1.25rem">{{ item.turnaround.p50.toFixed(1) }}h</strong>
+                    </div>
+                    <div style="text-align: center">
+                      <small style="display: block; color: var(--pico-muted-color)">p85 review</small>
+                      <strong style="font-size: 1.25rem; color: var(--pico-del-color)">{{ item.turnaround.p85.toFixed(1) }}h</strong>
+                    </div>
+                    <div style="text-align: center">
+                      <small style="display: block; color: var(--pico-muted-color)">ticket linkage</small>
+                      <strong style="font-size: 1.25rem">{{ item.turnaround.prToTicketLinkageRate.toFixed(0) }}%</strong>
+                    </div>
+                  </div>
+
+                  @if(item.turnaround.reviewerConcentration.length > 0)
+                    <details>
+                      <summary style="font-size: 0.85rem; cursor: pointer">
+                        Reviewer concentration
+                      </summary>
+                      <table style="margin: 0.5rem 0 0; font-size: 0.85rem">
+                        <tbody>
+                          @each(reviewer in item.turnaround.reviewerConcentration)
+                            <tr>
+                              <td style="{{ reviewer.isConcerning ? 'color: var(--pico-del-color)' : '' }}">
+                                {{ reviewer.reviewerHash.substring(0, 8) }}…
+                                @if(reviewer.isConcerning)
+                                  ⚠
+                                @end
+                              </td>
+                              <td style="text-align: right; font-variant-numeric: tabular-nums">
+                                {{ reviewer.percentage.toFixed(0) }}% ({{ reviewer.reviewCount }})
+                              </td>
+                            </tr>
+                          @end
+                        </tbody>
+                      </table>
+                    </details>
+                  @end
+                </article>
+              @end
+            </div>
+          @end
+        </section>
+      @end
+      
     @end
   @end
-
+  
   @pushTo('js')
     @if(deliveryStreams.length > 0)
       <script>
-        document.addEventListener('DOMContentLoaded', function () {
-          var data = {{{ cycleScatterData }}}
-          var p85 = {{ cycleTimeStats.p85 }}
-          if (typeof window.renderCycleTimeChart === 'function') {
-            window.renderCycleTimeChart('cycleTimeChart', JSON.stringify(data), p85)
+        document.addEventListener("DOMContentLoaded", function() {
+          var data = {{{ cycleScatterData }}};
+          var p85 = {{ cycleTimeStats.p85 }};
+          if (typeof window.renderCycleTimeChart === "function") {
+            window.renderCycleTimeChart("cycleTimeChart", JSON.stringify(data), p85);
           }
-        })
+        });
       </script>
     @end
   @end

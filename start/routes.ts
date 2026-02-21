@@ -12,11 +12,11 @@ import { middleware } from '#start/kernel'
 
 const AuthController = () => import('#controllers/auth_controller')
 const DashboardController = () => import('#controllers/dashboard_controller')
-const DeliveryStreamsController = () =>
-  import('#controllers/admin/delivery_streams_controller')
+const DeliveryStreamsController = () => import('#controllers/admin/delivery_streams_controller')
 const TechStreamsController = () => import('#controllers/admin/tech_streams_controller')
 const StatusMappingsController = () => import('#controllers/admin/status_mappings_controller')
 const JiraWebhookController = () => import('#controllers/webhooks/jira_webhook_controller')
+const GithubWebhookController = () => import('#controllers/webhooks/github_webhook_controller')
 const ApiStreamsController = () => import('#controllers/api/streams_controller')
 const ApiMetricsController = () => import('#controllers/api/metrics_controller')
 
@@ -34,20 +34,11 @@ router.on('/').redirect('/dashboard')
 |--------------------------------------------------------------------------
 */
 
-router
-  .get('/login', [AuthController, 'showLogin'])
-  .as('auth.login')
-  .use(middleware.guest())
+router.get('/login', [AuthController, 'showLogin']).as('auth.login').use(middleware.guest())
 
-router
-  .post('/login', [AuthController, 'login'])
-  .as('auth.login.submit')
-  .use(middleware.guest())
+router.post('/login', [AuthController, 'login']).as('auth.login.submit').use(middleware.guest())
 
-router
-  .post('/logout', [AuthController, 'logout'])
-  .as('auth.logout')
-  .use(middleware.auth())
+router.post('/logout', [AuthController, 'logout']).as('auth.logout').use(middleware.auth())
 
 /*
 |--------------------------------------------------------------------------
@@ -102,6 +93,7 @@ router
 */
 
 router.post('/api/v1/webhooks/jira', [JiraWebhookController, 'handle'])
+router.post('/api/v1/webhooks/github', [GithubWebhookController, 'handle'])
 
 /*
 |--------------------------------------------------------------------------
