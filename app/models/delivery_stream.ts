@@ -20,6 +20,9 @@ export default class DeliveryStream extends BaseModel {
   @column()
   declare isActive: boolean
 
+  @column()
+  declare teamSize: number | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

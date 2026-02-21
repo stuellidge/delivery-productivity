@@ -1,0 +1,80 @@
+@component('layouts/app', { title: 'Team Health Survey' })
+  @slot('main')
+    <article>
+      <header>
+        <h2>
+          Team Health Survey
+        </h2>
+        <p>
+          Your responses are anonymous and help us improve team wellbeing. Survey period: <strong>{{ surveyPeriod }}</strong>
+        </p>
+      </header>
+
+      <form method="POST" action="{{ route('survey.submit') }}">
+        {{ csrfField() }}
+
+        <label for="delivery_stream_id">Your Team</label>
+        <select id="delivery_stream_id" name="delivery_stream_id" required>
+          <option value="">
+            Select your team…
+          </option>
+          @each(stream in deliveryStreams)
+            <option value="{{ stream.id }}">
+              {{ stream.displayName }}
+            </option>
+          @end
+        </select>
+
+        <fieldset>
+          <legend>
+            1. How would you rate the pace of work in your team this month?
+          </legend>
+          <div class="likert-row">
+            @each(score in [1, 2, 3, 4, 5])
+              <label>
+                <input type="radio" name="pace_score" value="{{ score }}" required />
+                {{ score }}
+              </label>
+            @end
+          </div>
+          <small>1 = Too slow / overwhelming &nbsp;|&nbsp; 5 = Just right</small>
+        </fieldset>
+
+        <fieldset>
+          <legend>
+            2. How well do your tools and processes support your work?
+          </legend>
+          <div class="likert-row">
+            @each(score in [1, 2, 3, 4, 5])
+              <label>
+                <input type="radio" name="tooling_score" value="{{ score }}" required />
+                {{ score }}
+              </label>
+            @end
+          </div>
+          <small>1 = Very poorly &nbsp;|&nbsp; 5 = Extremely well</small>
+        </fieldset>
+
+        <fieldset>
+          <legend>
+            3. How clear are your team's goals and priorities?
+          </legend>
+          <div class="likert-row">
+            @each(score in [1, 2, 3, 4, 5])
+              <label>
+                <input type="radio" name="clarity_score" value="{{ score }}" required />
+                {{ score }}
+              </label>
+            @end
+          </div>
+          <small>1 = Very unclear &nbsp;|&nbsp; 5 = Crystal clear</small>
+        </fieldset>
+
+        <label for="free_text">Any additional comments? (optional)</label>
+        <textarea id="free_text" name="free_text" rows="3" placeholder="Optional feedback…"></textarea>
+
+        <button type="submit">Submit Response</button>
+      </form>
+    </article>
+  @end
+@end

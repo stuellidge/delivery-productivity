@@ -22,6 +22,8 @@ const ApiMetricsController = () => import('#controllers/api/metrics_controller')
 const AdminApiKeysController = () => import('#controllers/admin/api_keys_controller')
 const DeploymentEventsController = () => import('#controllers/api/deployment_events_controller')
 const IncidentEventsController = () => import('#controllers/api/incident_events_controller')
+const AdminMetricsController = () => import('#controllers/api/admin_metrics_controller')
+const PulseSurveyController = () => import('#controllers/pulse_survey_controller')
 
 /*
 |--------------------------------------------------------------------------
@@ -110,6 +112,10 @@ router.post('/api/v1/webhooks/github', [GithubWebhookController, 'handle'])
 |--------------------------------------------------------------------------
 */
 
+router.get('/survey', [PulseSurveyController, 'show']).as('survey.show').use(middleware.auth())
+
+router.post('/survey', [PulseSurveyController, 'submit']).as('survey.submit').use(middleware.auth())
+
 router
   .group(() => {
     router.get('/streams/delivery', [ApiStreamsController, 'delivery'])
@@ -117,6 +123,10 @@ router
     router.get('/metrics/realtime', [ApiMetricsController, 'realtime'])
     router.get('/metrics/diagnostic', [ApiMetricsController, 'diagnostic'])
     router.get('/metrics/trends', [ApiMetricsController, 'trends'])
+    router.get('/metrics/forecast', [ApiMetricsController, 'forecast'])
+    router.get('/metrics/pulse', [ApiMetricsController, 'pulse'])
+    router.get('/metrics/cross-stream', [ApiMetricsController, 'crossStream'])
+    router.get('/admin/data-quality', [AdminMetricsController, 'dataQuality'])
     router.post('/events/deployment', [DeploymentEventsController, 'handle'])
     router.post('/events/incident', [IncidentEventsController, 'handle'])
   })

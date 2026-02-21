@@ -3,11 +3,15 @@ import { DateTime } from 'luxon'
 import DeliveryStream from '#models/delivery_stream'
 import TechStream from '#models/tech_stream'
 import WorkItemCycle from '#models/work_item_cycle'
+import PulseAggregate from '#models/pulse_aggregate'
 import WipMetricsService from '#services/wip_metrics_service'
 import CycleTimeService from '#services/cycle_time_service'
 import FlowEfficiencyService from '#services/flow_efficiency_service'
 import PrReviewTurnaroundService from '#services/pr_review_turnaround_service'
 import DoraMetricsService from '#services/dora_metrics_service'
+import MonteCarloForecastService from '#services/monte_carlo_forecast_service'
+import SprintConfidenceService from '#services/sprint_confidence_service'
+import CrossStreamCorrelationService from '#services/cross_stream_correlation_service'
 
 const STAGE_ORDER = ['backlog', 'ba', 'dev', 'code_review', 'qa', 'uat']
 const STAGE_LABELS: Record<string, string> = {
@@ -55,6 +59,24 @@ export default class DashboardController {
       }))
     )
 
+    // Phase 4: Forecast, Sprint Confidence, Cross-Stream Correlation, Pulse
+    const [forecast, sprintConfidence, crossStreamCorrelations] = await Promise.all([
+      selectedStreamId
+        ? new MonteCarloForecastService(selectedStreamId).compute()
+        : Promise.resolve(null),
+      selectedStreamId
+        ? new SprintConfidenceService(selectedStreamId).compute()
+        : Promise.resolve(null),
+      new CrossStreamCorrelationService().computeAll(),
+    ])
+
+    const pulseAggregates = selectedStreamId
+      ? await PulseAggregate.query()
+          .where('delivery_stream_id', selectedStreamId)
+          .orderBy('survey_period', 'desc')
+          .limit(6)
+      : []
+
     // Ordered WIP stages for display (exclude done/cancelled)
     const wipStages = STAGE_ORDER.map((stage) => ({
       key: stage,
@@ -93,6 +115,10 @@ export default class DashboardController {
       flowEfficiency,
       prMetrics,
       doraMetrics,
+      forecast,
+      sprintConfidence,
+      crossStreamCorrelations,
+      pulseAggregates,
     })
   }
 }

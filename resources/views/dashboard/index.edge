@@ -240,7 +240,7 @@
           @end
         </section>
       @end
-
+      
       @if(prMetrics.length > 0)
         <section style="margin-top: 1.5rem">
           <h2>
@@ -299,6 +299,243 @@
                   @end
                 </article>
               @end
+            </div>
+          @end
+        </section>
+      @end
+      
+      {{-- ═══════════════════════════════════════════════════
+           PHASE 4 — Sprint Confidence Gauge
+      ════════════════════════════════════════════════════ --}}
+      @if(selectedStreamId && sprintConfidence)
+        <section style="margin-top: 1.5rem">
+          <h2>
+            Sprint Confidence
+          </h2>
+          @if(sprintConfidence.sprintId === null)
+            <p class="secondary">
+              No active sprint found for this delivery stream.
+            </p>
+          @else
+            <article>
+              <header>
+                <strong>{{ sprintConfidence.sprintName }}</strong>
+                &nbsp;·&nbsp;
+                {{ sprintConfidence.remainingCount }} items remaining
+                &nbsp;·&nbsp;
+                {{ sprintConfidence.workingDaysRemaining }} working days left
+              </header>
+              @if(sprintConfidence.hasInsufficientData)
+                <p class="secondary">
+                  Insufficient throughput history for simulation.
+                </p>
+              @else
+                <div style="margin: 1rem 0">
+                  <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem"
+                  >
+                    <small>Probability of on-time completion</small>
+                    <strong
+                      style="font-size: 1.4rem; color: {{ sprintConfidence.confidence >= 70 ? 'var(--pico-ins-color)' : sprintConfidence.confidence >= 50 ? 'orange' : 'var(--pico-del-color)' }}"
+                    >{{ sprintConfidence.confidence.toFixed(0) }}%</strong>
+                  </div>
+                  <progress value="{{ sprintConfidence.confidence }}" max="100">
+                  </progress>
+                </div>
+              @end
+            </article>
+          @end
+        </section>
+      @end
+      
+      {{-- ═══════════════════════════════════════════════════
+           PHASE 4 — Monte Carlo Forecast
+      ════════════════════════════════════════════════════ --}}
+      @if(selectedStreamId && forecast)
+        <section style="margin-top: 1.5rem">
+          <h2>
+            Delivery Forecast
+          </h2>
+          <article>
+            <header>
+              <strong>{{ forecast.remainingScope }} items</strong>in active stages
+              &nbsp;·&nbsp;
+              {{ forecast.weeksOfData }} weeks of throughput data
+              @if(forecast.isLowConfidence)
+                &nbsp;·&nbsp; <mark>Low confidence</mark>
+              @end
+            </header>
+            @if(forecast.isLowConfidence)
+              @if(forecast.linearProjectionWeeks !== null)
+                <p>
+                  Linear projection: ~{{ Math.round(forecast.linearProjectionWeeks) }} weeks to completion
+                </p>
+              @else
+                <p class="secondary">
+                  No throughput history available for projection.
+                </p>
+              @end
+            @else
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; text-align: center">
+                <div>
+                  <small style="display:block; color: var(--pico-muted-color)">p50</small>
+                  <strong>{{ forecast.p50Date }}</strong>
+                </div>
+                <div>
+                  <small style="display:block; color: var(--pico-muted-color)">p70</small>
+                  <strong>{{ forecast.p70Date }}</strong>
+                </div>
+                <div>
+                  <small style="display:block; color: var(--pico-muted-color)">p85</small>
+                  <strong style="color: var(--pico-del-color)">{{ forecast.p85Date }}</strong>
+                </div>
+                <div>
+                  <small style="display:block; color: var(--pico-muted-color)">p95</small>
+                  <strong>{{ forecast.p95Date }}</strong>
+                </div>
+              </div>
+            @end
+          </article>
+        </section>
+      @end
+      
+      {{-- ═══════════════════════════════════════════════════
+           PHASE 4 — Team Health Pulse
+      ════════════════════════════════════════════════════ --}}
+      @if(selectedStreamId && pulseAggregates.length > 0)
+        <section style="margin-top: 1.5rem">
+          <h2>
+            Team Health Pulse
+          </h2>
+          @let(latest = pulseAggregates[0])
+          <article>
+            <header>
+              <strong>{{ latest.surveyPeriod }}</strong>
+              &nbsp;·&nbsp;
+              {{ latest.responseCount }} responses
+              @if(latest.responseRatePct !== null)
+                &nbsp;({{ parseFloat(latest.responseRatePct).toFixed(0) }}% response rate)
+              @end
+            </header>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center">
+              <div>
+                <small style="display: block; color: var(--pico-muted-color)">Pace</small>
+                <strong style="font-size: 1.5rem">{{ latest.paceAvg !== null ? parseFloat(latest.paceAvg).toFixed(1) : '—' }}</strong>
+                @if(latest.paceTrend !== null)
+                  <small
+                    style="color: {{ parseFloat(latest.paceTrend) >= 0 ? 'var(--pico-ins-color)' : 'var(--pico-del-color)' }}"
+                  >
+                    {{ parseFloat(latest.paceTrend) >= 0 ? '↑' : '↓' }} {{ Math.abs(parseFloat(latest.paceTrend)).toFixed(1) }}
+                  </small>
+                @end
+              </div>
+              <div>
+                <small style="display: block; color: var(--pico-muted-color)">Tooling</small>
+                <strong style="font-size: 1.5rem">{{ latest.toolingAvg !== null ? parseFloat(latest.toolingAvg).toFixed(1) : '—' }}</strong>
+                @if(latest.toolingTrend !== null)
+                  <small
+                    style="color: {{ parseFloat(latest.toolingTrend) >= 0 ? 'var(--pico-ins-color)' : 'var(--pico-del-color)' }}"
+                  >
+                    {{ parseFloat(latest.toolingTrend) >= 0 ? '↑' : '↓' }} {{ Math.abs(parseFloat(latest.toolingTrend)).toFixed(1) }}
+                  </small>
+                @end
+              </div>
+              <div>
+                <small style="display: block; color: var(--pico-muted-color)">Clarity</small>
+                <strong style="font-size: 1.5rem">{{ latest.clarityAvg !== null ? parseFloat(latest.clarityAvg).toFixed(1) : '—' }}</strong>
+                @if(latest.clarityTrend !== null)
+                  <small
+                    style="color: {{ parseFloat(latest.clarityTrend) >= 0 ? 'var(--pico-ins-color)' : 'var(--pico-del-color)' }}"
+                  >
+                    {{ parseFloat(latest.clarityTrend) >= 0 ? '↑' : '↓' }} {{ Math.abs(parseFloat(latest.clarityTrend)).toFixed(1) }}
+                  </small>
+                @end
+              </div>
+            </div>
+          </article>
+          <p style="margin-top: 0.5rem; text-align: right">
+            <a href="{{ route('survey.show') }}">Submit your survey response →</a>
+          </p>
+        </section>
+      @else
+        @if(selectedStreamId)
+          <section style="margin-top: 1.5rem">
+            <h2>
+              Team Health Pulse
+            </h2>
+            <p class="secondary">
+              No survey data yet. <a href="{{ route('survey.show') }}">Submit a survey response →</a>
+            </p>
+          </section>
+        @end
+      @end
+      
+      {{-- ═══════════════════════════════════════════════════
+           PHASE 4 — Cross-Stream Correlation
+      ════════════════════════════════════════════════════ --}}
+      @if(crossStreamCorrelations.length > 0)
+        <section style="margin-top: 1.5rem">
+          <h2>
+            Cross-Stream Dependencies
+          </h2>
+          @if(crossStreamCorrelations.every(c => c.blockCount14d === 0))
+            <p class="secondary">
+              No cross-stream blockages detected in the last 14 days.
+            </p>
+          @else
+            <div style="overflow-x: auto">
+              <table>
+                <thead>
+                  <tr>
+                    <th>
+                      Tech Stream
+                    </th>
+                    <th>
+                      Blocks (14d)
+                    </th>
+                    <th>
+                      Impacted Teams
+                    </th>
+                    <th>
+                      Avg Confidence
+                    </th>
+                    <th>
+                      Severity
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @each(corr in crossStreamCorrelations)
+                    @if(corr.blockCount14d > 0)
+                      <tr>
+                        <td>
+                          {{ corr.techStreamId }}
+                        </td>
+                        <td>
+                          {{ corr.blockCount14d }}
+                        </td>
+                        <td>
+                          {{ corr.impactedDeliveryStreamIds.length }}
+                        </td>
+                        <td>
+                          {{ corr.avgConfidencePct !== null ? parseFloat(corr.avgConfidencePct).toFixed(0) + '%' : '—' }}
+                        </td>
+                        <td>
+                          <span
+                            style="
+                            padding: 0.2rem 0.5rem;
+                            border-radius: 4px;
+                            font-size: 0.8rem;
+                            background: {{ corr.severity === 'critical' ? '#dc2626' : corr.severity === 'high' ? '#ea580c' : corr.severity === 'medium' ? '#ca8a04' : '#16a34a' }};
+                            color: white;
+                          "
+                          >{{ corr.severity }}</span>
+                        </td>
+                      </tr>
+                    @end
+                  @end
+                </tbody>
+              </table>
             </div>
           @end
         </section>
