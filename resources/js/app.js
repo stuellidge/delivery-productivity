@@ -6,10 +6,23 @@ import {
   PointElement,
   Tooltip,
   Legend,
+  LineController,
+  LineElement,
+  CategoryScale,
 } from 'chart.js'
 import 'chartjs-adapter-luxon'
 
-Chart.register(ScatterController, LinearScale, TimeScale, PointElement, Tooltip, Legend)
+Chart.register(
+  ScatterController,
+  LinearScale,
+  TimeScale,
+  PointElement,
+  Tooltip,
+  Legend,
+  LineController,
+  LineElement,
+  CategoryScale
+)
 
 window.renderCycleTimeChart = function (canvasId, rawData, p85Value) {
   const canvas = document.getElementById(canvasId)
@@ -77,4 +90,89 @@ window.renderCycleTimeChart = function (canvasId, rawData, p85Value) {
       },
     ],
   })
+}
+
+window.renderDoraTrendCharts = function (trendData) {
+  if (!trendData || trendData.length === 0) return
+
+  const labels = trendData.map((d) => d.weekStart)
+  const dfData = trendData.map((d) => d.deploymentFrequency)
+  const cfrData = trendData.map((d) => d.changeFailureRate)
+  const ttrData = trendData.map((d) => d.ttrMedian)
+
+  const freqCfrCanvas = document.getElementById('doraFreqCfrChart')
+  if (freqCfrCanvas) {
+    new Chart(freqCfrCanvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Deploys/week',
+            data: dfData,
+            borderColor: 'rgba(59, 130, 246, 0.9)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            yAxisID: 'yLeft',
+            tension: 0.2,
+            fill: false,
+          },
+          {
+            label: 'CFR %',
+            data: cfrData,
+            borderColor: 'rgba(239, 68, 68, 0.9)',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            yAxisID: 'yRight',
+            tension: 0.2,
+            fill: false,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'top' } },
+        scales: {
+          yLeft: {
+            type: 'linear',
+            position: 'left',
+            title: { display: true, text: 'Deploys' },
+            beginAtZero: true,
+          },
+          yRight: {
+            type: 'linear',
+            position: 'right',
+            title: { display: true, text: 'CFR %' },
+            beginAtZero: true,
+            grid: { drawOnChartArea: false },
+          },
+        },
+      },
+    })
+  }
+
+  const ttrCanvas = document.getElementById('doraTtrChart')
+  if (ttrCanvas) {
+    new Chart(ttrCanvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'TTR median (min)',
+            data: ttrData,
+            borderColor: 'rgba(234, 88, 12, 0.9)',
+            backgroundColor: 'rgba(234, 88, 12, 0.1)',
+            tension: 0.2,
+            fill: true,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { title: { display: true, text: 'Minutes' }, beginAtZero: true },
+        },
+      },
+    })
+  }
 }

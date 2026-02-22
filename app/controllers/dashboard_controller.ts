@@ -15,6 +15,7 @@ import SprintConfidenceService from '#services/sprint_confidence_service'
 import CrossStreamCorrelationService from '#services/cross_stream_correlation_service'
 import DataQualityService from '#services/data_quality_service'
 import DefectEscapeRateService from '#services/defect_escape_rate_service'
+import DoraTrendService from '#services/dora_trend_service'
 
 const STAGE_ORDER = ['backlog', 'ba', 'dev', 'code_review', 'qa', 'uat']
 const STAGE_LABELS: Record<string, string> = {
@@ -137,6 +138,12 @@ export default class DashboardController {
       ? await new DataQualityService().getStreamWarnings(selectedStreamId)
       : []
 
+    // DORA trend time-series for the first active tech stream (for chart rendering)
+    const selectedTechStreamId = techStreams.length > 0 ? techStreams[0].id : null
+    const doraTrend = selectedTechStreamId
+      ? await new DoraTrendService(selectedTechStreamId, 90).compute()
+      : []
+
     return view.render('dashboard/index', {
       deliveryStreams,
       selectedStream,
@@ -154,6 +161,8 @@ export default class DashboardController {
       crossStreamCorrelations,
       pulseAggregates,
       dataQualityWarnings,
+      doraTrend,
+      selectedTechStreamId,
     })
   }
 }

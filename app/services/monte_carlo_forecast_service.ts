@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import db from '@adonisjs/lucid/services/db'
+import ForecastSnapshot from '#models/forecast_snapshot'
 
 export interface ForecastResult {
   isLowConfidence: boolean
@@ -73,6 +74,26 @@ export default class MonteCarloForecastService {
       distributionData,
       simulationRuns: SIMULATION_RUNS,
     }
+  }
+
+  async materialize(): Promise<ForecastSnapshot> {
+    const result = await this.compute()
+    const today = DateTime.now().toISODate()!
+
+    return ForecastSnapshot.updateOrCreate(
+      { deliveryStreamId: this.deliveryStreamId, forecastDate: today },
+      {
+        scopeItemCount: result.remainingScope,
+        throughputSamples: result.weeksOfData,
+        simulationRuns: result.simulationRuns,
+        p50CompletionDate: result.p50Date,
+        p70CompletionDate: result.p70Date,
+        p85CompletionDate: result.p85Date,
+        p95CompletionDate: result.p95Date,
+        distributionData: result.distributionData.length > 0 ? result.distributionData : null,
+        computedAt: DateTime.now(),
+      }
+    )
   }
 
   private async getRemainingScope(): Promise<number> {

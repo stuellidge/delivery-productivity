@@ -5,6 +5,7 @@ import CycleTimeService from '#services/cycle_time_service'
 import FlowEfficiencyService from '#services/flow_efficiency_service'
 import TechStream from '#models/tech_stream'
 import DoraMetricsService from '#services/dora_metrics_service'
+import DoraTrendService from '#services/dora_trend_service'
 import MonteCarloForecastService from '#services/monte_carlo_forecast_service'
 import CrossStreamCorrelationService from '#services/cross_stream_correlation_service'
 import DefectEscapeRateService from '#services/defect_escape_rate_service'
@@ -131,8 +132,21 @@ export default class ApiMetricsController {
   }
 
   async trends({ request, response }: HttpContext) {
-    const windowDays = request.input('window') ? Number(request.input('window')) : 30
-    const cacheKey = `metrics:trends:all:${windowDays}`
+    const streamId = request.input('tech_stream') ? Number(request.input('tech_stream')) : null
+    const windowDays = request.input('window') ? Number(request.input('window')) : 90
+    const cacheKey = `metrics:trends:${streamId ?? 'all'}:${windowDays}`
+
+    if (streamId) {
+      const data = await cache.remember(cacheKey, TTL.trends, async () => {
+        const series = await new DoraTrendService(streamId, windowDays).compute()
+        return { series }
+      })
+      return response.ok({
+        status: 'ok',
+        data,
+        meta: { tech_stream_id: streamId, window_days: windowDays, computed_at: DateTime.now().toISO() },
+      })
+    }
 
     const data = await cache.remember(cacheKey, TTL.trends, async () => {
       const techStreams = await TechStream.query().where('is_active', true)

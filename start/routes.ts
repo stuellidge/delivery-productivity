@@ -178,6 +178,7 @@ router
     router.get('/admin/data-quality', [AdminMetricsController, 'dataQuality'])
     router.get('/admin/integration-health', [AdminMetricsController, 'integrationHealth'])
     router.get('/admin/system-alerts', [AdminMetricsController, 'systemAlerts'])
+    router.post('/admin/backfill/:source/:org', [AdminMetricsController, 'backfill'])
     router.post('/events/deployment', [DeploymentEventsController, 'handle'])
     router.post('/events/incident', [IncidentEventsController, 'handle'])
     router.post('/pr-events/:id/link-ticket', [PrLinkController, 'handle'])

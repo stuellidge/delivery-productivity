@@ -4,6 +4,7 @@ import { DateTime } from 'luxon'
 import DeliveryStream from '#models/delivery_stream'
 import WorkItemEvent from '#models/work_item_event'
 import WorkItemCycle from '#models/work_item_cycle'
+import ForecastSnapshot from '#models/forecast_snapshot'
 import MonteCarloForecastService from '#services/monte_carlo_forecast_service'
 
 async function seedDeliveryStream(name = 'team-alpha') {
@@ -154,5 +155,55 @@ test.group('MonteCarloForecastService | full simulation (≥ 6 weeks)', (group) 
     const service = new MonteCarloForecastService(ds.id, 12)
     const result = await service.compute()
     assert.equal(result.remainingScope, 0)
+  })
+})
+
+test.group('MonteCarloForecastService | materialize', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('persists a forecast snapshot for today', async ({ assert }) => {
+    const ds = await seedDeliveryStream('mat-forecast-ds')
+    const now = DateTime.now()
+    for (let w = 1; w <= 8; w++) {
+      await seedCompletedCycle(ds.id, `MAT-W${w}A`, now.minus({ weeks: w }).plus({ days: 1 }))
+      await seedCompletedCycle(ds.id, `MAT-W${w}B`, now.minus({ weeks: w }).plus({ days: 3 }))
+    }
+    await seedActiveTicket(ds.id, 'MAT-R1', 'dev')
+    await seedActiveTicket(ds.id, 'MAT-R2', 'qa')
+
+    const snapshot = await new MonteCarloForecastService(ds.id, 12).materialize()
+
+    assert.equal(snapshot.deliveryStreamId, ds.id)
+    assert.equal(snapshot.forecastDate, DateTime.now().toISODate()!)
+    assert.equal(snapshot.scopeItemCount, 2)
+    assert.isAtLeast(snapshot.throughputSamples, 6)
+    assert.equal(snapshot.simulationRuns, 10000)
+    assert.isNotNull(snapshot.p50CompletionDate)
+    assert.isNotNull(snapshot.p85CompletionDate)
+    assert.isArray(snapshot.distributionData)
+    assert.isAbove(snapshot.distributionData!.length, 0)
+  })
+
+  test('upserts on re-run — no duplicate for same date + stream', async ({ assert }) => {
+    const ds = await seedDeliveryStream('mat-forecast-upsert')
+    const service = new MonteCarloForecastService(ds.id, 12)
+    await service.materialize()
+    await service.materialize()
+
+    const today = DateTime.now().toISODate()!
+    const rows = await ForecastSnapshot.query()
+      .where('delivery_stream_id', ds.id)
+      .where('forecast_date', today)
+    assert.lengthOf(rows, 1)
+  })
+
+  test('stores low-confidence result with null completion dates', async ({ assert }) => {
+    const ds = await seedDeliveryStream('mat-forecast-low-conf')
+    const snapshot = await new MonteCarloForecastService(ds.id, 12).materialize()
+
+    assert.equal(snapshot.scopeItemCount, 0)
+    assert.isNull(snapshot.p50CompletionDate)
+    assert.isNull(snapshot.p85CompletionDate)
+    assert.isNull(snapshot.distributionData)
   })
 })

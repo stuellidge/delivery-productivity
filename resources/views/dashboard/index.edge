@@ -305,6 +305,32 @@
         </section>
       @end
       
+      {{-- ═══════════════════════════════════════════════════
+           ZONE 6 — DORA Trend Views
+      ════════════════════════════════════════════════════ --}}
+      @if(selectedTechStreamId && doraTrend.length > 0)
+        <section style="margin-top: 1.5rem">
+          <h2>DORA Trend Views</h2>
+          <p class="secondary" style="font-size: 0.85rem">
+            Weekly breakdown · last 90 days · {{ doraMetrics.length > 0 ? doraMetrics[0].techStream.displayName : '' }}
+          </p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem">
+            <div>
+              <h3 style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em">
+                Deploy Frequency &amp; Change Failure Rate
+              </h3>
+              <canvas id="doraFreqCfrChart" style="max-height: 260px"></canvas>
+            </div>
+            <div>
+              <h3 style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em">
+                Time to Restore (median, minutes)
+              </h3>
+              <canvas id="doraTtrChart" style="max-height: 260px"></canvas>
+            </div>
+          </div>
+        </section>
+      @end
+
       @if(prMetrics.length > 0)
         <section style="margin-top: 1.5rem">
           <h2>
@@ -616,6 +642,16 @@
           var p85 = {{ cycleTimeStats.p85 }};
           if (typeof window.renderCycleTimeChart === "function") {
             window.renderCycleTimeChart("cycleTimeChart", JSON.stringify(data), p85);
+          }
+        });
+      </script>
+    @end
+    @if(selectedTechStreamId && doraTrend.length > 0)
+      <script>
+        document.addEventListener("DOMContentLoaded", function() {
+          var trendData = {{{ js.stringify(doraTrend) }}};
+          if (typeof window.renderDoraTrendCharts === "function") {
+            window.renderDoraTrendCharts(trendData);
           }
         });
       </script>
