@@ -26,6 +26,8 @@ export default class TechStreamsController {
         githubInstallId: data.githubInstallId,
         description: data.description ?? null,
         isActive: true,
+        ticketRegex: data.ticketRegex ?? null,
+        minContributors: data.minContributors ?? 6,
       })
       session.flash('success', 'Technology stream created successfully')
       return response.redirect('/admin/streams/tech')
@@ -56,6 +58,8 @@ export default class TechStreamsController {
         githubInstallId: data.githubInstallId,
         description: data.description ?? stream.description,
         isActive: data.isActive ?? stream.isActive,
+        ticketRegex: 'ticketRegex' in data ? (data.ticketRegex ?? null) : stream.ticketRegex,
+        minContributors: data.minContributors ?? stream.minContributors,
       })
       await stream.save()
 

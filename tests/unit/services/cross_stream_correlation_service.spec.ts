@@ -4,6 +4,7 @@ import { DateTime } from 'luxon'
 import DeliveryStream from '#models/delivery_stream'
 import TechStream from '#models/tech_stream'
 import WorkItemEvent from '#models/work_item_event'
+import PlatformSetting from '#models/platform_setting'
 import CrossStreamCorrelationService from '#services/cross_stream_correlation_service'
 
 async function seedDeliveryStream(name: string) {
@@ -100,6 +101,72 @@ test.group('CrossStreamCorrelationService | computeForTechStream', (group) => {
     // 1 impacted stream — severity is 'low' or 'medium' depending on confidence
     // (no active sprint, so confidence will be 0 → 'medium')
     assert.oneOf(result.severity, ['low', 'medium'])
+  })
+})
+
+test.group('CrossStreamCorrelationService | configurable thresholds', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('uses default thresholds when platform_settings row absent', async ({ assert }) => {
+    // Delete the seeded row so the service falls back to hardcoded defaults
+    await PlatformSetting.query().where('key', 'cross_stream_severity_thresholds').delete()
+
+    const ts = await seedTechStream('ts-default-thresh')
+    const ds1 = await seedDeliveryStream('ds-default-thresh-1')
+    const ds2 = await seedDeliveryStream('ds-default-thresh-2')
+    const ds3 = await seedDeliveryStream('ds-default-thresh-3')
+    const now = DateTime.now()
+
+    // 3 impacted streams, confidence 0 → critical with default thresholds
+    await seedBlockedEvent(ds1.id, ts.id, 'DT-1', now.minus({ days: 2 }))
+    await seedBlockedEvent(ds2.id, ts.id, 'DT-2', now.minus({ days: 3 }))
+    await seedBlockedEvent(ds3.id, ts.id, 'DT-3', now.minus({ days: 4 }))
+
+    const service = new CrossStreamCorrelationService()
+    const result = await service.computeForTechStream(ts.id)
+
+    assert.equal(result.severity, 'critical')
+  })
+
+  test('uses thresholds from platform_settings when row present', async ({ assert }) => {
+    // Override existing threshold row: 3 streams + any confidence = 'low'
+    await PlatformSetting.query().where('key', 'cross_stream_severity_thresholds').update({
+      value: JSON.stringify([{ minStreams: 3, maxConfidence: 100, severity: 'low' }]),
+    })
+
+    const ts = await seedTechStream('ts-custom-thresh')
+    const ds1 = await seedDeliveryStream('ds-custom-thresh-1')
+    const ds2 = await seedDeliveryStream('ds-custom-thresh-2')
+    const ds3 = await seedDeliveryStream('ds-custom-thresh-3')
+    const now = DateTime.now()
+
+    await seedBlockedEvent(ds1.id, ts.id, 'CT-1', now.minus({ days: 2 }))
+    await seedBlockedEvent(ds2.id, ts.id, 'CT-2', now.minus({ days: 3 }))
+    await seedBlockedEvent(ds3.id, ts.id, 'CT-3', now.minus({ days: 4 }))
+
+    const service = new CrossStreamCorrelationService()
+    const result = await service.computeForTechStream(ts.id)
+
+    // Custom threshold maps 3 streams to 'low' — service must read from DB
+    assert.equal(result.severity, 'low')
+  })
+
+  test('critical severity when 3+ streams impacted and confidence < 60', async ({ assert }) => {
+    const ts = await seedTechStream('ts-critical')
+    const ds1 = await seedDeliveryStream('ds-critical-1')
+    const ds2 = await seedDeliveryStream('ds-critical-2')
+    const ds3 = await seedDeliveryStream('ds-critical-3')
+    const now = DateTime.now()
+
+    await seedBlockedEvent(ds1.id, ts.id, 'CR-1', now.minus({ days: 2 }))
+    await seedBlockedEvent(ds2.id, ts.id, 'CR-2', now.minus({ days: 3 }))
+    await seedBlockedEvent(ds3.id, ts.id, 'CR-3', now.minus({ days: 4 }))
+
+    const service = new CrossStreamCorrelationService()
+    const result = await service.computeForTechStream(ts.id)
+
+    // 3 impacted streams, no active sprint → confidence is 0 < 60 → critical
+    assert.equal(result.severity, 'critical')
   })
 })
 

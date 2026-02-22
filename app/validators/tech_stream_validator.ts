@@ -1,4 +1,20 @@
 import vine from '@vinejs/vine'
+import type { FieldContext } from '@vinejs/vine/types'
+
+function validateRegexPattern(value: unknown, _options: undefined, field: FieldContext) {
+  if (typeof value !== 'string') return
+  try {
+    new RegExp(value)
+  } catch {
+    field.report(
+      'The {{ field }} field is not a valid regular expression pattern.',
+      'regex_compile',
+      field
+    )
+  }
+}
+
+const regexPatternRule = vine.createRule(validateRegexPattern)
 
 export const createTechStreamValidator = vine.compile(
   vine.object({
@@ -24,6 +40,8 @@ export const createTechStreamValidator = vine.compile(
       }),
     githubInstallId: vine.string().trim().minLength(1).maxLength(255),
     description: vine.string().trim().optional(),
+    ticketRegex: vine.string().trim().maxLength(500).use(regexPatternRule()).optional(),
+    minContributors: vine.number().min(2).max(100).optional(),
   })
 )
 
@@ -60,5 +78,7 @@ export const updateTechStreamValidator = vine.withMetaData<{ streamId: number }>
     githubInstallId: vine.string().trim().minLength(1).maxLength(255),
     description: vine.string().trim().optional(),
     isActive: vine.boolean().optional(),
+    ticketRegex: vine.string().trim().maxLength(500).use(regexPatternRule()).optional(),
+    minContributors: vine.number().min(2).max(100).optional(),
   })
 )

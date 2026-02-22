@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import TechStream from '#models/tech_stream'
 import WorkItemEvent from '#models/work_item_event'
+import PlatformSetting from '#models/platform_setting'
 import SprintConfidenceService from '#services/sprint_confidence_service'
 
 export interface CorrelationResult {
@@ -11,8 +12,32 @@ export interface CorrelationResult {
   avgConfidencePct: number | null
 }
 
+interface SeverityThreshold {
+  minStreams: number
+  maxConfidence: number
+  severity: 'none' | 'low' | 'medium' | 'high' | 'critical'
+}
+
+const DEFAULT_THRESHOLDS: SeverityThreshold[] = [
+  { minStreams: 3, maxConfidence: 60, severity: 'critical' },
+  { minStreams: 2, maxConfidence: 70, severity: 'high' },
+  { minStreams: 2, maxConfidence: 100, severity: 'medium' },
+  { minStreams: 1, maxConfidence: 70, severity: 'medium' },
+  { minStreams: 1, maxConfidence: 100, severity: 'low' },
+]
+
 export default class CrossStreamCorrelationService {
-  async computeForTechStream(techStreamId: number): Promise<CorrelationResult> {
+  async computeForTechStream(
+    techStreamId: number,
+    thresholds?: SeverityThreshold[]
+  ): Promise<CorrelationResult> {
+    const resolvedThresholds =
+      thresholds ??
+      (await PlatformSetting.get<SeverityThreshold[]>(
+        'cross_stream_severity_thresholds',
+        DEFAULT_THRESHOLDS
+      ))
+
     const since = DateTime.now().minus({ days: 14 })
 
     const blockedEvents = await WorkItemEvent.query()
@@ -45,7 +70,11 @@ export default class CrossStreamCorrelationService {
     )
 
     const avgConfidencePct = confidences.reduce((sum, c) => sum + c, 0) / confidences.length
-    const severity = this.computeSeverity(impactedStreamIds.length, avgConfidencePct)
+    const severity = this.computeSeverity(
+      impactedStreamIds.length,
+      avgConfidencePct,
+      resolvedThresholds
+    )
 
     return {
       techStreamId,
@@ -57,19 +86,28 @@ export default class CrossStreamCorrelationService {
   }
 
   async computeAll(): Promise<CorrelationResult[]> {
+    // Load thresholds once for the whole run
+    const thresholds = await PlatformSetting.get<SeverityThreshold[]>(
+      'cross_stream_severity_thresholds',
+      DEFAULT_THRESHOLDS
+    )
+
     const techStreams = await TechStream.query().where('is_active', true)
-    return Promise.all(techStreams.map((ts) => this.computeForTechStream(ts.id)))
+    return Promise.all(techStreams.map((ts) => this.computeForTechStream(ts.id, thresholds)))
   }
 
   private computeSeverity(
     impactedCount: number,
-    avgConfidence: number
+    avgConfidence: number,
+    thresholds: SeverityThreshold[]
   ): 'none' | 'low' | 'medium' | 'high' | 'critical' {
     if (impactedCount === 0) return 'none'
-    if (impactedCount >= 3 && avgConfidence < 60) return 'critical'
-    if (impactedCount >= 2 && avgConfidence < 70) return 'high'
-    if (impactedCount >= 2 && avgConfidence >= 70) return 'medium'
-    if (impactedCount === 1 && avgConfidence < 70) return 'medium'
+    // Evaluate thresholds in order — first match wins
+    for (const threshold of thresholds) {
+      if (impactedCount >= threshold.minStreams && avgConfidence <= threshold.maxConfidence) {
+        return threshold.severity
+      }
+    }
     return 'low'
   }
 }

@@ -27,6 +27,8 @@ const DeploymentEventsController = () => import('#controllers/api/deployment_eve
 const IncidentEventsController = () => import('#controllers/api/incident_events_controller')
 const AdminMetricsController = () => import('#controllers/api/admin_metrics_controller')
 const PulseSurveyController = () => import('#controllers/pulse_survey_controller')
+const PlatformSettingsController = () =>
+  import('#controllers/admin/platform_settings_controller')
 
 /*
 |--------------------------------------------------------------------------
@@ -113,6 +115,11 @@ router
     router.post('/users/:id/deactivate', [AdminUsersController, 'deactivate'])
     router.post('/users/:id/roles', [AdminUsersController, 'addRole'])
     router.delete('/users/:id/roles/:roleId', [AdminUsersController, 'removeRole'])
+
+    // Platform settings
+    router.get('/platform-settings', [PlatformSettingsController, 'index'])
+    router.get('/platform-settings/:key/edit', [PlatformSettingsController, 'edit'])
+    router.put('/platform-settings/:key', [PlatformSettingsController, 'update'])
 
     // OIDC group mappings
     router

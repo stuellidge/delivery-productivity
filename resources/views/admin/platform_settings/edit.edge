@@ -1,0 +1,37 @@
+@component('layouts/app', { title: 'Edit Platform Setting — Admin' })
+  @slot('main')
+    <h1>Edit Setting: <code>{{ setting.key }}</code></h1>
+
+    @if(setting.description)
+      <p>{{ setting.description }}</p>
+    @end
+
+    @if(flashMessages.has('errors'))
+      <article class="flash-error">
+        @each(msg in Object.values(flashMessages.get('errors', {})))
+          <p>{{ msg }}</p>
+        @end
+      </article>
+    @end
+
+    <form method="POST" action="/admin/platform-settings/{{ setting.key }}?_method=PUT">
+      {{ csrfField() }}
+
+      <label for="value">
+        Value (JSON)
+        <textarea
+          id="value"
+          name="value"
+          rows="20"
+          style="font-family: monospace; font-size: 0.85rem"
+          required
+        >{{ JSON.stringify(setting.value, null, 2) }}</textarea>
+      </label>
+
+      <div class="form-actions">
+        <button type="submit">Save</button>
+        <a href="/admin/platform-settings" class="secondary outline">Cancel</a>
+      </div>
+    </form>
+  @end
+@end

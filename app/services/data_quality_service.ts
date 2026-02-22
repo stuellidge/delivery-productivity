@@ -1,4 +1,5 @@
 import db from '@adonisjs/lucid/services/db'
+import PulseAggregate from '#models/pulse_aggregate'
 
 export interface DataQualityMetrics {
   prLinkageRate: number
@@ -9,6 +10,8 @@ export interface DataQualityMetrics {
   defectTotal: number
   deploymentTraceabilityRate: number
   deploymentTotal: number
+  pulseResponseRate: number
+  pulseStreamsSampled: number
   warnings: { metric: string; rate: number; target: number }[]
 }
 
@@ -18,15 +21,17 @@ const TARGETS = {
   ticketTaggingRate: 95,
   defectAttributionRate: 70,
   deploymentTraceabilityRate: 80,
+  pulseResponseRate: 60,
 }
 
 export default class DataQualityService {
   async compute(): Promise<DataQualityMetrics> {
-    const [prStats, ticketStats, deployStats, defectStats] = await Promise.all([
+    const [prStats, ticketStats, deployStats, defectStats, pulseStats] = await Promise.all([
       this.getPrStats(),
       this.getTicketStats(),
       this.getDeploymentStats(),
       this.getDefectStats(),
+      this.getPulseResponseRate(),
     ])
 
     const warnings: { metric: string; rate: number; target: number }[] = []
@@ -52,14 +57,21 @@ export default class DataQualityService {
         target: TARGETS.deploymentTraceabilityRate,
       })
     }
-    if (
-      defectStats.total > 0 &&
-      defectStats.attributionRate < TARGETS.defectAttributionRate
-    ) {
+    if (defectStats.total > 0 && defectStats.attributionRate < TARGETS.defectAttributionRate) {
       warnings.push({
         metric: 'defectAttributionRate',
         rate: defectStats.attributionRate,
         target: TARGETS.defectAttributionRate,
+      })
+    }
+    if (
+      pulseStats.sampledStreams > 0 &&
+      pulseStats.avgRate < TARGETS.pulseResponseRate
+    ) {
+      warnings.push({
+        metric: 'pulseResponseRate',
+        rate: pulseStats.avgRate,
+        target: TARGETS.pulseResponseRate,
       })
     }
 
@@ -72,6 +84,8 @@ export default class DataQualityService {
       defectTotal: defectStats.total,
       deploymentTraceabilityRate: deployStats.traceableRate,
       deploymentTotal: deployStats.total,
+      pulseResponseRate: pulseStats.avgRate,
+      pulseStreamsSampled: pulseStats.sampledStreams,
       warnings,
     }
   }
@@ -140,12 +154,23 @@ export default class DataQualityService {
 
     // Defect attribution rate — scoped to this delivery stream
     const defectStats = await this.getDefectStats(deliveryStreamId)
-    if (
-      defectStats.total > 0 &&
-      defectStats.attributionRate < TARGETS.defectAttributionRate
-    ) {
+    if (defectStats.total > 0 && defectStats.attributionRate < TARGETS.defectAttributionRate) {
       warnings.push(
         `Defect attribution rate is ${defectStats.attributionRate.toFixed(1)}% (target: ${TARGETS.defectAttributionRate}%)`
+      )
+    }
+
+    // Pulse response rate — scoped to this delivery stream
+    const latestAggregate = await PulseAggregate.query()
+      .where('delivery_stream_id', deliveryStreamId)
+      .orderBy('survey_period', 'desc')
+      .first()
+    if (
+      latestAggregate &&
+      Number(latestAggregate.responseRatePct) < TARGETS.pulseResponseRate
+    ) {
+      warnings.push(
+        `Pulse response rate is ${Number(latestAggregate.responseRatePct).toFixed(1)}% (target: ${TARGETS.pulseResponseRate}%)`
       )
     }
 
@@ -217,5 +242,21 @@ export default class DataQualityService {
     const traceableRate = total > 0 ? (traceable / total) * 100 : 0
 
     return { total, traceableRate }
+  }
+
+  private async getPulseResponseRate(): Promise<{ avgRate: number; sampledStreams: number }> {
+    // Get the latest pulse_aggregate per delivery stream
+    const rows = await db
+      .from('pulse_aggregates as pa')
+      .whereNotNull('pa.response_rate_pct')
+      .whereRaw(
+        'pa.survey_period = (SELECT MAX(pa2.survey_period) FROM pulse_aggregates pa2 WHERE pa2.delivery_stream_id = pa.delivery_stream_id)'
+      )
+      .select('pa.delivery_stream_id', 'pa.response_rate_pct')
+
+    if (rows.length === 0) return { avgRate: 0, sampledStreams: 0 }
+
+    const total = rows.reduce((sum: number, row: any) => sum + Number(row.response_rate_pct), 0)
+    return { avgRate: total / rows.length, sampledStreams: rows.length }
   }
 }

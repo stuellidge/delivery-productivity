@@ -1,5 +1,6 @@
 import { createHmac, createHash, timingSafeEqual } from 'node:crypto'
 import { DateTime } from 'luxon'
+import logger from '@adonisjs/core/services/logger'
 import env from '#start/env'
 import TechStream from '#models/tech_stream'
 import Repository from '#models/repository'
@@ -70,7 +71,8 @@ export default class GithubEventNormalizerService {
     const linkedTicketId = this.extractTicketId(
       pr?.head?.ref ?? null,
       pr?.title ?? null,
-      pr?.body ?? null
+      pr?.body ?? null,
+      techStream.ticketRegex
     )
 
     const eventTimestamp = DateTime.fromISO(pr?.updated_at ?? pr?.created_at)
@@ -142,7 +144,8 @@ export default class GithubEventNormalizerService {
     const linkedTicketId = this.extractTicketId(
       pr?.head?.ref ?? null,
       pr?.title ?? null,
-      pr?.body ?? null
+      pr?.body ?? null,
+      techStream.ticketRegex
     )
 
     await PrEvent.create({
@@ -266,11 +269,21 @@ export default class GithubEventNormalizerService {
   private extractTicketId(
     branchName: string | null,
     prTitle: string | null,
-    prBody: string | null
+    prBody: string | null,
+    customRegex?: string | null
   ): string | null {
+    let regex = TICKET_REGEX
+    if (customRegex) {
+      try {
+        regex = new RegExp(customRegex)
+      } catch {
+        // Invalid regex — fall back to default
+        logger.warn({ customRegex }, 'Invalid ticket_regex on tech stream — using default')
+      }
+    }
     for (const text of [branchName, prTitle, prBody]) {
       if (!text) continue
-      const match = text.match(TICKET_REGEX)
+      const match = text.match(regex)
       if (match) return match[1]
     }
     return null

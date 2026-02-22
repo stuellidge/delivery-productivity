@@ -25,6 +25,12 @@ export default class TechStream extends BaseModel {
   @column()
   declare isActive: boolean
 
+  @column()
+  declare minContributors: number
+
+  @column()
+  declare ticketRegex: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

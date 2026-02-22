@@ -47,7 +47,11 @@ export default class DashboardController {
     // Compute PR review turnaround per active tech stream
     const prMetrics = await Promise.all(
       techStreams.map(async (ts) => {
-        const turnaround = await new PrReviewTurnaroundService(ts.id, windowDays).compute()
+        const turnaround = await new PrReviewTurnaroundService(
+          ts.id,
+          windowDays,
+          ts.minContributors
+        ).compute()
         return { techStream: ts, turnaround }
       })
     )

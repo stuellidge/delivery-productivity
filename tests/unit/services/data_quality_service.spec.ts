@@ -7,6 +7,7 @@ import PrEvent from '#models/pr_event'
 import WorkItemEvent from '#models/work_item_event'
 import DeploymentRecord from '#models/deployment_record'
 import Repository from '#models/repository'
+import PulseAggregate from '#models/pulse_aggregate'
 import DataQualityService from '#services/data_quality_service'
 
 async function seedTechStream(name = 'dq-ts') {
@@ -216,6 +217,94 @@ test.group('DataQualityService | defect attribution', (group) => {
     const warning = result.warnings.find((w) => w.metric === 'defectAttributionRate')
     assert.isNotNull(warning)
     assert.isTrue(warning!.rate < 70)
+  })
+})
+
+test.group('DataQualityService | pulse response rate', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('computes pulse response rate from latest pulse_aggregate per stream', async ({ assert }) => {
+    const ds1 = await seedDeliveryStream('pulse-ds-1')
+    const ds2 = await seedDeliveryStream('pulse-ds-2')
+
+    // Latest aggregate for ds1: 80%
+    await PulseAggregate.create({
+      deliveryStreamId: ds1.id,
+      surveyPeriod: '2026-01',
+      responseCount: 8,
+      responseRatePct: 80,
+      computedAt: DateTime.now(),
+    })
+    // Older aggregate for ds1: 40% — should be ignored (not latest)
+    await PulseAggregate.create({
+      deliveryStreamId: ds1.id,
+      surveyPeriod: '2025-12',
+      responseCount: 4,
+      responseRatePct: 40,
+      computedAt: DateTime.now(),
+    })
+    // Latest aggregate for ds2: 50%
+    await PulseAggregate.create({
+      deliveryStreamId: ds2.id,
+      surveyPeriod: '2026-01',
+      responseCount: 5,
+      responseRatePct: 50,
+      computedAt: DateTime.now(),
+    })
+
+    const service = new DataQualityService()
+    const result = await service.compute()
+
+    // avg of 80% and 50% = 65%
+    assert.approximately(result.pulseResponseRate, 65, 1)
+    assert.equal(result.pulseStreamsSampled, 2)
+  })
+
+  test('returns 0 rate when no pulse aggregates exist', async ({ assert }) => {
+    const service = new DataQualityService()
+    const result = await service.compute()
+
+    assert.equal(result.pulseResponseRate, 0)
+    assert.equal(result.pulseStreamsSampled, 0)
+  })
+
+  test('emits pulse_response_rate warning when rate below 60%', async ({ assert }) => {
+    const ds = await seedDeliveryStream('pulse-warn-ds')
+
+    await PulseAggregate.create({
+      deliveryStreamId: ds.id,
+      surveyPeriod: '2026-01',
+      responseCount: 3,
+      responseRatePct: 30,
+      computedAt: DateTime.now(),
+    })
+
+    const service = new DataQualityService()
+    const result = await service.compute()
+
+    const warning = result.warnings.find((w) => w.metric === 'pulseResponseRate')
+    assert.isNotNull(warning)
+    assert.isBelow(warning!.rate, 60)
+  })
+
+  test('getStreamWarnings includes pulse warning when response rate below 60%', async ({
+    assert,
+  }) => {
+    const ds = await seedDeliveryStream('pulse-stream-warn-ds')
+
+    await PulseAggregate.create({
+      deliveryStreamId: ds.id,
+      surveyPeriod: '2026-01',
+      responseCount: 2,
+      responseRatePct: 20,
+      computedAt: DateTime.now(),
+    })
+
+    const service = new DataQualityService()
+    const warnings = await service.getStreamWarnings(ds.id)
+
+    const pulseWarning = warnings.find((w) => w.toLowerCase().includes('pulse'))
+    assert.isNotNull(pulseWarning)
   })
 })
 

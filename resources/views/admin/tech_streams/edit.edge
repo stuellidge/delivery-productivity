@@ -50,6 +50,29 @@
         <textarea id="description" name="description">{{ flashMessages.get('description', stream.description ?? '') }}</textarea>
       </label>
 
+      <label for="ticketRegex">
+        Ticket ID Regex (optional, e.g. <code>(PROJ-\d+)</code>)
+        <input
+          type="text"
+          id="ticketRegex"
+          name="ticketRegex"
+          value="{{ flashMessages.get('ticketRegex', stream.ticketRegex ?? '') }}"
+          placeholder="Leave blank to use default: ([A-Z][A-Z0-9]+-\d+)"
+        />
+      </label>
+
+      <label for="minContributors">
+        Minimum Contributors for Reviewer Metrics
+        <input
+          type="number"
+          id="minContributors"
+          name="minContributors"
+          value="{{ flashMessages.get('minContributors', stream.minContributors) }}"
+          min="2"
+          max="100"
+        />
+      </label>
+
       <label>
         <input type="checkbox" name="isActive" value="1" {{ stream.isActive ? 'checked' : '' }} />
         Active

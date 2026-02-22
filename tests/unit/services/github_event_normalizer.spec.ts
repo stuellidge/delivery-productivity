@@ -496,3 +496,97 @@ test.group('Github event normalizer | PR cycle trigger', (group) => {
     assert.isNotNull(cycle)
   })
 })
+
+test.group('GithubEventNormalizer | ticket regex', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('extracts ticket id using default regex when tech stream has no custom regex', async ({
+    assert,
+  }) => {
+    const { techStream } = await seedTechStreamAndRepo()
+    // ticketRegex is not set — default regex should apply
+    assert.isNotOk(techStream.ticketRegex)
+
+    const payload = buildPullRequestPayload({
+      pull_request: {
+        number: 201,
+        title: 'PROJ-123: some feature',
+        body: null,
+        user: { login: 'alice' },
+        head: { ref: 'feat/something' },
+        base: { ref: 'main' },
+        additions: 1,
+        deletions: 0,
+        changed_files: 1,
+        created_at: PR_OPENED_AT,
+        updated_at: PR_OPENED_AT,
+        merged: false,
+      },
+    })
+
+    const service = new GithubEventNormalizerService(payload, 'pull_request', undefined)
+    await service.process()
+
+    const event = await PrEvent.query().where('pr_number', 201).where('event_type', 'opened').first()
+    assert.equal(event!.linkedTicketId, 'PROJ-123')
+  })
+
+  test('extracts ticket id using custom regex from tech stream when set', async ({ assert }) => {
+    const { techStream } = await seedTechStreamAndRepo()
+    // Set a custom regex that matches lowercase tickets like feat-123
+    techStream.ticketRegex = '(feat-\\d+)'
+    await techStream.save()
+
+    const payload = buildPullRequestPayload({
+      pull_request: {
+        number: 202,
+        title: 'some title without PROJ prefix',
+        body: null,
+        user: { login: 'alice' },
+        head: { ref: 'feat-456-my-feature' },
+        base: { ref: 'main' },
+        additions: 1,
+        deletions: 0,
+        changed_files: 1,
+        created_at: PR_OPENED_AT,
+        updated_at: PR_OPENED_AT,
+        merged: false,
+      },
+    })
+
+    const service = new GithubEventNormalizerService(payload, 'pull_request', undefined)
+    await service.process()
+
+    const event = await PrEvent.query().where('pr_number', 202).where('event_type', 'opened').first()
+    assert.equal(event!.linkedTicketId, 'feat-456')
+  })
+
+  test('falls back to null when custom regex does not match', async ({ assert }) => {
+    const { techStream } = await seedTechStreamAndRepo()
+    techStream.ticketRegex = '(CUSTOM-\\d+)'
+    await techStream.save()
+
+    const payload = buildPullRequestPayload({
+      pull_request: {
+        number: 203,
+        title: 'unrelated title',
+        body: null,
+        user: { login: 'alice' },
+        head: { ref: 'chore/cleanup' },
+        base: { ref: 'main' },
+        additions: 1,
+        deletions: 0,
+        changed_files: 1,
+        created_at: PR_OPENED_AT,
+        updated_at: PR_OPENED_AT,
+        merged: false,
+      },
+    })
+
+    const service = new GithubEventNormalizerService(payload, 'pull_request', undefined)
+    await service.process()
+
+    const event = await PrEvent.query().where('pr_number', 203).where('event_type', 'opened').first()
+    assert.isNull(event!.linkedTicketId)
+  })
+})

@@ -1,0 +1,32 @@
+@component('layouts/app', { title: 'Platform Settings — Admin' })
+  @slot('main')
+    <h1>Platform Settings</h1>
+
+    @if(settings.length === 0)
+      <p>No settings configured.</p>
+    @else
+      <table>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Description</th>
+            <th>Last Updated</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @each(setting in settings)
+            <tr>
+              <td><code>{{ setting.key }}</code></td>
+              <td>{{ setting.description ?? '—' }}</td>
+              <td>{{ setting.updatedAt ? setting.updatedAt.toFormat('yyyy-MM-dd HH:mm') : '—' }}</td>
+              <td>
+                <a href="/admin/platform-settings/{{ setting.key }}/edit" class="secondary outline" style="padding:0.3rem 0.6rem">Edit</a>
+              </td>
+            </tr>
+          @end
+        </tbody>
+      </table>
+    @end
+  @end
+@end
