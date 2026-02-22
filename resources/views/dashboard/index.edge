@@ -44,6 +44,53 @@
       </label>
     </form>
 
+    {{-- ═══════════════════════════════════════════════════
+         STREAM HEALTH BAR — shown only when a stream is selected
+    ════════════════════════════════════════════════════ --}}
+    @if(selectedStream)
+      <div
+        data-health-bar
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; padding: 1rem; background: var(--pico-card-background-color); border-radius: 8px; border: 1px solid var(--pico-card-border-color)"
+      >
+        <div style="text-align: center">
+          <small style="display:block; color: var(--pico-muted-color); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em">Confidence</small>
+          <strong style="font-size: 1.4rem; color: {{ sprintConfidence && sprintConfidence.confidence >= 70 ? 'var(--pico-ins-color)' : 'var(--pico-del-color)' }}">
+            {{ sprintConfidence && !sprintConfidence.hasInsufficientData ? sprintConfidence.confidence.toFixed(0) + '%' : '—' }}
+          </strong>
+        </div>
+        <div style="text-align: center">
+          <small style="display:block; color: var(--pico-muted-color); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em">Cycle p85</small>
+          <strong style="font-size: 1.4rem">
+            {{ cycleTimeStats.count > 0 ? cycleTimeStats.p85.toFixed(1) + 'd' : '—' }}
+          </strong>
+        </div>
+        <div style="text-align: center">
+          <small style="display:block; color: var(--pico-muted-color); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em">Flow Eff.</small>
+          <strong style="font-size: 1.4rem">
+            {{ flowEfficiency.count > 0 ? flowEfficiency.avgFlowEfficiencyPct.toFixed(0) + '%' : '—' }}
+          </strong>
+        </div>
+        <div style="text-align: center">
+          <small style="display:block; color: var(--pico-muted-color); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em">Deploy Freq</small>
+          <strong style="font-size: 1.4rem">
+            {{ doraMetrics.length > 0 ? doraMetrics[0].dora.deploymentFrequency.toFixed(1) + '/wk' : '—' }}
+          </strong>
+        </div>
+        <div style="text-align: center">
+          <small style="display:block; color: var(--pico-muted-color); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em">CFR</small>
+          <strong style="font-size: 1.4rem; color: {{ doraMetrics.length > 0 && doraMetrics[0].dora.changeFailureRate > 15 ? 'var(--pico-del-color)' : 'inherit' }}">
+            {{ doraMetrics.length > 0 ? doraMetrics[0].dora.changeFailureRate.toFixed(0) + '%' : '—' }}
+          </strong>
+        </div>
+        <div style="text-align: center">
+          <small style="display:block; color: var(--pico-muted-color); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em">Defect Escape</small>
+          <strong style="font-size: 1.4rem; color: {{ defectEscape && defectEscape.escapeRatePct > 10 ? 'var(--pico-del-color)' : 'inherit' }}">
+            {{ defectEscape && defectEscape.totalResolved > 0 ? defectEscape.escapeRatePct.toFixed(0) + '%' : '—' }}
+          </strong>
+        </div>
+      </div>
+    @end
+
     @if(dataQualityWarnings.length)
       <article style="border-left: 4px solid var(--pico-color-orange-450)">
         <strong>Data confidence notice</strong>
@@ -241,6 +288,14 @@
                   @if(item.dora.leadTimeP85 !== null)
                     <small style="color: var(--pico-muted-color)">
                       Lead time p85: {{ item.dora.leadTimeP85.toFixed(1) }}h
+                    </small>
+                  @end
+
+                  {{-- Per-metric confidence badge: low PR linkage --}}
+                  @let(prItem = prMetrics.find(m => m.techStream.id === item.techStream.id))
+                  @if(prItem && prItem.turnaround.prToTicketLinkageRate < 90)
+                    <small style="display: block; margin-top: 0.5rem; color: var(--pico-color-orange-450)">
+                      ⚠ Low PR linkage ({{ prItem.turnaround.prToTicketLinkageRate.toFixed(0) }}%)
                     </small>
                   @end
                 </article>

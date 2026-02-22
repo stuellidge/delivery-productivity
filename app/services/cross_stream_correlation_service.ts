@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import TechStream from '#models/tech_stream'
 import WorkItemEvent from '#models/work_item_event'
 import PlatformSetting from '#models/platform_setting'
+import CrossStreamCorrelation from '#models/cross_stream_correlation'
 import SprintConfidenceService from '#services/sprint_confidence_service'
 
 export interface CorrelationResult {
@@ -94,6 +95,30 @@ export default class CrossStreamCorrelationService {
 
     const techStreams = await TechStream.query().where('is_active', true)
     return Promise.all(techStreams.map((ts) => this.computeForTechStream(ts.id, thresholds)))
+  }
+
+  async materializeAll(): Promise<CrossStreamCorrelation[]> {
+    const results = await this.computeAll()
+    const today = DateTime.now().toISODate()!
+
+    for (const r of results) {
+      await CrossStreamCorrelation.updateOrCreate(
+        { analysisDate: today, techStreamId: r.techStreamId },
+        {
+          impactedDeliveryStreams: r.impactedDeliveryStreamIds,
+          blockedDeliveryStreams: [],
+          blockCount14d: r.blockCount14d,
+          avgConfidencePct: r.avgConfidencePct,
+          avgCycleTimeP85: null,
+          severity: r.severity,
+          computedAt: DateTime.now(),
+        }
+      )
+    }
+
+    return CrossStreamCorrelation.query()
+      .where('analysis_date', today)
+      .orderBy('block_count_14d', 'desc')
   }
 
   private computeSeverity(

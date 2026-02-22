@@ -4,6 +4,7 @@ import DeliveryStream from '#models/delivery_stream'
 import TechStream from '#models/tech_stream'
 import WorkItemCycle from '#models/work_item_cycle'
 import PulseAggregate from '#models/pulse_aggregate'
+import CrossStreamCorrelation from '#models/cross_stream_correlation'
 import WipMetricsService from '#services/wip_metrics_service'
 import CycleTimeService from '#services/cycle_time_service'
 import FlowEfficiencyService from '#services/flow_efficiency_service'
@@ -13,6 +14,7 @@ import MonteCarloForecastService from '#services/monte_carlo_forecast_service'
 import SprintConfidenceService from '#services/sprint_confidence_service'
 import CrossStreamCorrelationService from '#services/cross_stream_correlation_service'
 import DataQualityService from '#services/data_quality_service'
+import DefectEscapeRateService from '#services/defect_escape_rate_service'
 
 const STAGE_ORDER = ['backlog', 'ba', 'dev', 'code_review', 'qa', 'uat']
 const STAGE_LABELS: Record<string, string> = {
@@ -65,15 +67,36 @@ export default class DashboardController {
     )
 
     // Phase 4: Forecast, Sprint Confidence, Cross-Stream Correlation, Pulse
-    const [forecast, sprintConfidence, crossStreamCorrelations] = await Promise.all([
+    const [forecast, sprintConfidence, defectEscape] = await Promise.all([
       selectedStreamId
         ? new MonteCarloForecastService(selectedStreamId).compute()
         : Promise.resolve(null),
       selectedStreamId
         ? new SprintConfidenceService(selectedStreamId).compute()
         : Promise.resolve(null),
-      new CrossStreamCorrelationService().computeAll(),
+      selectedStreamId
+        ? new DefectEscapeRateService(selectedStreamId, windowDays).compute()
+        : Promise.resolve(null),
     ])
+
+    // Read cross-stream correlations from materialised table; fall back to live if empty
+    let crossStreamCorrelations: Array<{ techStreamId: number; blockCount14d: number; impactedDeliveryStreamIds: number[]; severity: string; avgConfidencePct: number | null }>
+    const today = DateTime.now().toISODate()!
+    const materialisedRows = await CrossStreamCorrelation.query()
+      .where('analysis_date', today)
+      .orderBy('block_count_14d', 'desc')
+
+    if (materialisedRows.length > 0) {
+      crossStreamCorrelations = materialisedRows.map((r) => ({
+        techStreamId: r.techStreamId,
+        blockCount14d: r.blockCount14d,
+        impactedDeliveryStreamIds: r.impactedDeliveryStreams,
+        severity: r.severity,
+        avgConfidencePct: r.avgConfidencePct,
+      }))
+    } else {
+      crossStreamCorrelations = await new CrossStreamCorrelationService().computeAll()
+    }
 
     const pulseAggregates = selectedStreamId
       ? await PulseAggregate.query()
@@ -127,6 +150,7 @@ export default class DashboardController {
       doraMetrics,
       forecast,
       sprintConfidence,
+      defectEscape,
       crossStreamCorrelations,
       pulseAggregates,
       dataQualityWarnings,

@@ -6,6 +6,7 @@ import DeliveryStream from '#models/delivery_stream'
 import TechStream from '#models/tech_stream'
 import WorkItemEvent from '#models/work_item_event'
 import WorkItemCycle from '#models/work_item_cycle'
+import Sprint from '#models/sprint'
 
 async function createUser() {
   return User.create({
@@ -168,5 +169,87 @@ test.group('Dashboard | GET /dashboard', (group) => {
     const response = await client.get('/dashboard').loginAs(user)
     response.assertStatus(200)
     assert.include(response.text(), 'Connect your GitHub webhook')
+  })
+})
+
+test.group('Dashboard | Stream Health Bar', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('health bar not shown when no stream selected', async ({ client, assert }) => {
+    const user = await createUser()
+    await DeliveryStream.create({ name: 'payments', displayName: 'Payments', isActive: true })
+
+    const response = await client.get('/dashboard').loginAs(user)
+    response.assertStatus(200)
+    assert.notInclude(response.text(), 'data-health-bar')
+  })
+
+  test('renders health bar when delivery stream is selected', async ({ client, assert }) => {
+    const user = await createUser()
+    const stream = await DeliveryStream.create({
+      name: 'payments',
+      displayName: 'Payments',
+      isActive: true,
+    })
+
+    const response = await client.get(`/dashboard?stream=${stream.id}`).loginAs(user)
+    response.assertStatus(200)
+    assert.include(response.text(), 'data-health-bar')
+  })
+
+  test('health bar includes cycle time p85 value when data exists', async ({
+    client,
+    assert,
+  }) => {
+    const user = await createUser()
+    const stream = await DeliveryStream.create({
+      name: 'payments',
+      displayName: 'Payments',
+      isActive: true,
+    })
+
+    await WorkItemCycle.create({
+      ticketId: 'PAY-HB1',
+      deliveryStreamId: stream.id,
+      createdAtSource: DateTime.now().minus({ days: 10 }),
+      completedAt: DateTime.now().minus({ days: 1 }),
+      leadTimeDays: 9,
+      cycleTimeDays: 8,
+      activeTimeDays: 6,
+      waitTimeDays: 2,
+      flowEfficiencyPct: 75,
+      stageDurations: { dev: 6 },
+    })
+
+    const response = await client.get(`/dashboard?stream=${stream.id}`).loginAs(user)
+    response.assertStatus(200)
+    // Health bar should show Cycle p85 label
+    assert.include(response.text(), 'Cycle p85')
+  })
+
+  test('health bar shows sprint confidence when active sprint exists', async ({
+    client,
+    assert,
+  }) => {
+    const user = await createUser()
+    const stream = await DeliveryStream.create({
+      name: 'payments-hb',
+      displayName: 'Payments HB',
+      isActive: true,
+    })
+
+    await Sprint.create({
+      jiraSprintId: 'SPRINT-HB1',
+      deliveryStreamId: stream.id,
+      name: 'Sprint Health Bar',
+      startDate: DateTime.now().minus({ days: 5 }).toISODate()!,
+      endDate: DateTime.now().plus({ days: 9 }).toISODate()!,
+      state: 'active',
+    })
+
+    const response = await client.get(`/dashboard?stream=${stream.id}`).loginAs(user)
+    response.assertStatus(200)
+    assert.include(response.text(), 'data-health-bar')
+    assert.include(response.text(), 'Confidence')
   })
 })

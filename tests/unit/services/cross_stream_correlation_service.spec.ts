@@ -5,6 +5,7 @@ import DeliveryStream from '#models/delivery_stream'
 import TechStream from '#models/tech_stream'
 import WorkItemEvent from '#models/work_item_event'
 import PlatformSetting from '#models/platform_setting'
+import CrossStreamCorrelation from '#models/cross_stream_correlation'
 import CrossStreamCorrelationService from '#services/cross_stream_correlation_service'
 
 async function seedDeliveryStream(name: string) {
@@ -193,5 +194,61 @@ test.group('CrossStreamCorrelationService | computeAll', (group) => {
     assert.include(ids, ts2.id)
     // Inactive tech stream should not be included
     assert.isUndefined(results.find((r) => r.techStreamId === 99999))
+  })
+})
+
+test.group('CrossStreamCorrelationService | materializeAll', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('materializeAll persists results to cross_stream_correlations for today', async ({
+    assert,
+  }) => {
+    const ts = await seedTechStream('mat-ts1')
+    const ds = await seedDeliveryStream('mat-ds1')
+    await seedBlockedEvent(ds.id, ts.id, 'MAT-1', DateTime.now().minus({ days: 2 }))
+
+    const service = new CrossStreamCorrelationService()
+    const rows = await service.materializeAll()
+
+    assert.isArray(rows)
+    const today = DateTime.now().toISODate()!
+    const row = rows.find((r) => r.techStreamId === ts.id)
+    assert.exists(row)
+    assert.equal(row!.analysisDate, today)
+    assert.equal(row!.blockCount14d, 1)
+    assert.include(row!.impactedDeliveryStreams, ds.id)
+  })
+
+  test('materializeAll upserts on re-run (no duplicate for same date + tech stream)', async ({
+    assert,
+  }) => {
+    const ts = await seedTechStream('mat-ts2')
+
+    const service = new CrossStreamCorrelationService()
+    await service.materializeAll()
+    await service.materializeAll()
+
+    const today = DateTime.now().toISODate()!
+    const count = await CrossStreamCorrelation.query()
+      .where('analysis_date', today)
+      .where('tech_stream_id', ts.id)
+      .count('id as total')
+
+    assert.equal(Number((count[0] as any).$extras.total), 1)
+  })
+
+  test('materializeAll returns the persisted rows', async ({ assert }) => {
+    await seedTechStream('mat-ts3')
+
+    const service = new CrossStreamCorrelationService()
+    const rows = await service.materializeAll()
+
+    assert.isArray(rows)
+    assert.isTrue(rows.length >= 1)
+    // All rows should be for today
+    const today = DateTime.now().toISODate()!
+    for (const row of rows) {
+      assert.equal(row.analysisDate, today)
+    }
   })
 })

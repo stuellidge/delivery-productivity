@@ -27,8 +27,10 @@ const DeploymentEventsController = () => import('#controllers/api/deployment_eve
 const IncidentEventsController = () => import('#controllers/api/incident_events_controller')
 const AdminMetricsController = () => import('#controllers/api/admin_metrics_controller')
 const PulseSurveyController = () => import('#controllers/pulse_survey_controller')
+const CrossStreamController = () => import('#controllers/cross_stream_controller')
 const PlatformSettingsController = () =>
   import('#controllers/admin/platform_settings_controller')
+const PrLinkController = () => import('#controllers/api/pr_link_controller')
 
 /*
 |--------------------------------------------------------------------------
@@ -68,6 +70,11 @@ router
 router
   .get('/dashboard', [DashboardController, 'index'])
   .as('dashboard.index')
+  .use(middleware.auth())
+
+router
+  .get('/cross-stream', [CrossStreamController, 'index'])
+  .as('cross_stream.index')
   .use(middleware.auth())
 
 /*
@@ -161,6 +168,7 @@ router
   .group(() => {
     router.get('/streams/delivery', [ApiStreamsController, 'delivery'])
     router.get('/streams/tech', [ApiStreamsController, 'tech'])
+    router.get('/sprints', [ApiStreamsController, 'sprints'])
     router.get('/metrics/realtime', [ApiMetricsController, 'realtime'])
     router.get('/metrics/diagnostic', [ApiMetricsController, 'diagnostic'])
     router.get('/metrics/trends', [ApiMetricsController, 'trends'])
@@ -172,6 +180,7 @@ router
     router.get('/admin/system-alerts', [AdminMetricsController, 'systemAlerts'])
     router.post('/events/deployment', [DeploymentEventsController, 'handle'])
     router.post('/events/incident', [IncidentEventsController, 'handle'])
+    router.post('/pr-events/:id/link-ticket', [PrLinkController, 'handle'])
   })
   .prefix('/api/v1')
   .use(middleware.apiKey())

@@ -1,0 +1,146 @@
+@component('layouts/app', { title: 'Cross-Stream Dependencies — DPP' })
+  @slot('main')
+    <hgroup>
+      <h1>Cross-Stream Dependencies</h1>
+      <p>Technology dependency heatmap — blocking events in the last 14 days</p>
+    </hgroup>
+
+    @let(hasCorrelations = correlations.length > 0 || liveCorrelations.length > 0)
+    @let(activeCorrelations = correlations.length > 0
+      ? correlations.filter(c => c.blockCount14d > 0)
+      : liveCorrelations.filter(c => c.blockCount14d > 0))
+
+    @if(!hasCorrelations || activeCorrelations.length === 0)
+      <article>
+        <p class="secondary">No cross-stream blockages detected in the last 14 days.</p>
+      </article>
+    @else
+
+      {{-- Summary: highlight tech stream with most blocks --}}
+      @let(topBlocker = correlations.length > 0
+        ? correlations[0]
+        : liveCorrelations.sort((a, b) => b.blockCount14d - a.blockCount14d)[0])
+      @if(topBlocker && topBlocker.blockCount14d > 0)
+        <article style="border-left: 4px solid var(--pico-del-color); margin-bottom: 1.5rem">
+          <strong>Highest impact: </strong>
+          @if(correlations.length > 0)
+            {{ topBlocker.techStream.displayName }}
+          @else
+            Tech Stream #{{ topBlocker.techStreamId }}
+          @end
+          &nbsp;—&nbsp;
+          <span>{{ topBlocker.blockCount14d }} blocking events,</span>
+          &nbsp;
+          <span>{{ correlations.length > 0 ? topBlocker.impactedDeliveryStreams.length : topBlocker.impactedDeliveryStreamIds.length }} delivery stream(s) impacted</span>
+        </article>
+      @end
+
+      {{-- Heatmap table --}}
+      <div style="overflow-x: auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Tech Stream</th>
+              <th>Blocks (14d)</th>
+              <th>Impacted Teams</th>
+              <th>Avg Confidence</th>
+              <th>Severity</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if(correlations.length > 0)
+              @each(corr in correlations)
+                @if(corr.blockCount14d > 0)
+                  <tr>
+                    <td>{{ corr.techStream.displayName }}</td>
+                    <td style="font-variant-numeric: tabular-nums">{{ corr.blockCount14d }}</td>
+                    <td>{{ corr.impactedDeliveryStreams.length }}</td>
+                    <td>
+                      {{ corr.avgConfidencePct !== null ? parseFloat(corr.avgConfidencePct).toFixed(0) + '%' : '—' }}
+                    </td>
+                    <td>
+                      <span
+                        style="
+                          padding: 0.2rem 0.5rem;
+                          border-radius: 4px;
+                          font-size: 0.8rem;
+                          background: {{ corr.severity === 'critical' ? '#dc2626' : corr.severity === 'high' ? '#ea580c' : corr.severity === 'medium' ? '#ca8a04' : '#16a34a' }};
+                          color: white;
+                        "
+                      >{{ corr.severity }}</span>
+                    </td>
+                  </tr>
+                @end
+              @end
+            @else
+              @each(corr in liveCorrelations)
+                @if(corr.blockCount14d > 0)
+                  <tr>
+                    <td>Tech Stream #{{ corr.techStreamId }}</td>
+                    <td style="font-variant-numeric: tabular-nums">{{ corr.blockCount14d }}</td>
+                    <td>{{ corr.impactedDeliveryStreamIds.length }}</td>
+                    <td>
+                      {{ corr.avgConfidencePct !== null ? parseFloat(corr.avgConfidencePct).toFixed(0) + '%' : '—' }}
+                    </td>
+                    <td>
+                      <span
+                        style="
+                          padding: 0.2rem 0.5rem;
+                          border-radius: 4px;
+                          font-size: 0.8rem;
+                          background: {{ corr.severity === 'critical' ? '#dc2626' : corr.severity === 'high' ? '#ea580c' : corr.severity === 'medium' ? '#ca8a04' : '#16a34a' }};
+                          color: white;
+                        "
+                      >{{ corr.severity }}</span>
+                    </td>
+                  </tr>
+                @end
+              @end
+            @end
+          </tbody>
+        </table>
+      </div>
+
+      @if(deliveryStreams.length > 0 && techStreams.length > 0)
+        <details style="margin-top: 1.5rem">
+          <summary style="cursor: pointer; font-weight: bold">Tech × Delivery Stream Matrix</summary>
+          <div style="overflow-x: auto; margin-top: 1rem">
+            <table style="font-size: 0.85rem">
+              <thead>
+                <tr>
+                  <th>Tech Stream</th>
+                  @each(ds in deliveryStreams)
+                    <th style="text-align: center">{{ ds.displayName }}</th>
+                  @end
+                </tr>
+              </thead>
+              <tbody>
+                @each(ts in techStreams)
+                  @let(corrRow = correlations.find(c => c.techStreamId === ts.id))
+                  <tr>
+                    <td>{{ ts.displayName }}</td>
+                    @each(ds in deliveryStreams)
+                      @let(isImpacted = corrRow && corrRow.impactedDeliveryStreams.includes(ds.id))
+                      <td
+                        style="
+                          text-align: center;
+                          background: {{ isImpacted ? (corrRow.severity === 'critical' ? 'rgba(220,38,38,0.15)' : corrRow.severity === 'high' ? 'rgba(234,88,12,0.15)' : 'rgba(202,138,4,0.15)') : 'transparent' }};
+                        "
+                      >
+                        @if(isImpacted)
+                          <span title="{{ corrRow.severity }}">●</span>
+                        @else
+                          —
+                        @end
+                      </td>
+                    @end
+                  </tr>
+                @end
+              </tbody>
+            </table>
+          </div>
+        </details>
+      @end
+    @end
+  @end
+@end
