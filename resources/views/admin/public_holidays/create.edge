@@ -1,0 +1,41 @@
+@component('layouts/app', { title: 'Add Holiday — Admin' })
+  @slot('main')
+    <hgroup>
+      <h1>Add Holiday</h1>
+      <p>Add a public holiday to exclude from business-day calculations.</p>
+    </hgroup>
+
+    @if(flashMessages.has('errors'))
+      <article style="border-left: 4px solid var(--pico-del-color)">
+        <p>Please correct the errors below.</p>
+      </article>
+    @end
+
+    <form method="POST" action="/admin/public-holidays">
+      {{ csrfField() }}
+
+      <label>
+        Date (YYYY-MM-DD)
+        <input type="date" name="date" value="{{ flashMessages.get('date') ?? '' }}" required />
+        @if(flashMessages.has('errors.date'))
+          <small style="color: var(--pico-del-color)">{{ flashMessages.get('errors.date') }}</small>
+        @end
+      </label>
+
+      <label>
+        Name
+        <input
+          type="text"
+          name="name"
+          placeholder="e.g. Christmas Day"
+          value="{{ flashMessages.get('name') ?? '' }}"
+          required
+          maxlength="255"
+        />
+      </label>
+
+      <button type="submit">Add Holiday</button>
+      <a href="/admin/public-holidays" role="button" class="secondary outline">Cancel</a>
+    </form>
+  @end
+@end

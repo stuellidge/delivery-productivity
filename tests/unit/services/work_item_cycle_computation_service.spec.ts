@@ -100,13 +100,14 @@ test.group('WorkItemCycleComputationService', (group) => {
     const result = await service.compute()
 
     assert.isNotNull(result)
-    assert.approximately(result!.leadTimeDays, 6, 0.01)
+    // Jan 1 (Thu) 00:00 → Jan 7 (Wed) 00:00 = 4 elapsed business days (Thu+Fri+Mon+Tue)
+    assert.approximately(result!.leadTimeDays, 4, 0.01)
   })
 
   test('creates work_item_cycle with correct cycle_time_days', async ({ assert }) => {
     await createStatusMappings()
 
-    // first_in_progress (ba) = Jan 2, completed Jan 7 → cycle_time = 5 days
+    // first_in_progress (ba) = Jan 2 (Fri), completed Jan 7 (Wed) → cycle_time = 4 business days
     await WorkItemEvent.create({
       source: 'jira',
       ticketId: 'PAY-1',
@@ -141,8 +142,9 @@ test.group('WorkItemCycleComputationService', (group) => {
     const result = await service.compute()
 
     assert.isNotNull(result)
-    // first_in_progress = Jan 2 (ba is active), cycle_time = Jan 7 - Jan 2 = 5 days
-    assert.approximately(result!.cycleTimeDays, 5, 0.01)
+    // first_in_progress = Jan 2 (ba is active)
+    // Jan 2 (Fri) 00:00 → Jan 7 (Wed) 00:00 = 3 elapsed business days (Fri+Mon+Tue)
+    assert.approximately(result!.cycleTimeDays, 3, 0.01)
     assert.equal(result!.firstInProgress!.toISO(), JAN_2.toISO())
   })
 
@@ -184,20 +186,21 @@ test.group('WorkItemCycleComputationService', (group) => {
     const result = await service.compute()
 
     assert.isNotNull(result)
-    assert.approximately(result!.stageDurations['ba'], 2, 0.01)
-    assert.approximately(result!.stageDurations['dev'], 3, 0.01)
+    // ba: Jan 2 (Fri) → Jan 4 (Sun) = 1 business day (Fri only)
+    assert.approximately(result!.stageDurations['ba'], 1, 0.01)
+    // dev: Jan 4 (Sun) → Jan 7 (Wed) = 2 business days (Mon, Tue)
+    assert.approximately(result!.stageDurations['dev'], 2, 0.01)
   })
 
   test('computes active and wait time using status mapping is_active_work', async ({ assert }) => {
     await createStatusMappings()
 
-    // backlog (wait) Jan 2 → Jan 4: 2 days wait
-    // dev (active) Jan 4 → Jan 7: 3 days active
+    // backlog (wait) Jan 2 → Jan 4: before first_in_progress, excluded
+    // dev (active) Jan 4 → Jan 7: 2 business days (Mon, Tue)
     // first_in_progress = Jan 4 (dev is first active stage)
-    // cycle_time = Jan 7 - Jan 4 = 3 days
-    // active_time = 3 days, wait_time = 2 days (backlog is before first_in_progress)
-    // Actually wait_time is computed from transitions starting at first_in_progress
-    // So here: only dev from first_in_progress → wait_time = 0, active_time = 3
+    // cycle_time = Jan 4 (Sun) → Jan 7 (Wed) = 2 business days (Mon, Tue)
+    // active_time = 2 days, wait_time = 0 (backlog is before first_in_progress)
+    // So here: only dev from first_in_progress → wait_time = 0, active_time = 2
     await WorkItemEvent.create({
       source: 'jira',
       ticketId: 'PAY-1',
@@ -234,17 +237,17 @@ test.group('WorkItemCycleComputationService', (group) => {
     assert.isNotNull(result)
     // first_in_progress = Jan 4 (first active stage)
     assert.equal(result!.firstInProgress!.toISO(), JAN_4.toISO())
-    // cycle_time = Jan 7 - Jan 4 = 3 days
-    assert.approximately(result!.cycleTimeDays, 3, 0.01)
-    // active_time = 3 days (only dev stage, starting from first_in_progress)
-    assert.approximately(result!.activeTimeDays, 3, 0.01)
+    // cycle_time = Jan 4 (Sun) → Jan 7 (Wed) = 2 business days (Mon, Tue)
+    assert.approximately(result!.cycleTimeDays, 2, 0.01)
+    // active_time = 2 days (only dev stage, starting from first_in_progress)
+    assert.approximately(result!.activeTimeDays, 2, 0.01)
     // wait_time = 0 (backlog is before first_in_progress, excluded from stage_durations)
     assert.approximately(result!.waitTimeDays, 0, 0.01)
     // flow_efficiency = 100%
     assert.approximately(result!.flowEfficiencyPct, 100, 0.01)
     // stage_durations only includes stages from first_in_progress onwards
     assert.isUndefined(result!.stageDurations['backlog'])
-    assert.approximately(result!.stageDurations['dev'], 3, 0.01)
+    assert.approximately(result!.stageDurations['dev'], 2, 0.01)
   })
 
   test('computes flow_efficiency_pct correctly for mixed active/wait stages', async ({
@@ -268,11 +271,11 @@ test.group('WorkItemCycleComputationService', (group) => {
       },
     ])
 
-    // dev (active) Jan 2 → Jan 4: 2 days (first_in_progress = Jan 2)
-    // qa (wait)  Jan 4 → Jan 7: 3 days
-    // cycle_time = Jan 2 → Jan 7 = 5 days
-    // active_time = 2 days, wait_time = 3 days
-    // flow_efficiency = 2/5 * 100 = 40%
+    // dev (active) Jan 2 (Fri) → Jan 4 (Sun) = 1 business day (first_in_progress = Jan 2)
+    // qa (wait)  Jan 4 (Sun) → Jan 7 (Wed) = 2 business days (Mon, Tue)
+    // cycle_time = Jan 2 → Jan 7 = 3 business days (Fri, Mon, Tue)
+    // active_time = 1 day, wait_time = 2 days
+    // flow_efficiency = 1/3 * 100 = 33.33%
     await WorkItemEvent.create({
       source: 'jira',
       ticketId: 'PAY-1',
@@ -307,9 +310,12 @@ test.group('WorkItemCycleComputationService', (group) => {
     const result = await service.compute()
 
     assert.isNotNull(result)
-    assert.approximately(result!.activeTimeDays, 2, 0.01)
-    assert.approximately(result!.waitTimeDays, 3, 0.01)
-    assert.approximately(result!.flowEfficiencyPct, 40, 0.01)
+    // dev (active): Jan 2 (Fri) → Jan 4 (Sun) = 1 business day
+    assert.approximately(result!.activeTimeDays, 1, 0.01)
+    // qa (wait): Jan 4 (Sun) → Jan 7 (Wed) = 2 business days (Mon, Tue)
+    assert.approximately(result!.waitTimeDays, 2, 0.01)
+    // cycle_time: Jan 2 (Fri) → Jan 7 (Wed) = 3 business days; flow_efficiency = 1/3 * 100 = 33.33%
+    assert.approximately(result!.flowEfficiencyPct, 33.33, 0.01)
   })
 
   test('updates existing work_item_cycle record if one already exists', async ({ assert }) => {
@@ -418,8 +424,8 @@ test.group('WorkItemCycleComputationService', (group) => {
     assert.approximately(result!.cycleTimeDays, 0, 0.001)
     assert.approximately(result!.flowEfficiencyPct, 0, 0.001)
     assert.deepEqual(result!.stageDurations, {})
-    // lead_time still computed from created → completed = 6 days
-    assert.approximately(result!.leadTimeDays, 6, 0.01)
+    // lead_time: Jan 1 (Thu) → Jan 7 (Wed) = 4 business days (Thu+Fri+Mon+Tue)
+    assert.approximately(result!.leadTimeDays, 4, 0.01)
   })
 
   test('sets created_at_source from the created event timestamp', async ({ assert }) => {

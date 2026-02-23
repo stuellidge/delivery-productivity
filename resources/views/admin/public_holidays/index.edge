@@ -1,0 +1,50 @@
+@component('layouts/app', { title: 'Public Holidays — Admin' })
+  @slot('main')
+    <hgroup>
+      <h1>Public Holidays</h1>
+      <p>Configured holidays are excluded from business-day calculations (cycle time, lead time).</p>
+    </hgroup>
+
+    @if(flashMessages.has('success'))
+      <article style="border-left: 4px solid var(--pico-ins-color)">
+        <p>{{ flashMessages.get('success') }}</p>
+      </article>
+    @end
+
+    <a href="/admin/public-holidays/create" role="button">Add Holiday</a>
+
+    @if(holidays.length === 0)
+      <p class="secondary" style="margin-top: 1rem">No public holidays configured.</p>
+    @else
+      <figure style="margin-top: 1rem">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Name</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @each(h in holidays)
+              <tr>
+                <td><code>{{ h.date }}</code></td>
+                <td>{{ h.name }}</td>
+                <td>
+                  <form method="POST" action="/admin/public-holidays/{{ h.id }}?_method=DELETE" style="margin: 0">
+                    {{ csrfField() }}
+                    <button type="submit" class="secondary outline"
+                      style="padding: 0.25rem 0.75rem; font-size: 0.8rem"
+                      onclick="return confirm('Remove {{ h.name }}?')">
+                      Remove
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            @end
+          </tbody>
+        </table>
+      </figure>
+    @end
+  @end
+@end

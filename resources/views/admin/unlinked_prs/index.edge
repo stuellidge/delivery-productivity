@@ -1,0 +1,88 @@
+@component('layouts/app', { title: 'Unlinked PRs — Admin' })
+  @slot('main')
+    <hgroup>
+      <h1>Unlinked Pull Requests</h1>
+      <p>
+        PRs without a linked Jira ticket reduce metric accuracy. Link them here or
+        improve branch naming conventions to prevent future gaps.
+      </p>
+    </hgroup>
+
+    @if(flashMessages.has('success'))
+      <article style="border-left: 4px solid var(--pico-ins-color)">
+        <p>{{ flashMessages.get('success') }}</p>
+      </article>
+    @end
+
+    @if(prs.total === 0)
+      <article style="border-left: 4px solid var(--pico-ins-color)">
+        <p>All PRs are linked. Data quality target met.</p>
+      </article>
+    @else
+      <p>
+        <strong>{{ prs.total }}</strong> unlinked PR event{{ prs.total !== 1 ? 's' : '' }} found.
+      </p>
+
+      <figure>
+        <table>
+          <thead>
+            <tr>
+              <th>PR</th>
+              <th>Repository</th>
+              <th>Branch</th>
+              <th>Opened</th>
+              <th>Link to Ticket</th>
+            </tr>
+          </thead>
+          <tbody>
+            @each(pr in prs)
+              <tr>
+                <td><strong>#{{ pr.prNumber }}</strong></td>
+                <td style="font-size: 0.85rem">{{ pr.githubOrg }}/{{ pr.githubRepo }}</td>
+                <td><code style="font-size: 0.8rem">{{ pr.branchName }}</code></td>
+                <td style="font-size: 0.85rem">
+                  {{ pr.eventTimestamp.toFormat('dd MMM yyyy') }}
+                </td>
+                <td>
+                  <form
+                    method="POST"
+                    action="/admin/data-quality/unlinked-prs/{{ pr.id }}/link"
+                    style="margin: 0; display: flex; gap: 0.5rem; align-items: center"
+                  >
+                    {{ csrfField() }}
+                    <input
+                      type="text"
+                      name="ticketId"
+                      placeholder="e.g. PAY-456"
+                      style="margin: 0; width: 120px; padding: 0.25rem 0.5rem; font-size: 0.85rem"
+                      pattern="[A-Z][A-Z0-9]+-\d+"
+                      required
+                    />
+                    <button type="submit" style="padding: 0.25rem 0.75rem; font-size: 0.8rem">
+                      Link
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            @end
+          </tbody>
+        </table>
+      </figure>
+
+      {{-- Pagination --}}
+      @if(prs.lastPage > 1)
+        <div style="display: flex; gap: 0.5rem; margin-top: 1rem">
+          @if(prs.currentPage > 1)
+            <a href="?page={{ prs.currentPage - 1 }}" role="button" class="secondary outline">
+              Previous
+            </a>
+          @end
+          <span style="padding: 0.5rem">Page {{ prs.currentPage }} of {{ prs.lastPage }}</span>
+          @if(prs.currentPage < prs.lastPage)
+            <a href="?page={{ prs.currentPage + 1 }}" role="button" class="outline">Next</a>
+          @end
+        </div>
+      @end
+    @end
+  @end
+@end

@@ -1,0 +1,52 @@
+@component('layouts/app', { title: 'Audit Log — Admin' })
+  @slot('main')
+    <hgroup>
+      <h1>Audit Log</h1>
+      <p>Authentication events, configuration changes, and key administrative actions.</p>
+    </hgroup>
+
+    @if(entries.length === 0)
+      <p class="secondary">No audit log entries found.</p>
+    @else
+      <figure>
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Actor</th>
+              <th>Action</th>
+              <th>Entity</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            @each(entry in entries)
+              <tr>
+                <td style="white-space: nowrap; font-size: 0.85rem">
+                  {{ entry.createdAt.toFormat('dd MMM yyyy HH:mm:ss') }}
+                </td>
+                <td style="font-size: 0.85rem">{{ entry.actorEmail }}</td>
+                <td>
+                  <code style="font-size: 0.8rem">{{ entry.action }}</code>
+                </td>
+                <td style="font-size: 0.85rem">
+                  @if(entry.entityType)
+                    {{ entry.entityType }}
+                    @if(entry.entityId)
+                      <span class="secondary">#{{ entry.entityId }}</span>
+                    @end
+                  @else
+                    —
+                  @end
+                </td>
+                <td style="font-size: 0.85rem; color: var(--pico-muted-color)">
+                  {{ entry.ipAddress ?? '—' }}
+                </td>
+              </tr>
+            @end
+          </tbody>
+        </table>
+      </figure>
+    @end
+  @end
+@end

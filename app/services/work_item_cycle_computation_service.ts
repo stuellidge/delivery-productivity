@@ -2,12 +2,19 @@ import { DateTime } from 'luxon'
 import WorkItemEvent from '#models/work_item_event'
 import WorkItemCycle from '#models/work_item_cycle'
 import StatusMapping from '#models/status_mapping'
+import PublicHoliday from '#models/public_holiday'
+import BusinessDayService from '#services/business_day_service'
 import type { PipelineStage } from '#models/status_mapping'
 
 export default class WorkItemCycleComputationService {
+  private holidays: string[] = []
+
   constructor(private readonly ticketId: string) {}
 
   async compute(): Promise<WorkItemCycle | null> {
+    // Load holidays once per computation
+    const rows = await PublicHoliday.query().select('date').orderBy('date')
+    this.holidays = rows.map((r) => r.date)
     const events = await WorkItemEvent.query()
       .where('ticket_id', this.ticketId)
       .orderBy('event_timestamp', 'asc')
@@ -45,8 +52,7 @@ export default class WorkItemCycleComputationService {
             ? relevantTransitions[i + 1].eventTimestamp
             : completedAt
 
-        const durationMs = nextTimestamp.toMillis() - current.eventTimestamp.toMillis()
-        const durationDays = durationMs / (1000 * 60 * 60 * 24)
+        const durationDays = this.daysBetween(current.eventTimestamp, nextTimestamp)
         const stage = current.toStage!
 
         stageDurations[stage] = (stageDurations[stage] ?? 0) + durationDays
@@ -124,6 +130,6 @@ export default class WorkItemCycleComputationService {
   }
 
   private daysBetween(from: DateTime, to: DateTime): number {
-    return (to.toMillis() - from.toMillis()) / (1000 * 60 * 60 * 24)
+    return BusinessDayService.countBusinessDays(from, to, this.holidays)
   }
 }

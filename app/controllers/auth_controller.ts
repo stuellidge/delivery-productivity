@@ -2,6 +2,10 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 import { loginValidator } from '#validators/auth_validator'
 import env from '#start/env'
+import UserSessionService from '#services/user_session_service'
+import AuditLogService from '#services/audit_log_service'
+
+const PLATFORM_SESSION_KEY = 'platform_session_token'
 
 export default class AuthController {
   /**
@@ -37,12 +41,32 @@ export default class AuthController {
 
       await auth.use('web').login(user)
 
+      // Create platform session record
+      const platformToken = await new UserSessionService().create(user.id, 'database')
+      session.put(PLATFORM_SESSION_KEY, platformToken)
+
       // Update last login timestamp
       user.lastLoginAt = DateTime.now()
       await user.save()
 
+      // Audit log
+      await new AuditLogService().record({
+        actorUserId: user.id,
+        actorEmail: user.email,
+        action: 'login',
+        ipAddress: request.ip(),
+      })
+
       return response.redirect('/dashboard')
     } catch {
+      // Audit failed login attempt (email may or may not belong to a user)
+      await new AuditLogService().record({
+        actorUserId: null,
+        actorEmail: email,
+        action: 'login.failed',
+        ipAddress: request.ip(),
+      })
+
       session.flash('errors.login', 'Invalid email or password')
       session.flash('email', email)
       return response.redirect().toRoute('auth.login')
@@ -52,7 +76,26 @@ export default class AuthController {
   /**
    * Handle logout
    */
-  async logout({ auth, response }: HttpContext) {
+  async logout({ auth, response, session }: HttpContext) {
+    const user = auth.user
+
+    // Revoke platform session — by token if available, otherwise by user ID
+    const platformToken = session.get(PLATFORM_SESSION_KEY) as string | undefined
+    if (platformToken) {
+      await new UserSessionService().revokeByToken(platformToken)
+      session.forget(PLATFORM_SESSION_KEY)
+    } else if (user) {
+      await new UserSessionService().revokeAllForUser(user.id)
+    }
+
+    if (user) {
+      await new AuditLogService().record({
+        actorUserId: user.id,
+        actorEmail: user.email,
+        action: 'logout',
+      })
+    }
+
     await auth.use('web').logout()
     return response.redirect().toRoute('auth.login')
   }

@@ -9,11 +9,11 @@
       </p>
     </hgroup>
 
-    {{-- Stream + window selector --}}
+    {{-- Stream + window + tech stream selector --}}
     <form
       method="GET"
       action="/dashboard"
-      style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap"
+      style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 1rem; flex-wrap: wrap"
     >
       <label style="flex: 2; min-width: 160px; margin-bottom: 0">
         Delivery Stream
@@ -28,21 +28,60 @@
           @end
         </select>
       </label>
-      <label style="flex: 1; min-width: 120px; margin-bottom: 0">
+      <label style="flex: 2; min-width: 160px; margin-bottom: 0">
+        Technology Stream
+        <select name="techStream" onchange="this.form.submit()">
+          <option value="">
+            All Tech Streams
+          </option>
+          @each(ts in techStreams)
+            <option value="{{ ts.id }}" {{ selectedTechStreamId === ts.id ? 'selected' : '' }}>
+              {{ ts.displayName }}
+            </option>
+          @end
+        </select>
+      </label>
+      <label style="flex: 1; min-width: 140px; margin-bottom: 0">
         Time Window
         <select name="window" onchange="this.form.submit()">
-          <option value="7" {{ windowDays === 7  ? 'selected' : '' }}>
+          @if(activeSprint && selectedStream)
+            <option value="sprint" {{ windowParam === 'sprint' ? 'selected' : '' }}>
+              Current Sprint
+            </option>
+          @end
+          <option value="7" {{ windowParam === '7' ? 'selected' : '' }}>
             7 days
           </option>
-          <option value="30" {{ windowDays === 30 ? 'selected' : '' }}>
+          <option value="30" {{ windowParam === '30' || windowParam === 'sprint' && !activeSprint ? 'selected' : '' }}>
             30 days
           </option>
-          <option value="90" {{ windowDays === 90 ? 'selected' : '' }}>
+          <option value="90" {{ windowParam === '90' ? 'selected' : '' }}>
             90 days
           </option>
         </select>
       </label>
+      {{-- Preserve zones param across filter changes --}}
+      @if(zonesParam)
+        <input type="hidden" name="zones" value="{{ zonesParam }}" />
+      @end
     </form>
+
+    {{-- ═══════════════════════════════════════════════════
+         ZONE TOGGLES — show/hide dashboard sections
+    ════════════════════════════════════════════════════ --}}
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; font-size: 0.85rem">
+      <span style="color: var(--pico-muted-color); align-self: center">Show zones:</span>
+      @each(zoneEntry in zoneEntries)
+        @set('isActive', activeZones.includes(zoneEntry.key))
+        <a
+          href="?stream={{ selectedStreamId ?? '' }}&techStream={{ selectedTechStreamId ?? '' }}&window={{ windowParam }}&zones={{ zoneEntry.toggleUrl }}"
+          data-zone-toggle="{{ zoneEntry.key }}"
+          style="padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid {{ isActive ? 'var(--pico-primary)' : 'var(--pico-muted-border-color)' }}; color: {{ isActive ? 'var(--pico-primary)' : 'var(--pico-muted-color)' }}; text-decoration: none"
+        >
+          {{ zoneEntry.label }}
+        </a>
+      @end
+    </div>
 
     {{-- ═══════════════════════════════════════════════════
          STREAM HEALTH BAR — shown only when a stream is selected

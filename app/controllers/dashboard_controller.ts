@@ -5,6 +5,7 @@ import TechStream from '#models/tech_stream'
 import WorkItemCycle from '#models/work_item_cycle'
 import PulseAggregate from '#models/pulse_aggregate'
 import CrossStreamCorrelation from '#models/cross_stream_correlation'
+import Sprint from '#models/sprint'
 import WipMetricsService from '#services/wip_metrics_service'
 import CycleTimeService from '#services/cycle_time_service'
 import FlowEfficiencyService from '#services/flow_efficiency_service'
@@ -27,19 +28,75 @@ const STAGE_LABELS: Record<string, string> = {
   uat: 'UAT',
 }
 
+const ALL_ZONES = ['realtime', 'diagnostic', 'trend', 'forecast', 'health'] as const
+type Zone = (typeof ALL_ZONES)[number]
+
+const ZONE_LABELS: Record<Zone, string> = {
+  realtime: 'Real-Time',
+  diagnostic: 'Diagnostic',
+  trend: 'Trend',
+  forecast: 'Forecast',
+  health: 'Health',
+}
+
 export default class DashboardController {
   async index({ view, request }: HttpContext) {
     const deliveryStreams = await DeliveryStream.query().where('is_active', true).orderBy('name')
+    const techStreams = await TechStream.query().where('is_active', true).orderBy('name')
 
     const selectedStreamId = request.input('stream') ? Number(request.input('stream')) : undefined
-    const windowDays = request.input('window') ? Number(request.input('window')) : 30
+    const selectedTechStreamParam = request.input('techStream')
+      ? Number(request.input('techStream'))
+      : undefined
+
+    // Resolve window: 'sprint' resolves to sprint start → today; otherwise numeric days
+    const windowParam = request.input('window', '30')
+    let windowDays: number = 30
+    let activeSprintForWindow: typeof Sprint.prototype | null = null
+
+    if (windowParam === 'sprint' && selectedStreamId) {
+      activeSprintForWindow = await Sprint.query()
+        .where('delivery_stream_id', selectedStreamId)
+        .where('state', 'active')
+        .first()
+
+      if (activeSprintForWindow) {
+        const sprintStart =
+          activeSprintForWindow.startDate instanceof Date
+            ? DateTime.fromJSDate(activeSprintForWindow.startDate as unknown as Date)
+            : DateTime.fromISO(activeSprintForWindow.startDate as unknown as string)
+        windowDays = Math.max(1, Math.ceil(DateTime.now().diff(sprintStart, 'days').days))
+      }
+    } else {
+      windowDays = Number(windowParam) || 30
+    }
+
+    // Resolve active sprint (for confidence gauge, regardless of window mode)
+    const activeSprint =
+      activeSprintForWindow ??
+      (selectedStreamId
+        ? await Sprint.query()
+            .where('delivery_stream_id', selectedStreamId)
+            .where('state', 'active')
+            .first()
+        : null)
+
+    // Zone visibility from query param (comma-separated; empty = all visible)
+    // request.input may return string or string[] depending on URL encoding
+    const zonesRaw = request.input('zones', '')
+    const zonesParam = Array.isArray(zonesRaw) ? zonesRaw.join(',') : String(zonesRaw)
+    const activeZones: Set<Zone> = zonesParam
+      ? new Set(zonesParam.split(',').filter((z): z is Zone => ALL_ZONES.includes(z as Zone)))
+      : new Set(ALL_ZONES)
 
     let selectedStream = null
     if (selectedStreamId) {
       selectedStream = await DeliveryStream.find(selectedStreamId)
     }
 
-    const techStreams = await TechStream.query().where('is_active', true).orderBy('name')
+    // Resolve selected tech stream (param → fallback to first active)
+    const selectedTechStreamId =
+      selectedTechStreamParam ?? (techStreams.length > 0 ? techStreams[0].id : null)
 
     const [wipByStage, cycleTimeStats, flowEfficiency] = await Promise.all([
       new WipMetricsService().compute(selectedStreamId),
@@ -59,9 +116,13 @@ export default class DashboardController {
       })
     )
 
-    // Compute DORA metrics per active tech stream
+    // Compute DORA metrics — filter to selected tech stream if one is chosen
+    const doraTargetStreams = selectedTechStreamParam
+      ? techStreams.filter((ts) => ts.id === selectedTechStreamId)
+      : techStreams
+
     const doraMetrics = await Promise.all(
-      techStreams.map(async (ts) => ({
+      doraTargetStreams.map(async (ts) => ({
         techStream: ts,
         dora: await new DoraMetricsService(ts.id, windowDays).compute(),
       }))
@@ -81,7 +142,13 @@ export default class DashboardController {
     ])
 
     // Read cross-stream correlations from materialised table; fall back to live if empty
-    let crossStreamCorrelations: Array<{ techStreamId: number; blockCount14d: number; impactedDeliveryStreamIds: number[]; severity: string; avgConfidencePct: number | null }>
+    let crossStreamCorrelations: Array<{
+      techStreamId: number
+      blockCount14d: number
+      impactedDeliveryStreamIds: number[]
+      severity: string
+      avgConfidencePct: number | null
+    }>
     const today = DateTime.now().toISODate()!
     const materialisedRows = await CrossStreamCorrelation.query()
       .where('analysis_date', today)
@@ -138,17 +205,37 @@ export default class DashboardController {
       ? await new DataQualityService().getStreamWarnings(selectedStreamId)
       : []
 
-    // DORA trend time-series for the first active tech stream (for chart rendering)
-    const selectedTechStreamId = techStreams.length > 0 ? techStreams[0].id : null
+    // DORA trend time-series for selected tech stream
     const doraTrend = selectedTechStreamId
       ? await new DoraTrendService(selectedTechStreamId, 90).compute()
       : []
 
+    const activeZonesArray = [...activeZones]
+    const zoneEntries = ALL_ZONES.map((key) => {
+      const isActive = activeZones.has(key)
+      let toggleUrl: string
+      if (isActive && activeZones.size > 1) {
+        toggleUrl = activeZonesArray.filter((z) => z !== key).join(',')
+      } else if (isActive) {
+        toggleUrl = ''
+      } else {
+        toggleUrl = [...activeZonesArray, key].join(',')
+      }
+      return { key, label: ZONE_LABELS[key], toggleUrl }
+    })
+
     return view.render('dashboard/index', {
       deliveryStreams,
+      techStreams,
       selectedStream,
       selectedStreamId: selectedStreamId ?? null,
+      selectedTechStreamId,
       windowDays,
+      windowParam,
+      activeSprint,
+      activeZones: activeZonesArray,
+      zoneEntries,
+      zonesParam,
       wipStages,
       cycleTimeStats,
       cycleScatterData,
@@ -162,7 +249,6 @@ export default class DashboardController {
       pulseAggregates,
       dataQualityWarnings,
       doraTrend,
-      selectedTechStreamId,
     })
   }
 }

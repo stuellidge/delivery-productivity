@@ -31,6 +31,10 @@ const CrossStreamController = () => import('#controllers/cross_stream_controller
 const PlatformSettingsController = () =>
   import('#controllers/admin/platform_settings_controller')
 const PrLinkController = () => import('#controllers/api/pr_link_controller')
+const AdminSessionsController = () => import('#controllers/admin/sessions_controller')
+const AuditLogController = () => import('#controllers/admin/audit_log_controller')
+const PublicHolidaysController = () => import('#controllers/admin/public_holidays_controller')
+const UnlinkedPrsController = () => import('#controllers/admin/unlinked_prs_controller')
 
 /*
 |--------------------------------------------------------------------------
@@ -127,6 +131,23 @@ router
     router.get('/platform-settings', [PlatformSettingsController, 'index'])
     router.get('/platform-settings/:key/edit', [PlatformSettingsController, 'edit'])
     router.put('/platform-settings/:key', [PlatformSettingsController, 'update'])
+
+    // Session management
+    router.get('/sessions', [AdminSessionsController, 'index']).as('admin.sessions.index')
+    router.post('/sessions/:id/revoke', [AdminSessionsController, 'revoke'])
+
+    // Audit log
+    router.get('/audit-log', [AuditLogController, 'index']).as('admin.audit-log.index')
+
+    // Public holidays
+    router.get('/public-holidays', [PublicHolidaysController, 'index'])
+    router.get('/public-holidays/create', [PublicHolidaysController, 'create'])
+    router.post('/public-holidays', [PublicHolidaysController, 'store'])
+    router.delete('/public-holidays/:id', [PublicHolidaysController, 'destroy'])
+
+    // Data quality — unlinked PRs triage
+    router.get('/data-quality/unlinked-prs', [UnlinkedPrsController, 'index'])
+    router.post('/data-quality/unlinked-prs/:id/link', [UnlinkedPrsController, 'link'])
 
     // OIDC group mappings
     router
