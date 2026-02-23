@@ -101,6 +101,24 @@ test.group('DoraTrendService | deployment frequency', (group) => {
       assert.equal(point.deploymentFrequency, 0)
     }
   })
+
+  test('excludes config-only deployment from trend bucket frequency', async ({ assert }) => {
+    const ts = await seedTechStream('trend-config-excl')
+    const now = DateTime.now()
+    await DeploymentRecord.create({
+      techStreamId: ts.id,
+      environment: 'production',
+      status: 'success',
+      deployedAt: now.minus({ days: 8 }),
+      causedIncident: false,
+      triggerType: 'config',
+    })
+
+    const result = await new DoraTrendService(ts.id, 14).compute()
+    for (const point of result) {
+      assert.equal(point.deploymentFrequency, 0)
+    }
+  })
 })
 
 test.group('DoraTrendService | change failure rate', (group) => {

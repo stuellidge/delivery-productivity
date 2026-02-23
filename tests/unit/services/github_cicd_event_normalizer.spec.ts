@@ -236,6 +236,35 @@ test.group('GithubCicdEventNormalizer | deployment_status', (group) => {
     const events = await CicdEvent.query().where('tech_stream_id', ts.id)
     assert.equal(events.length, 0)
   })
+
+  test('does not create deployment_record when repo is not deployable', async ({ assert }) => {
+    const ts = await seedTechStream('88002')
+    await Repository.create({
+      techStreamId: ts.id,
+      githubOrg: 'acme-org',
+      githubRepoName: 'backend',
+      fullName: 'acme-org/backend',
+      defaultBranch: 'main',
+      isDeployable: false,
+      isActive: true,
+    })
+
+    const payload = buildDeploymentStatusPayload({
+      state: 'success',
+      environment: 'production',
+      deploymentId: 8001,
+      runId: 9301,
+      installId: 88002,
+    })
+    await new GithubEventNormalizerService(payload, 'deployment_status').process()
+
+    const deployRecord = await DeploymentRecord.query()
+      .where('tech_stream_id', ts.id)
+      .where('environment', 'production')
+      .first()
+
+    assert.isNull(deployRecord)
+  })
 })
 
 test.group('GithubCicdEventNormalizer | event_timestamp', (group) => {

@@ -43,6 +43,29 @@ test.group('DeploymentEventService | process', (group) => {
     assert.isNull(result)
   })
 
+  test('returns null when repo is not deployable', async ({ assert }) => {
+    const ts = await seedTechStream()
+    await Repository.create({
+      techStreamId: ts.id,
+      githubOrg: 'acme',
+      githubRepoName: 'api',
+      fullName: 'acme/api',
+      defaultBranch: 'main',
+      isDeployable: false,
+      isActive: true,
+    })
+
+    const payload = {
+      repo_full_name: 'acme/api',
+      environment: 'production',
+      status: 'success',
+      deployed_at: DateTime.now().toISO(),
+    }
+    const service = new DeploymentEventService(payload)
+    const result = await service.process()
+    assert.isNull(result)
+  })
+
   test('creates a deployment record for a known repo', async ({ assert }) => {
     const ts = await seedTechStream()
     await seedRepo(ts.id, 'acme/api')

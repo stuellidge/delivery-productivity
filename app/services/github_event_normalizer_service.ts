@@ -203,13 +203,16 @@ export default class GithubEventNormalizerService {
   }
 
   private async handleDeploymentStatus(): Promise<void> {
-    const { deployment, deployment_status: deployStatus, installation } = this.payload
+    const { deployment, deployment_status: deployStatus, installation, repository } = this.payload
 
     const state = deployStatus?.state
     if (state !== 'success' && state !== 'failure') return
 
     const techStream = await this.resolveTechStream(installation?.id)
     if (!techStream) return
+
+    const repo = await this.resolveRepository(repository?.full_name)
+    if (repo && !repo.isDeployable) return
 
     const pipelineId = String(deployment?.id ?? '')
     const pipelineRunId = String(deployStatus?.id ?? '')

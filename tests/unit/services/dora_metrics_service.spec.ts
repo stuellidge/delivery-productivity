@@ -2,6 +2,7 @@ import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
 import { DateTime } from 'luxon'
 import TechStream from '#models/tech_stream'
+import Repository from '#models/repository'
 import DeploymentRecord from '#models/deployment_record'
 import IncidentEvent from '#models/incident_event'
 import DoraMetricsService from '#services/dora_metrics_service'
@@ -98,6 +99,47 @@ test.group('DoraMetricsService | deployment frequency', (group) => {
     const result = await service.compute()
     assert.approximately(result.deploymentFrequency, 1 / (30 / 7), 0.1)
   })
+
+  test('excludes deployment linked to non-deployable repo', async ({ assert }) => {
+    const ts = await seedTechStream()
+    const repo = await Repository.create({
+      techStreamId: ts.id,
+      githubOrg: 'acme',
+      githubRepoName: 'infra',
+      fullName: 'acme/infra',
+      defaultBranch: 'main',
+      isDeployable: false,
+      isActive: true,
+    })
+    await DeploymentRecord.create({
+      techStreamId: ts.id,
+      repoId: repo.id,
+      environment: 'production',
+      status: 'success',
+      deployedAt: WITHIN_WINDOW,
+      causedIncident: false,
+    })
+
+    const service = new DoraMetricsService(ts.id, 30)
+    const result = await service.compute()
+    assert.equal(result.deploymentFrequency, 0)
+  })
+
+  test('excludes config-only deployment from frequency', async ({ assert }) => {
+    const ts = await seedTechStream()
+    await DeploymentRecord.create({
+      techStreamId: ts.id,
+      environment: 'production',
+      status: 'success',
+      deployedAt: WITHIN_WINDOW,
+      causedIncident: false,
+      triggerType: 'config',
+    })
+
+    const service = new DoraMetricsService(ts.id, 30)
+    const result = await service.compute()
+    assert.equal(result.deploymentFrequency, 0)
+  })
 })
 
 test.group('DoraMetricsService | change failure rate', (group) => {
@@ -123,6 +165,24 @@ test.group('DoraMetricsService | change failure rate', (group) => {
     const result = await service.compute()
     // 1 out of 4 = 25%
     assert.approximately(result.changeFailureRate, 25, 0.5)
+  })
+
+  test('excludes config-only deployment from change failure rate', async ({ assert }) => {
+    const ts = await seedTechStream()
+    await seedDeploy(ts.id, WITHIN_WINDOW, 'success', true) // normal, caused incident
+    await DeploymentRecord.create({
+      techStreamId: ts.id,
+      environment: 'production',
+      status: 'success',
+      deployedAt: WITHIN_WINDOW,
+      causedIncident: false,
+      triggerType: 'config',
+    })
+
+    const service = new DoraMetricsService(ts.id, 30)
+    const result = await service.compute()
+    // config deploy excluded — only 1 normal deploy, it caused incident = 100%
+    assert.approximately(result.changeFailureRate, 100, 1)
   })
 })
 

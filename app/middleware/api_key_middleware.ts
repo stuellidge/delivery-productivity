@@ -36,6 +36,33 @@ export default class ApiKeyMiddleware {
     apiKey.lastUsedAt = DateTime.now()
     await apiKey.save()
 
+    if (apiKey.streamScope) {
+      const scope = apiKey.streamScope as {
+        deliveryStreamIds?: number[]
+        techStreamIds?: number[]
+      }
+
+      const streamParam = request.input('stream')
+      if (streamParam && scope.deliveryStreamIds) {
+        if (!scope.deliveryStreamIds.includes(Number(streamParam))) {
+          return response.forbidden({
+            status: 'error',
+            error: { code: 'FORBIDDEN', message: 'Stream not in key scope' },
+          })
+        }
+      }
+
+      const techStreamParam = request.input('techStream')
+      if (techStreamParam && scope.techStreamIds) {
+        if (!scope.techStreamIds.includes(Number(techStreamParam))) {
+          return response.forbidden({
+            status: 'error',
+            error: { code: 'FORBIDDEN', message: 'Tech stream not in key scope' },
+          })
+        }
+      }
+    }
+
     await next()
   }
 }

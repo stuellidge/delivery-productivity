@@ -52,6 +52,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   |----------------------------------------------------------
   */
   GITHUB_WEBHOOK_SECRET: Env.schema.string.optional(),
+  GITHUB_TOKEN: Env.schema.string.optional(),
 
   /*
   |----------------------------------------------------------

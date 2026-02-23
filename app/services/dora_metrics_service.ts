@@ -20,11 +20,17 @@ export default class DoraMetricsService {
   async compute(): Promise<DoraMetrics> {
     const windowStart = DateTime.now().minus({ days: this.windowDays })
 
-    // Production deployments in window
+    // Production deployments in window — exclude non-deployable repos and config-only trigger types
     const deploys = await DeploymentRecord.query()
       .where('tech_stream_id', this.techStreamId)
       .where('environment', 'production')
       .where('deployed_at', '>=', windowStart.toSQL()!)
+      .where((q) => {
+        q.whereNull('repo_id').orWhereRaw(
+          'EXISTS (SELECT 1 FROM repositories WHERE repositories.id = deployment_records.repo_id AND repositories.is_deployable = true)'
+        )
+      })
+      .where((q) => q.whereNull('trigger_type').orWhereNot('trigger_type', 'config'))
 
     // Deployment frequency (deploys per week)
     const deploymentFrequency = deploys.length > 0 ? deploys.length / (this.windowDays / 7) : 0

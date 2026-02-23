@@ -13,6 +13,7 @@ export default class DeploymentEventService {
 
     const repo = await Repository.findBy('full_name', repoFullName)
     if (!repo) return null
+    if (!repo.isDeployable) return null
 
     const deployedAt = DateTime.fromISO(this.payload['deployed_at'])
     let leadTimeHrs: number | null = null

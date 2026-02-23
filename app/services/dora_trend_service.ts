@@ -41,6 +41,12 @@ export default class DoraTrendService {
       .where('environment', 'production')
       .where('deployed_at', '>=', startSql)
       .where('deployed_at', '<', endSql)
+      .where((q) => {
+        q.whereNull('repo_id').orWhereRaw(
+          'EXISTS (SELECT 1 FROM repositories WHERE repositories.id = deployment_records.repo_id AND repositories.is_deployable = true)'
+        )
+      })
+      .where((q) => q.whereNull('trigger_type').orWhereNot('trigger_type', 'config'))
 
     const deploymentFrequency = deploys.length
     const failedDeploys = deploys.filter((d) => d.causedIncident).length
