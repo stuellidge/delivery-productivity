@@ -4,6 +4,7 @@ import env from '#start/env'
 import WorkItemEvent from '#models/work_item_event'
 import StatusMapping from '#models/status_mapping'
 import DeliveryStream from '#models/delivery_stream'
+import WorkItemCycleComputationService from '#services/work_item_cycle_computation_service'
 import type { PipelineStage } from '#models/status_mapping'
 
 const COMPLETED_STAGES: PipelineStage[] = ['done', 'cancelled']
@@ -146,6 +147,8 @@ export default class JiraBackfillService {
         })
       }
     }
+
+    await new WorkItemCycleComputationService(ticketId).compute()
   }
 
   private async resolveDeliveryStreamId(

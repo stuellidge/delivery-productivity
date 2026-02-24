@@ -10,3 +10,6 @@ scheduler.command('scheduler:poll-backlog').daily().withoutOverlapping()
 
 // GitHub repository sync (§5.3.7)
 scheduler.command('scheduler:sync-repositories').daily().withoutOverlapping()
+
+// GitHub gap detection (§5.3.7)
+scheduler.command('scheduler:detect-github-gaps').daily().withoutOverlapping()

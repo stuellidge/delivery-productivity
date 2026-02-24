@@ -1,6 +1,7 @@
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
 import WorkItemEvent from '#models/work_item_event'
+import WorkItemCycle from '#models/work_item_cycle'
 import StatusMapping from '#models/status_mapping'
 import JiraBackfillService from '#services/jira_backfill_service'
 
@@ -148,5 +149,41 @@ test.group('JiraBackfillService | run', (group) => {
     assert.isFalse(fetchCalled)
     const count = await WorkItemEvent.query().count('* as total')
     assert.equal(Number(count[0].$extras.total), 0)
+  })
+
+  test('creates work_item_cycle for issues in a completed stage after backfill', async ({
+    assert,
+  }) => {
+    await StatusMapping.create({
+      jiraProjectKey: 'PAY',
+      jiraStatusName: 'Done',
+      pipelineStage: 'done',
+      isActiveWork: false,
+      displayOrder: 99,
+    })
+
+    const issue = buildIssue('PAY-20', {
+      status: 'Done',
+      updated: '2026-01-20T10:00:00.000+0000',
+    })
+    mockFetchOnce(buildSearchResponse([issue]))
+
+    await new JiraBackfillService('PAY').run()
+
+    const cycle = await WorkItemCycle.findBy('ticket_id', 'PAY-20')
+    assert.isNotNull(cycle)
+  })
+
+  test('does not fail for in-progress issues (compute returns null gracefully)', async ({
+    assert,
+  }) => {
+    const issue = buildIssue('PAY-21', { status: 'In Progress' })
+    mockFetchOnce(buildSearchResponse([issue]))
+
+    // No StatusMapping for 'In Progress' — resolveStage returns null → no completed event → compute() returns null
+    await new JiraBackfillService('PAY').run()
+
+    const cycles = await WorkItemCycle.all()
+    assert.equal(cycles.length, 0)
   })
 })

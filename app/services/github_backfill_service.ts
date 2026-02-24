@@ -76,7 +76,7 @@ export default class GitHubBackfillService {
     }
   }
 
-  private async processPr(
+  async processPr(
     pr: any,
     repo: Repository,
     techStream: TechStream | null

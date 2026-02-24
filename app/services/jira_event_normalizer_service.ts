@@ -3,6 +3,7 @@ import WorkItemEvent from '#models/work_item_event'
 import DefectEvent from '#models/defect_event'
 import DeliveryStream from '#models/delivery_stream'
 import StatusMapping from '#models/status_mapping'
+import WorkItemCycleComputationService from '#services/work_item_cycle_computation_service'
 import type { WorkItemEventType } from '#models/work_item_event'
 import type { DefectSeverity } from '#models/defect_event'
 import type { PipelineStage } from '#models/status_mapping'
@@ -85,6 +86,10 @@ export default class JiraEventNormalizerService {
       if (ticketType.toLowerCase() === 'bug') {
         await this.createDefectEvent(issue.key, deliveryStreamId, eventTimestamp)
       }
+    }
+
+    if (eventType === 'completed') {
+      await new WorkItemCycleComputationService(issue.key).compute()
     }
   }
 

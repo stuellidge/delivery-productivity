@@ -7,6 +7,7 @@ import Repository from '#models/repository'
 import PrEvent from '#models/pr_event'
 import CicdEvent from '#models/cicd_event'
 import DeploymentRecord from '#models/deployment_record'
+import PrCycle from '#models/pr_cycle'
 import PrCycleComputationService from '#services/pr_cycle_computation_service'
 import type { PrEventType } from '#models/pr_event'
 
@@ -243,11 +244,33 @@ export default class GithubEventNormalizerService {
 
     // For production success deploys, also upsert a DeploymentRecord
     if (environment === 'production' && state === 'success') {
+      let leadTimeHrs: number | null = null
+      let linkedTicketId: string | null = null
+
+      if (repo) {
+        const sevenDaysAgo = eventTimestamp.minus({ days: 7 })
+        const recentPrCycle = await PrCycle.query()
+          .where('repo_id', repo.id)
+          .whereNotNull('merged_at')
+          .where('merged_at', '<=', eventTimestamp.toISO()!)
+          .where('merged_at', '>=', sevenDaysAgo.toISO()!)
+          .orderBy('merged_at', 'desc')
+          .first()
+
+        if (recentPrCycle) {
+          leadTimeHrs = eventTimestamp.diff(recentPrCycle.openedAt, 'hours').hours
+          linkedTicketId = recentPrCycle.linkedTicketId
+        }
+      }
+
       await DeploymentRecord.create({
         techStreamId: techStream.id,
+        repoId: repo?.id ?? null,
         environment,
         status: 'success',
         commitSha: deployment?.sha ?? null,
+        leadTimeHrs,
+        linkedTicketId,
         causedIncident: false,
         deployedAt: eventTimestamp,
       })

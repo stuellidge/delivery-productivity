@@ -3,6 +3,7 @@ import testUtils from '@adonisjs/core/services/test_utils'
 import { DateTime } from 'luxon'
 import TechStream from '#models/tech_stream'
 import Repository from '#models/repository'
+import PrCycle from '#models/pr_cycle'
 import CicdEvent from '#models/cicd_event'
 import DeploymentRecord from '#models/deployment_record'
 import GithubEventNormalizerService from '#services/github_event_normalizer_service'
@@ -285,5 +286,151 @@ test.group('GithubCicdEventNormalizer | event_timestamp', (group) => {
       DateTime.fromISO(runAt).toISO()!.slice(0, 19),
       eventTs.toISO()!.slice(0, 19)
     )
+  })
+})
+
+// Deploy timestamp used by buildDeploymentStatusPayload default
+const DEPLOY_AT = DateTime.fromISO('2026-02-10T12:00:00Z')
+
+test.group('GithubCicdEventNormalizer | deployment_status lead time', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('computes lead_time_hrs from most recently merged PrCycle within 7 days', async ({
+    assert,
+  }) => {
+    const ts = await seedTechStream('88010')
+    const repo = await seedRepo(ts.id)
+
+    // PrCycle: openedAt = 10h before deploy, mergedAt = 2h before deploy
+    await PrCycle.create({
+      repoId: repo.id,
+      techStreamId: ts.id,
+      prNumber: 100,
+      openedAt: DEPLOY_AT.minus({ hours: 10 }),
+      mergedAt: DEPLOY_AT.minus({ hours: 2 }),
+    })
+
+    const payload = buildDeploymentStatusPayload({
+      state: 'success',
+      environment: 'production',
+      deploymentId: 11001,
+      runId: 12001,
+      installId: 88010,
+    })
+    await new GithubEventNormalizerService(payload, 'deployment_status').process()
+
+    const record = await DeploymentRecord.query().where('tech_stream_id', ts.id).first()
+    assert.isNotNull(record)
+    // leadTimeHrs = deployedAt - openedAt = 10h
+    assert.approximately(Number(record!.leadTimeHrs!), 10, 0.1)
+  })
+
+  test('sets linkedTicketId from the matched PrCycle', async ({ assert }) => {
+    const ts = await seedTechStream('88011')
+    const repo = await seedRepo(ts.id)
+
+    await PrCycle.create({
+      repoId: repo.id,
+      techStreamId: ts.id,
+      prNumber: 101,
+      openedAt: DEPLOY_AT.minus({ hours: 8 }),
+      mergedAt: DEPLOY_AT.minus({ hours: 1 }),
+      linkedTicketId: 'PAY-42',
+    })
+
+    const payload = buildDeploymentStatusPayload({
+      state: 'success',
+      environment: 'production',
+      deploymentId: 11002,
+      runId: 12002,
+      installId: 88011,
+    })
+    await new GithubEventNormalizerService(payload, 'deployment_status').process()
+
+    const record = await DeploymentRecord.query().where('tech_stream_id', ts.id).first()
+    assert.isNotNull(record)
+    assert.equal(record!.linkedTicketId, 'PAY-42')
+  })
+
+  test('lead_time_hrs is null when no PrCycle merged within 7 days', async ({ assert }) => {
+    const ts = await seedTechStream('88012')
+    const repo = await seedRepo(ts.id)
+
+    // PrCycle merged 8 days ago — outside the 7-day window
+    await PrCycle.create({
+      repoId: repo.id,
+      techStreamId: ts.id,
+      prNumber: 102,
+      openedAt: DEPLOY_AT.minus({ days: 10 }),
+      mergedAt: DEPLOY_AT.minus({ days: 8 }),
+    })
+
+    const payload = buildDeploymentStatusPayload({
+      state: 'success',
+      environment: 'production',
+      deploymentId: 11003,
+      runId: 12003,
+      installId: 88012,
+    })
+    await new GithubEventNormalizerService(payload, 'deployment_status').process()
+
+    const record = await DeploymentRecord.query().where('tech_stream_id', ts.id).first()
+    assert.isNotNull(record)
+    assert.isNull(record!.leadTimeHrs)
+  })
+
+  test('selects most recently merged PrCycle when multiple exist in window', async ({ assert }) => {
+    const ts = await seedTechStream('88013')
+    const repo = await seedRepo(ts.id)
+
+    // PrCycle 1: merged 1h ago, openedAt 12h ago → leadTimeHrs = 12
+    await PrCycle.create({
+      repoId: repo.id,
+      techStreamId: ts.id,
+      prNumber: 103,
+      openedAt: DEPLOY_AT.minus({ hours: 12 }),
+      mergedAt: DEPLOY_AT.minus({ hours: 1 }),
+    })
+
+    // PrCycle 2: merged 3h ago, openedAt 20h ago → leadTimeHrs = 20
+    await PrCycle.create({
+      repoId: repo.id,
+      techStreamId: ts.id,
+      prNumber: 104,
+      openedAt: DEPLOY_AT.minus({ hours: 20 }),
+      mergedAt: DEPLOY_AT.minus({ hours: 3 }),
+    })
+
+    const payload = buildDeploymentStatusPayload({
+      state: 'success',
+      environment: 'production',
+      deploymentId: 11004,
+      runId: 12004,
+      installId: 88013,
+    })
+    await new GithubEventNormalizerService(payload, 'deployment_status').process()
+
+    const record = await DeploymentRecord.query().where('tech_stream_id', ts.id).first()
+    assert.isNotNull(record)
+    // Should pick PrCycle 1 (most recently merged) → leadTimeHrs = 12
+    assert.approximately(Number(record!.leadTimeHrs!), 12, 0.1)
+  })
+
+  test('sets repoId on DeploymentRecord from the webhook path', async ({ assert }) => {
+    const ts = await seedTechStream('88014')
+    const repo = await seedRepo(ts.id)
+
+    const payload = buildDeploymentStatusPayload({
+      state: 'success',
+      environment: 'production',
+      deploymentId: 11005,
+      runId: 12005,
+      installId: 88014,
+    })
+    await new GithubEventNormalizerService(payload, 'deployment_status').process()
+
+    const record = await DeploymentRecord.query().where('tech_stream_id', ts.id).first()
+    assert.isNotNull(record)
+    assert.equal(record!.repoId, repo.id)
   })
 })
