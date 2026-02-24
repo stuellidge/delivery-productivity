@@ -6,6 +6,7 @@ import Repository from '#models/repository'
 import PrEvent from '#models/pr_event'
 import CicdEvent from '#models/cicd_event'
 import DeploymentRecord from '#models/deployment_record'
+import EventQueueService from '#services/event_queue_service'
 
 const WEBHOOK_PATH = '/api/v1/webhooks/github'
 const WEBHOOK_SECRET = 'test-github-secret'
@@ -63,10 +64,14 @@ async function seedTechStreamAndRepo() {
   return { techStream, repo }
 }
 
+async function drainQueue() {
+  await new EventQueueService().processPending()
+}
+
 test.group('Github Webhooks | pull_request events', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
-  test('returns 200 for pull_request opened event', async ({ client }) => {
+  test('returns 202 for pull_request opened event', async ({ client }) => {
     await seedTechStreamAndRepo()
     const payload = buildPrOpenedPayload()
 
@@ -75,8 +80,7 @@ test.group('Github Webhooks | pull_request events', (group) => {
       .header('x-github-event', 'pull_request')
       .json(payload)
 
-    response.assertStatus(200)
-    response.assertBodyContains({ ok: true })
+    response.assertStatus(202)
   })
 
   test('creates a pr_event record in the database', async ({ client, assert }) => {
@@ -84,6 +88,7 @@ test.group('Github Webhooks | pull_request events', (group) => {
     const payload = buildPrOpenedPayload(42)
 
     await client.post(WEBHOOK_PATH).header('x-github-event', 'pull_request').json(payload)
+    await drainQueue()
 
     const event = await PrEvent.query()
       .where('repo_id', repo.id)
@@ -96,7 +101,7 @@ test.group('Github Webhooks | pull_request events', (group) => {
     assert.equal(event!.linkedTicketId, 'PAY-500')
   })
 
-  test('returns 200 for unknown event types (silently ignored)', async ({ client }) => {
+  test('returns 202 for unknown event types (silently ignored)', async ({ client }) => {
     await seedTechStreamAndRepo()
 
     const response = await client
@@ -104,7 +109,7 @@ test.group('Github Webhooks | pull_request events', (group) => {
       .header('x-github-event', 'push')
       .json({ ref: 'refs/heads/main', commits: [] })
 
-    response.assertStatus(200)
+    response.assertStatus(202)
   })
 
   test('does not require CSRF token — webhook is CSRF-exempt', async ({ client, assert }) => {
@@ -117,7 +122,9 @@ test.group('Github Webhooks | pull_request events', (group) => {
       .header('x-github-event', 'pull_request')
       .json(payload)
 
-    response.assertStatus(200)
+    response.assertStatus(202)
+
+    await drainQueue()
 
     const event = await PrEvent.query().where('pr_number', 77).first()
     assert.isNotNull(event)
@@ -127,7 +134,7 @@ test.group('Github Webhooks | pull_request events', (group) => {
 test.group('Github Webhooks | pull_request_review events', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
-  test('returns 200 and creates review event', async ({ client, assert }) => {
+  test('returns 202 and creates review event', async ({ client, assert }) => {
     const { repo } = await seedTechStreamAndRepo()
 
     const reviewPayload = {
@@ -158,7 +165,9 @@ test.group('Github Webhooks | pull_request_review events', (group) => {
       .header('x-github-event', 'pull_request_review')
       .json(reviewPayload)
 
-    response.assertStatus(200)
+    response.assertStatus(202)
+
+    await drainQueue()
 
     const event = await PrEvent.query()
       .where('repo_id', repo.id)
@@ -174,11 +183,13 @@ test.group('Github Webhooks | pull_request_review events', (group) => {
 test.group('Github Webhooks | unexpected errors', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
-  test('returns 500 when an unexpected error occurs in the service', async ({ client }) => {
+  test('returns 202 for malformed payload — errors handled async in queue processor', async ({
+    client,
+  }) => {
     await seedTechStreamAndRepo()
 
-    // Omitting pull_request causes TypeError inside the service (pr.number on undefined)
-    // This exercises the controller's re-throw path for non-InvalidSignatureErrors
+    // Omitting pull_request field — service will fail when processing queue
+    // Controller enqueues and returns 202 regardless; queue processor dead-letters after 3 attempts
     const malformedPayload = {
       action: 'opened',
       installation: { id: 99001 },
@@ -194,7 +205,7 @@ test.group('Github Webhooks | unexpected errors', (group) => {
       .header('x-github-event', 'pull_request')
       .json(malformedPayload)
 
-    response.assertStatus(500)
+    response.assertStatus(202)
   })
 })
 
@@ -214,7 +225,7 @@ test.group('Github Webhooks | signature verification', (group) => {
     response.assertStatus(401)
   })
 
-  test('returns 200 when signature is valid', async ({ client }) => {
+  test('returns 202 when signature is valid', async ({ client }) => {
     await seedTechStreamAndRepo()
     const payload = buildPrOpenedPayload(55)
     const signature = signPayload(payload, WEBHOOK_SECRET)
@@ -225,7 +236,7 @@ test.group('Github Webhooks | signature verification', (group) => {
       .header('x-hub-signature-256', signature)
       .json(payload)
 
-    response.assertStatus(200)
+    response.assertStatus(202)
   })
 })
 
@@ -273,7 +284,9 @@ test.group('Github Webhooks | workflow_run events', (group) => {
       .header('x-github-event', 'workflow_run')
       .json(payload)
 
-    response.assertStatus(200)
+    response.assertStatus(202)
+
+    await drainQueue()
 
     const event = await CicdEvent.query().where('pipeline_run_id', '55001').first()
     assert.isNotNull(event)
@@ -330,7 +343,9 @@ test.group('Github Webhooks | deployment_status events', (group) => {
       .header('x-github-event', 'deployment_status')
       .json(payload)
 
-    response.assertStatus(200)
+    response.assertStatus(202)
+
+    await drainQueue()
 
     const event = await CicdEvent.query().where('pipeline_id', '88001').first()
     assert.isNotNull(event)

@@ -3,6 +3,7 @@ import testUtils from '@adonisjs/core/services/test_utils'
 import WorkItemEvent from '#models/work_item_event'
 import DeliveryStream from '#models/delivery_stream'
 import StatusMapping from '#models/status_mapping'
+import EventQueueService from '#services/event_queue_service'
 
 const WEBHOOK_PATH = '/api/v1/webhooks/jira'
 
@@ -45,10 +46,14 @@ const statusTransitionPayload = {
   timestamp: 1738396900000,
 }
 
+async function drainQueue() {
+  await new EventQueueService().processPending()
+}
+
 test.group('Jira Webhooks | issue_created', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
-  test('returns 200 and creates a work_item_event', async ({ client, assert }) => {
+  test('returns 202 and creates a work_item_event', async ({ client, assert }) => {
     await DeliveryStream.create({
       name: 'payments',
       displayName: 'Payments',
@@ -57,7 +62,9 @@ test.group('Jira Webhooks | issue_created', (group) => {
 
     const response = await client.post(WEBHOOK_PATH).json(issueCreatedPayload)
 
-    response.assertStatus(200)
+    response.assertStatus(202)
+
+    await drainQueue()
 
     const event = await WorkItemEvent.query()
       .where('ticket_id', 'PAY-456')
@@ -70,7 +77,7 @@ test.group('Jira Webhooks | issue_created', (group) => {
     assert.equal(event!.source, 'jira')
   })
 
-  test('returns 200 and resolves delivery_stream_id from payload', async ({ client, assert }) => {
+  test('returns 202 and resolves delivery_stream_id from payload', async ({ client, assert }) => {
     const stream = await DeliveryStream.create({
       name: 'payments',
       displayName: 'Payments',
@@ -78,16 +85,18 @@ test.group('Jira Webhooks | issue_created', (group) => {
     })
 
     await client.post(WEBHOOK_PATH).json(issueCreatedPayload)
+    await drainQueue()
 
     const event = await WorkItemEvent.findByOrFail('ticket_id', 'PAY-456')
     assert.equal(event.deliveryStreamId, stream.id)
   })
 
-  test('is idempotent — duplicate webhook is rejected with 200', async ({ client, assert }) => {
+  test('is idempotent — duplicate webhook is rejected with 202', async ({ client, assert }) => {
     await DeliveryStream.create({ name: 'payments', displayName: 'Payments', isActive: true })
 
     await client.post(WEBHOOK_PATH).json(issueCreatedPayload)
     await client.post(WEBHOOK_PATH).json(issueCreatedPayload)
+    await drainQueue()
 
     const count = await WorkItemEvent.query()
       .where('ticket_id', 'PAY-456')
@@ -123,7 +132,9 @@ test.group('Jira Webhooks | status_transition', (group) => {
 
     const response = await client.post(WEBHOOK_PATH).json(statusTransitionPayload)
 
-    response.assertStatus(200)
+    response.assertStatus(202)
+
+    await drainQueue()
 
     const event = await WorkItemEvent.query()
       .where('ticket_id', 'PAY-456')
@@ -142,7 +153,9 @@ test.group('Jira Webhooks | status_transition', (group) => {
 
     const response = await client.post(WEBHOOK_PATH).json(statusTransitionPayload)
 
-    response.assertStatus(200)
+    response.assertStatus(202)
+
+    await drainQueue()
 
     const event = await WorkItemEvent.query()
       .where('ticket_id', 'PAY-456')
@@ -182,7 +195,9 @@ test.group('Jira Webhooks | flagged/blocked', (group) => {
     }
 
     const response = await client.post(WEBHOOK_PATH).json(flaggedPayload)
-    response.assertStatus(200)
+    response.assertStatus(202)
+
+    await drainQueue()
 
     const event = await WorkItemEvent.query()
       .where('ticket_id', 'PAY-456')
@@ -210,6 +225,7 @@ test.group('Jira Webhooks | delivery stream resolution', (group) => {
     }
 
     await client.post('/api/v1/webhooks/jira').json(payloadWithoutStream)
+    await drainQueue()
 
     const event = await WorkItemEvent.findByOrFail('ticket_id', 'PAY-999')
     assert.isNull(event.deliveryStreamId)
@@ -233,6 +249,7 @@ test.group('Jira Webhooks | delivery stream resolution', (group) => {
     }
 
     await client.post('/api/v1/webhooks/jira').json(payload)
+    await drainQueue()
 
     const event = await WorkItemEvent.findByOrFail('ticket_id', 'PAY-998')
     assert.isNull(event.deliveryStreamId)
@@ -265,6 +282,7 @@ test.group('Jira Webhooks | stage resolution with null fromString', (group) => {
     }
 
     await client.post('/api/v1/webhooks/jira').json(payload)
+    await drainQueue()
 
     const event = await WorkItemEvent.query()
       .where('ticket_id', 'PAY-456')
@@ -279,7 +297,7 @@ test.group('Jira Webhooks | stage resolution with null fromString', (group) => {
 test.group('Jira Webhooks | unrecognised event', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
-  test('returns 200 and creates no event for unrecognised changelog field', async ({
+  test('returns 202 and creates no event for unrecognised changelog field', async ({
     client,
     assert,
   }) => {
@@ -298,7 +316,9 @@ test.group('Jira Webhooks | unrecognised event', (group) => {
     }
 
     const response = await client.post('/api/v1/webhooks/jira').json(unknownPayload)
-    response.assertStatus(200)
+    response.assertStatus(202)
+
+    await drainQueue()
 
     const count = await WorkItemEvent.query().where('ticket_id', 'PAY-456').count('* as total')
     assert.equal(Number(count[0].$extras.total), 0)
@@ -333,7 +353,9 @@ test.group('Jira Webhooks | completed', (group) => {
     }
 
     const response = await client.post(WEBHOOK_PATH).json(completedPayload)
-    response.assertStatus(200)
+    response.assertStatus(202)
+
+    await drainQueue()
 
     const event = await WorkItemEvent.query()
       .where('ticket_id', 'PAY-456')

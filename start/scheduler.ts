@@ -20,3 +20,9 @@ scheduler.command('scheduler:enrich-pr-delivery-streams').everyFiveMinutes().wit
 
 // Data retention enforcement (§8.3)
 scheduler.command('scheduler:enforce-data-retention').daily().withoutOverlapping()
+
+// Async event queue processor (§5 Phase 18)
+scheduler.command('scheduler:process-event-queue').everyMinute().withoutOverlapping()
+
+// Alert notifications (§5 Phase 18) — every 15 minutes
+scheduler.command('scheduler:send-alert-notifications').everyFifteenMinutes().withoutOverlapping()

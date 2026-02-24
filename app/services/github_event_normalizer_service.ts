@@ -31,14 +31,17 @@ export default class GithubEventNormalizerService {
     private readonly archiveService: EventArchiveService = new EventArchiveService()
   ) {}
 
-  async process(): Promise<void> {
+  checkSignature(): void {
     const secret = this.secretOverride ?? env.get('GITHUB_WEBHOOK_SECRET')
-
     if (secret && this.signature) {
       if (!this.verifySignature(JSON.stringify(this.payload), this.signature, secret)) {
         throw new InvalidSignatureError()
       }
     }
+  }
+
+  async process(): Promise<void> {
+    this.checkSignature()
 
     if (this.githubEventType === 'pull_request') {
       await this.handlePullRequest()

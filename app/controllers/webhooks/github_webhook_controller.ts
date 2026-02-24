@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import GithubEventNormalizerService, {
   InvalidSignatureError,
 } from '#services/github_event_normalizer_service'
+import EventQueueService from '#services/event_queue_service'
 
 export default class GithubWebhookController {
   async handle({ request, response }: HttpContext) {
@@ -9,17 +10,21 @@ export default class GithubWebhookController {
     const signature = request.header('x-hub-signature-256')
     const payload = request.body() as Record<string, any>
 
-    const service = new GithubEventNormalizerService(payload, eventType, signature ?? undefined)
-
-    try {
-      await service.process()
-    } catch (error) {
-      if (error instanceof InvalidSignatureError) {
-        return response.unauthorized({ error: 'Invalid signature' })
+    // Validate signature before enqueueing (return 401 immediately if invalid)
+    if (signature) {
+      const checker = new GithubEventNormalizerService(payload, eventType, signature)
+      try {
+        checker.checkSignature()
+      } catch (error) {
+        if (error instanceof InvalidSignatureError) {
+          return response.unauthorized({ error: 'Invalid signature' })
+        }
+        throw error
       }
-      throw error
     }
 
-    return response.ok({ ok: true })
+    const svc = new EventQueueService()
+    await svc.enqueue('github', payload, eventType ?? undefined, signature ?? undefined)
+    return response.status(202).send({ ok: true })
   }
 }

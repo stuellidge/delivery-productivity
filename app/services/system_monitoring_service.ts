@@ -1,6 +1,7 @@
 import db from '@adonisjs/lucid/services/db'
 import { DateTime } from 'luxon'
 import IntegrationHealthService from '#services/integration_health_service'
+import PlatformSetting from '#models/platform_setting'
 
 export interface AlertCondition {
   condition: string
@@ -12,19 +13,94 @@ export interface AlertCondition {
 
 const DEPLOYMENT_TRACEABILITY_TARGET = 80
 const PULSE_RESPONSE_RATE_TARGET = 40
+const QUEUE_DEPTH_THRESHOLD = 1000
+
+const SEVERITY_ORDER: AlertCondition['severity'][] = ['low', 'medium', 'high', 'critical']
 
 export default class SystemMonitoringService {
   async getActiveAlerts(): Promise<AlertCondition[]> {
     const alerts: AlertCondition[] = []
 
-    const [traceabilityAlerts, pulseAlerts, integrationAlerts] = await Promise.all([
+    const [traceabilityAlerts, pulseAlerts, integrationAlerts, queueAlerts] = await Promise.all([
       this.checkDeploymentTraceability(),
       this.checkPulseResponseRate(),
       this.checkIntegrationHealth(),
+      this.checkQueueDepth(),
     ])
 
-    alerts.push(...traceabilityAlerts, ...pulseAlerts, ...integrationAlerts)
+    alerts.push(...traceabilityAlerts, ...pulseAlerts, ...integrationAlerts, ...queueAlerts)
     return alerts
+  }
+
+  async notify(): Promise<void> {
+    const channelsSetting = await PlatformSetting.findBy('key', 'alert_notification_channels')
+    if (!channelsSetting) return
+
+    const channels = channelsSetting.value as {
+      slackWebhookUrl?: string
+      minimumSeverity?: string
+    }
+    const { slackWebhookUrl, minimumSeverity = 'low' } = channels
+
+    if (!slackWebhookUrl) return
+
+    const allAlerts = await this.getActiveAlerts()
+
+    // Filter by minimum severity
+    const minIdx = SEVERITY_ORDER.indexOf(minimumSeverity as AlertCondition['severity'])
+    const filteredAlerts = allAlerts.filter(
+      (a) => SEVERITY_ORDER.indexOf(a.severity) >= (minIdx === -1 ? 0 : minIdx)
+    )
+
+    if (filteredAlerts.length === 0) return
+
+    // Deduplication: skip if all current alerts were already notified
+    const lastNotifSetting = await PlatformSetting.findBy('key', 'last_alert_notification')
+    const lastConditions: string[] = lastNotifSetting
+      ? (lastNotifSetting.value as { conditions: string[] }).conditions
+      : []
+
+    const newAlerts = filteredAlerts.filter((a) => !lastConditions.includes(a.condition))
+    if (newAlerts.length === 0) return
+
+    // Build Slack blocks
+    const blocks = this.buildSlackBlocks(filteredAlerts)
+
+    await fetch(slackWebhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blocks }),
+    })
+
+    // Persist notification state for deduplication
+    await PlatformSetting.updateOrCreate(
+      { key: 'last_alert_notification' },
+      { value: JSON.stringify({ conditions: filteredAlerts.map((a) => a.condition) }) }
+    )
+  }
+
+  private buildSlackBlocks(alerts: AlertCondition[]): object[] {
+    const blocks: object[] = [
+      {
+        type: 'header',
+        text: {
+          type: 'plain_text',
+          text: `Delivery Productivity Alerts (${DateTime.now().toFormat('yyyy-MM-dd HH:mm')})`,
+        },
+      },
+    ]
+
+    for (const alert of alerts) {
+      blocks.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*${alert.severity.toUpperCase()}* | \`${alert.condition}\`\n${alert.message}`,
+        },
+      })
+    }
+
+    return blocks
   }
 
   private async checkDeploymentTraceability(): Promise<AlertCondition[]> {
@@ -103,5 +179,23 @@ export default class SystemMonitoringService {
       severity: 'medium' as const,
       message: `${s.source} integration has not received events in the last 2 hours`,
     }))
+  }
+
+  private async checkQueueDepth(): Promise<AlertCondition[]> {
+    const [row] = await db.from('event_queue').where('status', 'pending').count('* as total')
+
+    const total = Number(row.total)
+    if (total >= QUEUE_DEPTH_THRESHOLD) {
+      return [
+        {
+          condition: 'event_queue_depth_high',
+          severity: 'high',
+          message: `Event queue has ${total} pending rows (threshold: ${QUEUE_DEPTH_THRESHOLD})`,
+          value: total,
+          threshold: QUEUE_DEPTH_THRESHOLD,
+        },
+      ]
+    }
+    return []
   }
 }
