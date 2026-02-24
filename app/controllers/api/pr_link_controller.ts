@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import PrEvent from '#models/pr_event'
 import PrCycle from '#models/pr_cycle'
+import PrDeliveryStreamEnrichmentService from '#services/pr_delivery_stream_enrichment_service'
 
 export default class PrLinkController {
   async handle({ params, request, response }: HttpContext) {
@@ -28,6 +29,9 @@ export default class PrLinkController {
       .where('pr_number', prEvent.prNumber)
       .first()
     if (cycle) await cycle.merge({ linkedTicketId: String(ticketId) }).save()
+
+    // Enrich deliveryStreamId now that the ticket link is known
+    await new PrDeliveryStreamEnrichmentService().enrichByTicketId(String(ticketId))
 
     return response.ok({
       status: 'ok',

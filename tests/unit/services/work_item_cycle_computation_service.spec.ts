@@ -4,6 +4,8 @@ import { DateTime } from 'luxon'
 import WorkItemEvent from '#models/work_item_event'
 import WorkItemCycle from '#models/work_item_cycle'
 import StatusMapping from '#models/status_mapping'
+import DeliveryStream from '#models/delivery_stream'
+import Sprint from '#models/sprint'
 import WorkItemCycleComputationService from '#services/work_item_cycle_computation_service'
 
 // Jan 1–7 fixed timestamps for deterministic tests
@@ -458,5 +460,107 @@ test.group('WorkItemCycleComputationService', (group) => {
 
     assert.isNotNull(result)
     assert.equal(result!.createdAtSource.toISO(), JAN_1.toISO())
+  })
+})
+
+test.group('WorkItemCycleComputationService | sprint assignment', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('populates sprintId when completedAt falls within a sprint', async ({ assert }) => {
+    const ds = await DeliveryStream.create({
+      name: 'wic-sprint-ds',
+      displayName: 'WIC Sprint DS',
+      isActive: true,
+    })
+
+    const sprint = await Sprint.create({
+      jiraSprintId: 'sprint-wic-1',
+      deliveryStreamId: ds.id,
+      name: 'Sprint 1',
+      startDate: '2026-01-01',
+      endDate: '2026-01-14',
+      state: 'closed',
+    })
+
+    await WorkItemEvent.create({
+      source: 'jira',
+      ticketId: 'PAY-1',
+      eventType: 'created',
+      deliveryStreamId: ds.id,
+      eventTimestamp: JAN_1,
+    })
+
+    await WorkItemEvent.create({
+      source: 'jira',
+      ticketId: 'PAY-1',
+      eventType: 'completed',
+      deliveryStreamId: ds.id,
+      eventTimestamp: JAN_7,
+    })
+
+    const result = await new WorkItemCycleComputationService('PAY-1').compute()
+
+    assert.isNotNull(result)
+    assert.equal(result!.sprintId, sprint.id)
+  })
+
+  test('sprintId is null when no sprint contains completedAt', async ({ assert }) => {
+    const ds = await DeliveryStream.create({
+      name: 'wic-sprint-ds-2',
+      displayName: 'WIC Sprint DS 2',
+      isActive: true,
+    })
+
+    // Sprint ends before completedAt
+    await Sprint.create({
+      jiraSprintId: 'sprint-wic-2',
+      deliveryStreamId: ds.id,
+      name: 'Sprint 2',
+      startDate: '2025-12-01',
+      endDate: '2025-12-31',
+      state: 'closed',
+    })
+
+    await WorkItemEvent.create({
+      source: 'jira',
+      ticketId: 'PAY-2',
+      eventType: 'created',
+      deliveryStreamId: ds.id,
+      eventTimestamp: JAN_1,
+    })
+
+    await WorkItemEvent.create({
+      source: 'jira',
+      ticketId: 'PAY-2',
+      eventType: 'completed',
+      deliveryStreamId: ds.id,
+      eventTimestamp: JAN_7,
+    })
+
+    const result = await new WorkItemCycleComputationService('PAY-2').compute()
+
+    assert.isNotNull(result)
+    assert.isNull(result!.sprintId)
+  })
+
+  test('sprintId is null when deliveryStreamId is null', async ({ assert }) => {
+    await WorkItemEvent.create({
+      source: 'jira',
+      ticketId: 'PAY-3',
+      eventType: 'created',
+      eventTimestamp: JAN_1,
+    })
+
+    await WorkItemEvent.create({
+      source: 'jira',
+      ticketId: 'PAY-3',
+      eventType: 'completed',
+      eventTimestamp: JAN_7,
+    })
+
+    const result = await new WorkItemCycleComputationService('PAY-3').compute()
+
+    assert.isNotNull(result)
+    assert.isNull(result!.sprintId)
   })
 })

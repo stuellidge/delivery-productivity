@@ -9,6 +9,7 @@ import CicdEvent from '#models/cicd_event'
 import DeploymentRecord from '#models/deployment_record'
 import PrCycle from '#models/pr_cycle'
 import PrCycleComputationService from '#services/pr_cycle_computation_service'
+import PrDeliveryStreamEnrichmentService from '#services/pr_delivery_stream_enrichment_service'
 import type { PrEventType } from '#models/pr_event'
 
 const TICKET_REGEX = /([A-Z][A-Z0-9]+-\d+)/
@@ -109,6 +110,11 @@ export default class GithubEventNormalizerService {
     if (eventType === 'merged' || eventType === 'closed') {
       const computationService = new PrCycleComputationService(repo.id, pr.number, techStream.id)
       await computationService.compute()
+    }
+
+    // Enrich deliveryStreamId on this (and any prior) PrEvents for the same ticket
+    if (linkedTicketId) {
+      await new PrDeliveryStreamEnrichmentService().enrichByTicketId(linkedTicketId)
     }
   }
 

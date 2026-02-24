@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import WorkItemEvent from '#models/work_item_event'
 import WorkItemCycle from '#models/work_item_cycle'
 import StatusMapping from '#models/status_mapping'
+import Sprint from '#models/sprint'
 import PublicHoliday from '#models/public_holiday'
 import BusinessDayService from '#services/business_day_service'
 import type { PipelineStage } from '#models/status_mapping'
@@ -78,6 +79,18 @@ export default class WorkItemCycleComputationService {
     const ticketType = latestEvent?.ticketType ?? null
     const storyPoints = latestEvent?.storyPoints ?? null
 
+    // Assign sprint by matching completedAt date against sprint date ranges
+    let sprintId: number | null = null
+    if (deliveryStreamId) {
+      const completedDate = completedAt.toISODate()!
+      const sprint = await Sprint.query()
+        .where('delivery_stream_id', deliveryStreamId)
+        .where('start_date', '<=', completedDate)
+        .where('end_date', '>=', completedDate)
+        .first()
+      sprintId = sprint?.id ?? null
+    }
+
     // Upsert work_item_cycle
     const existing = await WorkItemCycle.findBy('ticket_id', this.ticketId)
 
@@ -95,6 +108,7 @@ export default class WorkItemCycleComputationService {
       waitTimeDays,
       flowEfficiencyPct,
       stageDurations,
+      sprintId,
     }
 
     if (existing) {

@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import vine from '@vinejs/vine'
 import PrEvent from '#models/pr_event'
 import PrCycle from '#models/pr_cycle'
+import PrDeliveryStreamEnrichmentService from '#services/pr_delivery_stream_enrichment_service'
 import logger from '@adonisjs/core/services/logger'
 
 const linkValidator = vine.compile(
@@ -52,6 +53,13 @@ export default class UnlinkedPrsController {
       }
     } catch (error) {
       logger.warn({ err: error }, 'Could not update pr_cycle linked_ticket_id')
+    }
+
+    // Enrich deliveryStreamId now that the ticket link is known
+    try {
+      await new PrDeliveryStreamEnrichmentService().enrichByTicketId(ticketId)
+    } catch (error) {
+      logger.warn({ err: error }, 'Could not enrich deliveryStreamId after linking PR')
     }
 
     session.flash('success', `PR #${pr.prNumber} linked to ${ticketId}`)
