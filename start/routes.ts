@@ -35,6 +35,8 @@ const AdminSessionsController = () => import('#controllers/admin/sessions_contro
 const AuditLogController = () => import('#controllers/admin/audit_log_controller')
 const PublicHolidaysController = () => import('#controllers/admin/public_holidays_controller')
 const UnlinkedPrsController = () => import('#controllers/admin/unlinked_prs_controller')
+const IntegrationHealthController = () =>
+  import('#controllers/admin/integration_health_controller')
 
 /*
 |--------------------------------------------------------------------------
@@ -148,6 +150,9 @@ router
     // Data quality — unlinked PRs triage
     router.get('/data-quality/unlinked-prs', [UnlinkedPrsController, 'index'])
     router.post('/data-quality/unlinked-prs/:id/link', [UnlinkedPrsController, 'link'])
+
+    // Integration health
+    router.get('/integration-health', [IntegrationHealthController, 'index'])
 
     // OIDC group mappings
     router

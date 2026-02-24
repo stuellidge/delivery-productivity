@@ -10,6 +10,7 @@ import DeploymentRecord from '#models/deployment_record'
 import PrCycle from '#models/pr_cycle'
 import PrCycleComputationService from '#services/pr_cycle_computation_service'
 import PrDeliveryStreamEnrichmentService from '#services/pr_delivery_stream_enrichment_service'
+import EventArchiveService from '#services/event_archive_service'
 import type { PrEventType } from '#models/pr_event'
 
 const TICKET_REGEX = /([A-Z][A-Z0-9]+-\d+)/
@@ -26,7 +27,8 @@ export default class GithubEventNormalizerService {
     private readonly payload: Record<string, any>,
     private readonly githubEventType: string | undefined,
     private readonly signature?: string,
-    private readonly secretOverride?: string
+    private readonly secretOverride?: string,
+    private readonly archiveService: EventArchiveService = new EventArchiveService()
   ) {}
 
   async process(): Promise<void> {
@@ -89,7 +91,7 @@ export default class GithubEventNormalizerService {
 
     if (existing) return
 
-    await PrEvent.create({
+    const event = await PrEvent.create({
       source: 'github',
       eventType,
       prNumber: pr.number,
@@ -106,6 +108,8 @@ export default class GithubEventNormalizerService {
       techStreamId: techStream.id,
       eventTimestamp,
     })
+
+    await this.archiveService.append('pr_events', event.serialize())
 
     if (eventType === 'merged' || eventType === 'closed') {
       const computationService = new PrCycleComputationService(repo.id, pr.number, techStream.id)
@@ -155,7 +159,7 @@ export default class GithubEventNormalizerService {
       techStream.ticketRegex
     )
 
-    await PrEvent.create({
+    const event = await PrEvent.create({
       source: 'github',
       eventType,
       prNumber: pr.number,
@@ -171,6 +175,8 @@ export default class GithubEventNormalizerService {
       techStreamId: techStream.id,
       eventTimestamp,
     })
+
+    await this.archiveService.append('pr_events', event.serialize())
   }
 
   private async handleWorkflowRun(): Promise<void> {
@@ -196,7 +202,7 @@ export default class GithubEventNormalizerService {
 
     if (existing) return
 
-    await CicdEvent.create({
+    const event = await CicdEvent.create({
       source: 'github',
       techStreamId: techStream.id,
       eventType: 'build_completed',
@@ -207,6 +213,8 @@ export default class GithubEventNormalizerService {
       commitSha: run?.head_sha ?? null,
       eventTimestamp,
     })
+
+    await this.archiveService.append('cicd_events', event.serialize())
   }
 
   private async handleDeploymentStatus(): Promise<void> {
@@ -236,7 +244,7 @@ export default class GithubEventNormalizerService {
 
     if (existing) return
 
-    await CicdEvent.create({
+    const cicdEvent = await CicdEvent.create({
       source: 'github',
       techStreamId: techStream.id,
       eventType,
@@ -247,6 +255,8 @@ export default class GithubEventNormalizerService {
       commitSha: deployment?.sha ?? null,
       eventTimestamp,
     })
+
+    await this.archiveService.append('cicd_events', cicdEvent.serialize())
 
     // For production success deploys, also upsert a DeploymentRecord
     if (environment === 'production' && state === 'success') {
@@ -269,7 +279,7 @@ export default class GithubEventNormalizerService {
         }
       }
 
-      await DeploymentRecord.create({
+      const record = await DeploymentRecord.create({
         techStreamId: techStream.id,
         repoId: repo?.id ?? null,
         environment,
@@ -280,6 +290,8 @@ export default class GithubEventNormalizerService {
         causedIncident: false,
         deployedAt: eventTimestamp,
       })
+
+      await this.archiveService.append('deployment_records', record.serialize())
     }
   }
 

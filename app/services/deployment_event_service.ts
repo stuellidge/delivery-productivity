@@ -3,9 +3,13 @@ import Repository from '#models/repository'
 import PrCycle from '#models/pr_cycle'
 import DeploymentRecord from '#models/deployment_record'
 import DeployIncidentCorrelationService from '#services/deploy_incident_correlation_service'
+import EventArchiveService from '#services/event_archive_service'
 
 export default class DeploymentEventService {
-  constructor(private readonly payload: Record<string, any>) {}
+  constructor(
+    private readonly payload: Record<string, any>,
+    private readonly archiveService: EventArchiveService = new EventArchiveService()
+  ) {}
 
   async process(): Promise<DeploymentRecord | null> {
     const repoFullName = this.payload['repo_full_name']
@@ -46,6 +50,8 @@ export default class DeploymentEventService {
       causedIncident: false,
       deployedAt,
     })
+
+    await this.archiveService.append('deployment_records', record.serialize())
 
     await new DeployIncidentCorrelationService().onDeploy(record)
 

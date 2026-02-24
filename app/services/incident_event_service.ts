@@ -2,11 +2,15 @@ import { DateTime } from 'luxon'
 import Repository from '#models/repository'
 import IncidentEvent from '#models/incident_event'
 import DeployIncidentCorrelationService from '#services/deploy_incident_correlation_service'
+import EventArchiveService from '#services/event_archive_service'
 
 const RESOLVED_TYPES = new Set(['alarm_resolved', 'incident_resolved'])
 
 export default class IncidentEventService {
-  constructor(private readonly payload: Record<string, any>) {}
+  constructor(
+    private readonly payload: Record<string, any>,
+    private readonly archiveService: EventArchiveService = new EventArchiveService()
+  ) {}
 
   async process(): Promise<IncidentEvent | null> {
     const serviceName = this.payload['service_name']
@@ -55,6 +59,8 @@ export default class IncidentEventService {
       resolvedAt,
       timeToRestoreMin,
     })
+
+    await this.archiveService.append('incident_events', event.serialize())
 
     if (RESOLVED_TYPES.has(eventType)) {
       await new DeployIncidentCorrelationService().onIncidentResolved(event)

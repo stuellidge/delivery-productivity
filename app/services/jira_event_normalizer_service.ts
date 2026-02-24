@@ -4,6 +4,7 @@ import DefectEvent from '#models/defect_event'
 import DeliveryStream from '#models/delivery_stream'
 import StatusMapping from '#models/status_mapping'
 import WorkItemCycleComputationService from '#services/work_item_cycle_computation_service'
+import EventArchiveService from '#services/event_archive_service'
 import type { WorkItemEventType } from '#models/work_item_event'
 import type { DefectSeverity } from '#models/defect_event'
 import type { PipelineStage } from '#models/status_mapping'
@@ -36,7 +37,10 @@ export interface JiraWebhookPayload {
 }
 
 export default class JiraEventNormalizerService {
-  constructor(private readonly payload: JiraWebhookPayload) {}
+  constructor(
+    private readonly payload: JiraWebhookPayload,
+    private readonly archiveService: EventArchiveService = new EventArchiveService()
+  ) {}
 
   async process(): Promise<void> {
     const eventType = this.determineEventType()
@@ -66,7 +70,7 @@ export default class JiraEventNormalizerService {
       toStage = await this.resolveStage(projectKey, statusItem.toString)
     }
 
-    await WorkItemEvent.create({
+    const event = await WorkItemEvent.create({
       source: 'jira',
       ticketId: issue.key,
       eventType,
@@ -79,6 +83,8 @@ export default class JiraEventNormalizerService {
       storyPoints: issue.fields.story_points ?? null,
       labels: issue.fields.labels ?? null,
     })
+
+    await this.archiveService.append('work_item_events', event.serialize())
 
     // Create a defect event for Bug tickets on creation
     if (eventType === 'created') {
@@ -137,7 +143,7 @@ export default class JiraEventNormalizerService {
     const introducedInStage = issue.fields.customfield_introduced_in_stage ?? null
     const severity = this.mapPriorityToSeverity(issue.fields.priority?.name ?? null)
 
-    await DefectEvent.create({
+    const defect = await DefectEvent.create({
       source: 'jira',
       ticketId,
       eventType: 'logged',
@@ -147,6 +153,8 @@ export default class JiraEventNormalizerService {
       introducedInStage,
       severity,
     })
+
+    await this.archiveService.append('defect_events', defect.serialize())
   }
 
   private mapPriorityToSeverity(priority: string | null): DefectSeverity | null {

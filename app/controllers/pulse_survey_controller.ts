@@ -4,6 +4,7 @@ import { DateTime } from 'luxon'
 import DeliveryStream from '#models/delivery_stream'
 import PulseResponse from '#models/pulse_response'
 import { pulseSurveyValidator } from '#validators/pulse_survey_validator'
+import EventArchiveService from '#services/event_archive_service'
 import env from '#start/env'
 
 export default class PulseSurveyController {
@@ -23,6 +24,7 @@ export default class PulseSurveyController {
       .digest('hex')
 
     const now = DateTime.now()
+    let pulseRecord: PulseResponse
 
     // Upsert — unique on (survey_period, respondent_hash, delivery_stream_id)
     const existing = await PulseResponse.query()
@@ -41,8 +43,9 @@ export default class PulseSurveyController {
         eventTimestamp: now,
       })
       await existing.save()
+      pulseRecord = existing
     } else {
-      await PulseResponse.create({
+      pulseRecord = await PulseResponse.create({
         source: 'web',
         deliveryStreamId: data.delivery_stream_id,
         surveyPeriod,
@@ -55,6 +58,8 @@ export default class PulseSurveyController {
         eventTimestamp: now,
       })
     }
+
+    await new EventArchiveService().append('pulse_responses', pulseRecord.serialize())
 
     session.flash('success', 'Thank you for your feedback!')
     return response.redirect().toRoute('survey.show')

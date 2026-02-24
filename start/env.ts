@@ -78,4 +78,11 @@ export default await Env.create(new URL('../', import.meta.url), {
   OIDC_REDIRECT_URI: Env.schema.string.optional(),
   OIDC_TENANT_ID: Env.schema.string.optional(),
   OIDC_GROUP_CLAIM: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring event archive
+  |----------------------------------------------------------
+  */
+  ARCHIVE_PATH: Env.schema.string.optional(),
 })
