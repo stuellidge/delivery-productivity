@@ -9,6 +9,9 @@ export interface DoraMetrics {
   ttrMean: number
   leadTimeP50: number | null
   leadTimeP85: number | null
+  deployCount: number
+  incidentCount: number
+  leadTimeDeployCount: number
 }
 
 export default class DoraMetricsService {
@@ -66,6 +69,9 @@ export default class DoraMetricsService {
       ttrMean,
       leadTimeP50,
       leadTimeP85,
+      deployCount: deploys.length,
+      incidentCount: incidents.length,
+      leadTimeDeployCount: leadTimes.length,
     }
   }
 

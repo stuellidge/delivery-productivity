@@ -1,8 +1,9 @@
 import scheduler from 'adonisjs-scheduler/services/main'
 
-// Cross-stream and forecast materialisation
+// Cross-stream, forecast, and daily metrics materialisation
 scheduler.command('scheduler:materialize-cross-stream').hourly().withoutOverlapping()
 scheduler.command('scheduler:materialize-forecasts').daily().withoutOverlapping()
+scheduler.command('scheduler:materialize-daily-metrics').daily().withoutOverlapping()
 
 // Jira scheduled polling (§5.2.6)
 scheduler.command('scheduler:poll-sprint-snapshots').everyTwoHours().withoutOverlapping()

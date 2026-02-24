@@ -7,7 +7,10 @@ export default class DailyStreamMetric extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
 
-  @column()
+  @column({
+    consume: (v) =>
+      v instanceof Date ? v.toISOString().substring(0, 10) : String(v).substring(0, 10),
+  })
   declare metricDate: string
 
   @column()
@@ -31,6 +34,6 @@ export default class DailyStreamMetric extends BaseModel {
   @column()
   declare sampleSize: number
 
-  @column.dateTime()
+  @column.dateTime({ autoCreate: true })
   declare computedAt: DateTime
 }

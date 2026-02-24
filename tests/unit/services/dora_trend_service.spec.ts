@@ -4,6 +4,7 @@ import { DateTime } from 'luxon'
 import TechStream from '#models/tech_stream'
 import DeploymentRecord from '#models/deployment_record'
 import IncidentEvent from '#models/incident_event'
+import DailyStreamMetric from '#models/daily_stream_metric'
 import DoraTrendService from '#services/dora_trend_service'
 
 async function seedTechStream(name: string) {
@@ -191,5 +192,79 @@ test.group('DoraTrendService | lead time', (group) => {
       assert.isNull(point.leadTimeP50)
       assert.isNull(point.leadTimeP85)
     }
+  })
+})
+
+test.group('DoraTrendService | materialized path', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  async function seedMetric(
+    techStreamId: number,
+    metricName: string,
+    value: number,
+    date: string,
+    percentile: number | null = null
+  ) {
+    return DailyStreamMetric.create({
+      metricDate: date,
+      streamType: 'tech',
+      streamId: techStreamId,
+      metricName,
+      metricValue: value,
+      metricUnit: 'units',
+      percentile,
+      sampleSize: 1,
+    })
+  }
+
+  test('compute() uses materialized data when rows exist', async ({ assert }) => {
+    const ts = await seedTechStream('trend-mat')
+    const today = DateTime.now().toISODate()!
+    const yesterday = DateTime.now().minus({ days: 1 }).toISODate()!
+
+    await seedMetric(ts.id, 'deployment_frequency', 3, today)
+    await seedMetric(ts.id, 'change_failure_rate', 25, today)
+    await seedMetric(ts.id, 'ttr_median', 45, today)
+    await seedMetric(ts.id, 'lead_time_p50', 12, today, 50)
+    await seedMetric(ts.id, 'lead_time_p85', 20, today, 85)
+
+    await seedMetric(ts.id, 'deployment_frequency', 2, yesterday)
+    await seedMetric(ts.id, 'change_failure_rate', 0, yesterday)
+    await seedMetric(ts.id, 'ttr_median', 0, yesterday)
+    await seedMetric(ts.id, 'lead_time_p50', 10, yesterday, 50)
+    await seedMetric(ts.id, 'lead_time_p85', 18, yesterday, 85)
+
+    const result = await new DoraTrendService(ts.id, 7).compute()
+
+    assert.isArray(result)
+    assert.isAtLeast(result.length, 2)
+
+    // Points come from materialized table (daily), ordered ascending
+    for (let i = 1; i < result.length; i++) {
+      const prev = DateTime.fromISO(result[i - 1].weekStart)
+      const curr = DateTime.fromISO(result[i].weekStart)
+      assert.isTrue(curr.toMillis() >= prev.toMillis())
+    }
+
+    const todayPoint = result.find((p) => p.weekStart === today)
+    assert.exists(todayPoint)
+    assert.equal(todayPoint!.deploymentFrequency, 3)
+    assert.equal(todayPoint!.changeFailureRate, 25)
+    assert.equal(todayPoint!.ttrMedian, 45)
+    assert.equal(todayPoint!.leadTimeP50, 12)
+    assert.equal(todayPoint!.leadTimeP85, 20)
+  })
+
+  test('falls back to raw computation when no materialized data exists', async ({ assert }) => {
+    const ts = await seedTechStream('trend-mat-fallback')
+    // Seed raw data only — no daily_stream_metrics rows
+    await seedDeploy(ts.id, DateTime.now().minus({ days: 8 }))
+
+    const result = await new DoraTrendService(ts.id, 14).compute()
+
+    assert.isArray(result)
+    assert.isAtLeast(result.length, 1)
+    const weekWithDeploy = result.find((p) => p.deploymentFrequency > 0)
+    assert.exists(weekWithDeploy)
   })
 })
