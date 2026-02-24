@@ -156,7 +156,7 @@ test.group('GitHubBackfillService | run', (group) => {
     assert.equal(rows.length, 1)
   })
 
-  test('waits 60s when X-RateLimit-Remaining drops below 200', async ({ assert }) => {
+  test('waits 60s when X-RateLimit-Remaining drops below 500 (spec §5.3.7)', async ({ assert }) => {
     await seedTechStreamAndRepo('7005')
 
     let waitDurationMs = 0
@@ -169,13 +169,35 @@ test.group('GitHubBackfillService | run', (group) => {
     globalThis.fetch = async () =>
       ({
         ok: true,
-        headers: { get: () => '150' },
+        headers: { get: () => '499' },
         json: async () => [],
       }) as any
 
     await new GitHubBackfillService('acme').run()
 
     assert.equal(waitDurationMs, 60_000)
+  })
+
+  test('does not wait when X-RateLimit-Remaining is exactly 500', async ({ assert }) => {
+    await seedTechStreamAndRepo('7006')
+
+    let waitCalled = false
+    globalThis.setTimeout = ((fn: any, _delay: number) => {
+      waitCalled = true
+      fn()
+      return 0 as any
+    }) as any
+
+    globalThis.fetch = async () =>
+      ({
+        ok: true,
+        headers: { get: () => '500' },
+        json: async () => [],
+      }) as any
+
+    await new GitHubBackfillService('acme').run()
+
+    assert.isFalse(waitCalled)
   })
 
   test('does nothing when GITHUB_TOKEN is not configured', async ({ assert }) => {

@@ -49,9 +49,9 @@ export default class GitHubBackfillService {
         },
       })
 
-      // Rate limit guard: pause 60s when remaining drops below 200
+      // Rate limit guard: pause 60s when remaining drops below 500 (spec §5.3.7)
       const remaining = Number(resp.headers.get('X-RateLimit-Remaining') ?? '9999')
-      if (remaining < 200) {
+      if (remaining < 500) {
         logger.warn({ remaining, repo: repo.fullName }, 'GitHub rate limit low — waiting 60s')
         await new Promise((resolve) => setTimeout(resolve, 60_000))
       }

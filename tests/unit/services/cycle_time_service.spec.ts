@@ -182,3 +182,105 @@ test.group('CycleTimeService', (group) => {
     assert.approximately(result.p50, 3, 0.01)
   })
 })
+
+// ─── getScatterData ──────────────────────────────────────────────────────────
+
+test.group('CycleTimeService.getScatterData', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  async function seedCycle(
+    ticketId: string,
+    cycleTimeDays: number,
+    completedDaysAgo: number,
+    deliveryStreamId?: number,
+    ticketType?: string
+  ) {
+    const now = DateTime.now()
+    return WorkItemCycle.create({
+      ticketId,
+      deliveryStreamId: deliveryStreamId ?? null,
+      createdAtSource: now.minus({ days: completedDaysAgo + 5 }),
+      completedAt: now.minus({ days: completedDaysAgo }),
+      leadTimeDays: cycleTimeDays + 2,
+      cycleTimeDays,
+      activeTimeDays: cycleTimeDays * 0.5,
+      waitTimeDays: cycleTimeDays * 0.5,
+      flowEfficiencyPct: 50,
+      stageDurations: {},
+      ticketType: ticketType ?? null,
+    })
+  }
+
+  test('returns empty array when no cycles in window', async ({ assert }) => {
+    const result = await new CycleTimeService().getScatterData()
+    assert.deepEqual(result, [])
+  })
+
+  test('returns correct fields for each scatter point', async ({ assert }) => {
+    await seedCycle('PAY-1', 4, 5)
+
+    const result = await new CycleTimeService().getScatterData()
+
+    assert.equal(result.length, 1)
+    assert.equal(result[0].ticketId, 'PAY-1')
+    assert.equal(result[0].cycleTimeDays, 4)
+    assert.isString(result[0].completedAt)
+    assert.match(result[0].completedAt, /^\d{4}-\d{2}-\d{2}T/)
+    assert.property(result[0], 'ticketType')
+  })
+
+  test('includes ticketType when set', async ({ assert }) => {
+    await seedCycle('PAY-2', 3, 2, undefined, 'story')
+
+    const result = await new CycleTimeService().getScatterData()
+    assert.equal(result[0].ticketType, 'story')
+  })
+
+  test('excludes items outside the rolling window', async ({ assert }) => {
+    await seedCycle('PAY-IN', 3, 10)
+    await seedCycle('PAY-OUT', 5, 40) // outside default 30-day window
+
+    const result = await new CycleTimeService().getScatterData()
+    assert.equal(result.length, 1)
+    assert.equal(result[0].ticketId, 'PAY-IN')
+  })
+
+  test('respects custom window size', async ({ assert }) => {
+    await seedCycle('PAY-1', 3, 5)
+    await seedCycle('PAY-2', 4, 15) // outside 7-day window
+
+    const result = await new CycleTimeService().getScatterData(undefined, 7)
+    assert.equal(result.length, 1)
+    assert.equal(result[0].ticketId, 'PAY-1')
+  })
+
+  test('caps results at the specified limit', async ({ assert }) => {
+    for (let i = 1; i <= 10; i++) {
+      await seedCycle(`PAY-${i}`, i, i)
+    }
+
+    const result = await new CycleTimeService().getScatterData(undefined, 30, 5)
+    assert.equal(result.length, 5)
+  })
+
+  test('returns items in ascending completedAt order', async ({ assert }) => {
+    await seedCycle('PAY-OLD', 3, 10)
+    await seedCycle('PAY-NEW', 5, 2)
+
+    const result = await new CycleTimeService().getScatterData()
+    assert.equal(result.length, 2)
+    const t0 = DateTime.fromISO(result[0].completedAt)
+    const t1 = DateTime.fromISO(result[1].completedAt)
+    assert.isTrue(t0.toMillis() < t1.toMillis())
+  })
+
+  test('filters by delivery stream when provided', async ({ assert }) => {
+    const stream = await DeliveryStream.create({ name: 'pay', displayName: 'Pay', isActive: true })
+    await seedCycle('PAY-1', 3, 5, stream.id)
+    await seedCycle('ONB-1', 8, 5, undefined)
+
+    const result = await new CycleTimeService().getScatterData(stream.id)
+    assert.equal(result.length, 1)
+    assert.equal(result[0].ticketId, 'PAY-1')
+  })
+})

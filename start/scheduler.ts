@@ -15,5 +15,5 @@ scheduler.command('scheduler:sync-repositories').daily().withoutOverlapping()
 // GitHub gap detection (§5.3.7)
 scheduler.command('scheduler:detect-github-gaps').daily().withoutOverlapping()
 
-// PR delivery stream enrichment (§5.3.6)
-scheduler.command('scheduler:enrich-pr-delivery-streams').hourly().withoutOverlapping()
+// PR delivery stream enrichment (§5.3.6) — 5-minute targeted retry
+scheduler.command('scheduler:enrich-pr-delivery-streams').everyFiveMinutes().withoutOverlapping()

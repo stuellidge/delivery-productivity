@@ -29,11 +29,13 @@ export default class ApiMetricsController {
     const cacheKey = `metrics:realtime:${streamId ?? 'all'}`
 
     const data = await cache.remember(cacheKey, TTL.realtime, async () => {
-      const [wipByStage, cycleTime] = await Promise.all([
+      const svc = new CycleTimeService()
+      const [wipByStage, cycleTime, cycleScatter] = await Promise.all([
         new WipMetricsService().compute(streamId),
-        new CycleTimeService().compute(streamId),
+        svc.compute(streamId),
+        svc.getScatterData(streamId),
       ])
-      return { wip_by_stage: wipByStage, cycle_time: cycleTime }
+      return { wip_by_stage: wipByStage, cycle_time: cycleTime, cycle_scatter: cycleScatter }
     })
 
     return response.ok({
