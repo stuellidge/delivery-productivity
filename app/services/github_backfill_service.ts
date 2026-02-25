@@ -57,10 +57,7 @@ export default class GitHubBackfillService {
       }
 
       if (!resp.ok) {
-        logger.error(
-          { status: resp.status, repo: repo.fullName },
-          'GitHub backfill request failed'
-        )
+        logger.error({ status: resp.status, repo: repo.fullName }, 'GitHub backfill request failed')
         break
       }
 
@@ -76,11 +73,7 @@ export default class GitHubBackfillService {
     }
   }
 
-  async processPr(
-    pr: any,
-    repo: Repository,
-    techStream: TechStream | null
-  ): Promise<void> {
+  async processPr(pr: any, repo: Repository, techStream: TechStream | null): Promise<void> {
     const customRegex = techStream?.ticketRegex ?? null
     const linkedTicketId = this.extractTicketId(
       pr.head?.ref ?? null,

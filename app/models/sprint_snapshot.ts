@@ -28,7 +28,8 @@ export default class SprintSnapshot extends BaseModel {
   declare sprintId: number
 
   @column({
-    consume: (v) => (v instanceof Date ? v.toISOString().substring(0, 10) : String(v).substring(0, 10)),
+    consume: (v) =>
+      v instanceof Date ? v.toISOString().substring(0, 10) : String(v).substring(0, 10),
   })
   declare snapshotDate: string
 

@@ -66,7 +66,9 @@ test.group('GithubRepoSyncService | run', (group) => {
 
     await new GithubRepoSyncService().run()
 
-    const repos = await Repository.query().where('tech_stream_id', stream.id).orderBy('github_repo_name', 'asc')
+    const repos = await Repository.query()
+      .where('tech_stream_id', stream.id)
+      .orderBy('github_repo_name', 'asc')
     assert.lengthOf(repos, 2)
     assert.equal(repos[0].githubRepoName, 'auth-service')
     assert.equal(repos[1].githubRepoName, 'payments-service')
@@ -76,7 +78,9 @@ test.group('GithubRepoSyncService | run', (group) => {
     assert.isTrue(repos[0].isActive)
   })
 
-  test('sets isDeployable=true and defaultBranch=main for newly created repos', async ({ assert }) => {
+  test('sets isDeployable=true and defaultBranch=main for newly created repos', async ({
+    assert,
+  }) => {
     await createTechStream('acme-core')
     mockFetchPages([[buildRepo('core-service', 'acme-core')], []])
 
@@ -100,10 +104,7 @@ test.group('GithubRepoSyncService | run', (group) => {
       isActive: true,
     })
 
-    mockFetchPages([
-      [buildRepo('shared-lib', 'acme-libs', { default_branch: 'master' })],
-      [],
-    ])
+    mockFetchPages([[buildRepo('shared-lib', 'acme-libs', { default_branch: 'master' })], []])
 
     await new GithubRepoSyncService().run()
 
@@ -139,7 +140,10 @@ test.group('GithubRepoSyncService | run', (group) => {
   test('skips archived repositories', async ({ assert }) => {
     await createTechStream('acme-archive')
     mockFetchPages([
-      [buildRepo('active-repo', 'acme-archive'), buildRepo('archived-repo', 'acme-archive', { archived: true })],
+      [
+        buildRepo('active-repo', 'acme-archive'),
+        buildRepo('archived-repo', 'acme-archive', { archived: true }),
+      ],
       [],
     ])
 

@@ -37,11 +37,11 @@ A **Delivery Stream** represents a team or squad delivering software — typical
 1. Navigate to **Admin → Delivery Streams → New**.
 2. Fill in:
 
-| Field | Description |
-|---|---|
-| **Name** | Unique slug, lowercase, no spaces (e.g. `payments`) |
-| **Display Name** | Human-readable label shown in the UI |
-| **Team Size** | Current headcount — used to calculate pulse response rates |
+| Field            | Description                                                |
+| ---------------- | ---------------------------------------------------------- |
+| **Name**         | Unique slug, lowercase, no spaces (e.g. `payments`)        |
+| **Display Name** | Human-readable label shown in the UI                       |
+| **Team Size**    | Current headcount — used to calculate pulse response rates |
 
 3. Save.
 
@@ -64,15 +64,15 @@ A **Tech Stream** represents a GitHub organisation or subset of repositories —
 
 ### Creating a tech stream
 
-| Field | Description |
-|---|---|
-| **Name** | Unique slug |
-| **Display Name** | Human-readable label |
-| **GitHub Org** | The GitHub organisation slug (e.g. `acme`) — must be unique |
-| **GitHub Install ID** | GitHub App installation ID (if using GitHub Apps for auth) |
-| **Min Contributors** | Minimum distinct contributors required before PR review concentration is shown (default: 6) — protects individual privacy |
-| **Ticket Regex** | Optional custom regex for extracting ticket IDs from PR titles/bodies (e.g. `([A-Z]+-\d+)`) |
-| **Active** | Inactive streams are excluded from all metrics |
+| Field                 | Description                                                                                                               |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **Name**              | Unique slug                                                                                                               |
+| **Display Name**      | Human-readable label                                                                                                      |
+| **GitHub Org**        | The GitHub organisation slug (e.g. `acme`) — must be unique                                                               |
+| **GitHub Install ID** | GitHub App installation ID (if using GitHub Apps for auth)                                                                |
+| **Min Contributors**  | Minimum distinct contributors required before PR review concentration is shown (default: 6) — protects individual privacy |
+| **Ticket Regex**      | Optional custom regex for extracting ticket IDs from PR titles/bodies (e.g. `([A-Z]+-\d+)`)                               |
+| **Active**            | Inactive streams are excluded from all metrics                                                                            |
 
 ### Registering repositories
 
@@ -94,36 +94,36 @@ Status mappings tell the platform how to translate Jira workflow statuses into t
 
 ### Standardised stages
 
-| Stage | Meaning |
-|---|---|
-| `backlog` | Not yet started |
-| `in_progress` | Actively being worked on |
-| `in_review` | In code review / stakeholder review |
-| `blocked` | Waiting on an external dependency |
-| `done` | Completed and closed |
+| Stage         | Meaning                             |
+| ------------- | ----------------------------------- |
+| `backlog`     | Not yet started                     |
+| `in_progress` | Actively being worked on            |
+| `in_review`   | In code review / stakeholder review |
+| `blocked`     | Waiting on an external dependency   |
+| `done`        | Completed and closed                |
 
 ### Creating a mapping
 
 1. Navigate to **Admin → Status Mappings → New**.
 2. Fill in:
 
-| Field | Description |
-|---|---|
-| **Jira Project** | Jira project key (e.g. `PAY`) |
-| **Jira Status** | Exact status name from Jira (case-sensitive) |
+| Field               | Description                                   |
+| ------------------- | --------------------------------------------- |
+| **Jira Project**    | Jira project key (e.g. `PAY`)                 |
+| **Jira Status**     | Exact status name from Jira (case-sensitive)  |
 | **Delivery Stream** | Which delivery stream this project belongs to |
-| **Platform Stage** | One of the standardised stages above |
+| **Platform Stage**  | One of the standardised stages above          |
 
 **Example mappings for a typical Jira project:**
 
-| Jira Status | Platform Stage |
-|---|---|
-| `To Do` | `backlog` |
-| `In Progress` | `in_progress` |
-| `In Review` | `in_review` |
-| `Blocked` | `blocked` |
-| `Done` | `done` |
-| `Closed` | `done` |
+| Jira Status   | Platform Stage |
+| ------------- | -------------- |
+| `To Do`       | `backlog`      |
+| `In Progress` | `in_progress`  |
+| `In Review`   | `in_review`    |
+| `Blocked`     | `blocked`      |
+| `Done`        | `done`         |
+| `Closed`      | `done`         |
 
 ### Diagnosing missing data
 
@@ -146,9 +146,9 @@ API keys are used to authenticate calls to `/api/v1/*` endpoints from CI/CD pipe
 1. Navigate to **Admin → API Keys → New**.
 2. Fill in:
 
-| Field | Description |
-|---|---|
-| **Name** | Descriptive label (e.g. `Grafana Dashboard`, `CD Pipeline`) |
+| Field            | Description                                                         |
+| ---------------- | ------------------------------------------------------------------- |
+| **Name**         | Descriptive label (e.g. `Grafana Dashboard`, `CD Pipeline`)         |
 | **Stream Scope** | Optional — restrict the key to specific delivery or tech stream IDs |
 
 3. Save. The raw key is shown **once** — copy it immediately. It is stored as a hash.
@@ -180,10 +180,10 @@ Click **Revoke** next to the key. The key is deactivated immediately. Revoked ke
 
 ### Roles
 
-| Role | Description |
-|---|---|
+| Role             | Description                                             |
+| ---------------- | ------------------------------------------------------- |
 | `platform_admin` | Full access to admin console, all streams, all settings |
-| `viewer` | Read-only access to the dashboard and cross-stream view |
+| `viewer`         | Read-only access to the dashboard and cross-stream view |
 
 Users without any role can log in but cannot access the dashboard.
 
@@ -217,12 +217,12 @@ When `AUTH_METHOD=oidc` is configured, users logging in via Entra ID are automat
 
 ### Creating a mapping
 
-| Field | Description |
-|---|---|
-| **Group Object ID** | The Entra ID group's object ID (GUID format) |
-| **Role** | The platform role to assign: `platform_admin` or `viewer` |
-| **Delivery Stream** | Optional — link this group to a specific delivery stream |
-| **Tech Stream** | Optional — link this group to a specific tech stream |
+| Field               | Description                                               |
+| ------------------- | --------------------------------------------------------- |
+| **Group Object ID** | The Entra ID group's object ID (GUID format)              |
+| **Role**            | The platform role to assign: `platform_admin` or `viewer` |
+| **Delivery Stream** | Optional — link this group to a specific delivery stream  |
+| **Tech Stream**     | Optional — link this group to a specific tech stream      |
 
 Groups not listed in any mapping result in users with no role assigned on first login.
 
@@ -248,11 +248,11 @@ Public holidays are excluded from business day calculations used in:
 
 ### Adding a holiday
 
-| Field | Description |
-|---|---|
-| **Date** | Date in `YYYY-MM-DD` format |
-| **Name** | Descriptive label (e.g. `Christmas Day`) |
-| **Country** | Optional ISO country code (e.g. `GB`) |
+| Field       | Description                              |
+| ----------- | ---------------------------------------- |
+| **Date**    | Date in `YYYY-MM-DD` format              |
+| **Name**    | Descriptive label (e.g. `Christmas Day`) |
+| **Country** | Optional ISO country code (e.g. `GB`)    |
 
 Add holidays for the countries and regions your teams operate in. Holidays apply globally — if your teams span multiple countries with different holiday calendars, add all relevant dates.
 
@@ -299,11 +299,11 @@ Entries are stored in the `audit_log` table and are not deletable from the UI. T
 
 Shows the current status of each event source:
 
-| Column | Description |
-|---|---|
-| **Source** | `jira`, `github`, `deployment`, `incident` |
-| **Status** | `healthy`, `stale`, or `no_data` |
-| **Last Event** | Timestamp of the most recently received event |
+| Column           | Description                                   |
+| ---------------- | --------------------------------------------- |
+| **Source**       | `jira`, `github`, `deployment`, `incident`    |
+| **Status**       | `healthy`, `stale`, or `no_data`              |
+| **Last Event**   | Timestamp of the most recently received event |
 | **Events (24h)** | Count of events received in the last 24 hours |
 
 **Stale** means no events received in the last 2 hours. This typically indicates a misconfigured webhook or a network connectivity issue.

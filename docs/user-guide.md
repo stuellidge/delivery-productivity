@@ -10,12 +10,12 @@ Team leads, stream leads, and anyone who uses the dashboard to understand and im
 
 The dashboard is divided into four zones:
 
-| Zone | What it shows | Update frequency |
-|---|---|---|
-| **Real-time** | Current WIP and cycle time | Every 30 seconds |
-| **Diagnostic** | Flow efficiency, defect escape rate, PR review turnaround | Every 15 minutes |
-| **Trends (DORA)** | Deployment frequency, lead time, change failure rate, MTTR | Every 5 minutes |
-| **Forecast** | Monte Carlo probability ranges for sprint completion | Every hour |
+| Zone              | What it shows                                              | Update frequency |
+| ----------------- | ---------------------------------------------------------- | ---------------- |
+| **Real-time**     | Current WIP and cycle time                                 | Every 30 seconds |
+| **Diagnostic**    | Flow efficiency, defect escape rate, PR review turnaround  | Every 15 minutes |
+| **Trends (DORA)** | Deployment frequency, lead time, change failure rate, MTTR | Every 5 minutes  |
+| **Forecast**      | Monte Carlo probability ranges for sprint completion       | Every hour       |
 
 You can filter most views by **Delivery Stream** (the team or squad) or **Tech Stream** (the GitHub org/repositories).
 
@@ -68,12 +68,12 @@ Median and p85 time from PR opened to first review. Long turnaround times create
 
 DORA metrics measure software delivery performance. They are shown per **Tech Stream**.
 
-| Metric | What it measures | Elite benchmark |
-|---|---|---|
-| **Deployment Frequency** | How often code is deployed to production | Multiple times per day |
-| **Lead Time for Changes** | Time from PR opened to production deployment | < 1 hour |
-| **Change Failure Rate** | % of deployments that caused an incident or were rolled back | < 5% |
-| **MTTR** | Median time to restore service after an incident | < 1 hour |
+| Metric                    | What it measures                                             | Elite benchmark        |
+| ------------------------- | ------------------------------------------------------------ | ---------------------- |
+| **Deployment Frequency**  | How often code is deployed to production                     | Multiple times per day |
+| **Lead Time for Changes** | Time from PR opened to production deployment                 | < 1 hour               |
+| **Change Failure Rate**   | % of deployments that caused an incident or were rolled back | < 5%                   |
+| **MTTR**                  | Median time to restore service after an incident             | < 1 hour               |
 
 **Intended response**:
 
@@ -91,12 +91,12 @@ A ⚠ badge next to lead time means the PR-to-ticket linkage rate is below 90% �
 
 The DORA research programme defines four performance bands:
 
-| Band | Deployment Frequency | Lead Time | CFR | MTTR |
-|---|---|---|---|---|
-| **Elite** | Multiple/day | < 1 hour | < 5% | < 1 hour |
-| **High** | Weekly–monthly | 1 day–1 week | 5–10% | < 1 day |
-| **Medium** | Monthly | 1 week–1 month | 10–15% | 1 day–1 week |
-| **Low** | Less than monthly | > 1 month | > 15% | > 1 week |
+| Band       | Deployment Frequency | Lead Time      | CFR    | MTTR         |
+| ---------- | -------------------- | -------------- | ------ | ------------ |
+| **Elite**  | Multiple/day         | < 1 hour       | < 5%   | < 1 hour     |
+| **High**   | Weekly–monthly       | 1 day–1 week   | 5–10%  | < 1 day      |
+| **Medium** | Monthly              | 1 week–1 month | 10–15% | 1 day–1 week |
+| **Low**    | Less than monthly    | > 1 month      | > 15%  | > 1 week     |
 
 Neither rating is an end state — focus on the direction of travel over time.
 
@@ -124,11 +124,11 @@ The chart shows three confidence bands:
 
 The pulse survey measures team sentiment across three dimensions, asked monthly:
 
-| Dimension | What it measures |
-|---|---|
-| **Pace** | Is the pace of work sustainable? (1 = burnout risk, 5 = comfortable) |
-| **Tooling** | Are our tools and processes helping or hindering? |
-| **Clarity** | Do I understand what I'm working on and why? |
+| Dimension   | What it measures                                                     |
+| ----------- | -------------------------------------------------------------------- |
+| **Pace**    | Is the pace of work sustainable? (1 = burnout risk, 5 = comfortable) |
+| **Tooling** | Are our tools and processes helping or hindering?                    |
+| **Clarity** | Do I understand what I'm working on and why?                         |
 
 Scores are on a 1–5 scale. Team results are aggregated — individual scores are never shown to leads.
 
@@ -170,11 +170,11 @@ The cross-stream view shows correlations and shared bottlenecks across Tech Stre
 
 The platform shows a data quality warning when key metrics are unreliable:
 
-| Indicator | What it means | What to do |
-|---|---|---|
-| **PR Linkage Rate < 80%** | Many PRs are not linked to a Jira ticket | Ask engineers to include the ticket ID in PR title or description |
-| **Ticket Tagging Rate < 90%** | Work item events arriving without a delivery stream tag | Check Jira project → stream mapping in Admin → Status Mappings |
-| **Deployment Traceability < 80%** | Production deployments without a linked ticket | Update deployment pipeline to pass `linked_ticket_id` to the events API |
+| Indicator                         | What it means                                           | What to do                                                              |
+| --------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **PR Linkage Rate < 80%**         | Many PRs are not linked to a Jira ticket                | Ask engineers to include the ticket ID in PR title or description       |
+| **Ticket Tagging Rate < 90%**     | Work item events arriving without a delivery stream tag | Check Jira project → stream mapping in Admin → Status Mappings          |
+| **Deployment Traceability < 80%** | Production deployments without a linked ticket          | Update deployment pipeline to pass `linked_ticket_id` to the events API |
 
 When data quality is low, treat the corresponding metrics as indicative rather than definitive.
 
@@ -201,6 +201,7 @@ Either no one on your team has submitted a response this period, or your team's 
 **Q: My DORA lead time is null / not shown.**
 
 Lead time is computed from the time a PR is opened to when it is deployed to production. This requires:
+
 1. The GitHub webhook to be configured and receiving PR events
 2. The PR to include a valid ticket ID (so it can be linked to your delivery stream)
 3. A deployment event to be received for the repository

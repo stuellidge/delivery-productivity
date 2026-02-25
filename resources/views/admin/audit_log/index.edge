@@ -1,22 +1,38 @@
 @component('layouts/app', { title: 'Audit Log — Admin' })
   @slot('main')
     <hgroup>
-      <h1>Audit Log</h1>
-      <p>Authentication events, configuration changes, and key administrative actions.</p>
+      <h1>
+        Audit Log
+      </h1>
+      <p>
+        Authentication events, configuration changes, and key administrative actions.
+      </p>
     </hgroup>
 
     @if(entries.length === 0)
-      <p class="secondary">No audit log entries found.</p>
+      <p class="secondary">
+        No audit log entries found.
+      </p>
     @else
       <figure>
         <table>
           <thead>
             <tr>
-              <th>Time</th>
-              <th>Actor</th>
-              <th>Action</th>
-              <th>Entity</th>
-              <th>IP</th>
+              <th>
+                Time
+              </th>
+              <th>
+                Actor
+              </th>
+              <th>
+                Action
+              </th>
+              <th>
+                Entity
+              </th>
+              <th>
+                IP
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -25,7 +41,9 @@
                 <td style="white-space: nowrap; font-size: 0.85rem">
                   {{ entry.createdAt.toFormat('dd MMM yyyy HH:mm:ss') }}
                 </td>
-                <td style="font-size: 0.85rem">{{ entry.actorEmail }}</td>
+                <td style="font-size: 0.85rem">
+                  {{ entry.actorEmail }}
+                </td>
                 <td>
                   <code style="font-size: 0.8rem">{{ entry.action }}</code>
                 </td>

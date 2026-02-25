@@ -62,10 +62,7 @@ export class MicrosoftDriver extends Oauth2Driver<Oauth2AccessToken, MicrosoftSc
     return request
   }
 
-  private async fetchUserInfo(
-    token: string,
-    callback?: (request: ApiRequestContract) => void
-  ) {
+  private async fetchUserInfo(token: string, callback?: (request: ApiRequestContract) => void) {
     const request = this.getAuthenticatedRequest('https://graph.microsoft.com/v1.0/me', token)
     if (typeof callback === 'function') callback(request)
 

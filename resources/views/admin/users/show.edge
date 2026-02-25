@@ -1,8 +1,12 @@
 @component('layouts/app', { title: 'User — ' + user.email })
   @slot('main')
     <hgroup>
-      <h2>{{ user.fullName ?? user.email }}</h2>
-      <p>{{ user.email }} &mdash; {{ user.isActive ? 'Active' : 'Inactive' }}</p>
+      <h2>
+        {{ user.fullName ?? user.email }}
+      </h2>
+      <p>
+        {{ user.email }} &mdash; {{ user.isActive ? 'Active' : 'Inactive' }}
+      </p>
     </hgroup>
 
     <div style="display: flex; gap: 1rem; margin-bottom: 2rem">
@@ -20,28 +24,50 @@
       <a href="/admin/users" role="button" class="outline secondary">Back to users</a>
     </div>
 
-    <h3>Roles</h3>
+    <h3>
+      Roles
+    </h3>
     @if(user.roles.length === 0)
-      <p><em>No roles assigned.</em></p>
+      <p>
+        <em>No roles assigned.</em>
+      </p>
     @else
       <table>
         <thead>
           <tr>
-            <th>Role</th>
-            <th>Granted</th>
-            <th>Source</th>
-            <th>Actions</th>
+            <th>
+              Role
+            </th>
+            <th>
+              Granted
+            </th>
+            <th>
+              Source
+            </th>
+            <th>
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody>
           @each(role in user.roles)
             <tr>
-              <td>{{ role.role }}</td>
-              <td>{{ role.grantedAt.toFormat('yyyy-MM-dd') }}</td>
-              <td>{{ role.grantedBy ? 'Manual' : 'OIDC' }}</td>
+              <td>
+                {{ role.role }}
+              </td>
+              <td>
+                {{ role.grantedAt.toFormat('yyyy-MM-dd') }}
+              </td>
+              <td>
+                {{ role.grantedBy ? 'Manual' : 'OIDC' }}
+              </td>
               <td>
                 @if(role.grantedBy !== null)
-                  <form method="POST" action="/admin/users/{{ user.id }}/roles/{{ role.id }}?_method=DELETE" style="margin: 0">
+                  <form
+                    method="POST"
+                    action="/admin/users/{{ user.id }}/roles/{{ role.id }}?_method=DELETE"
+                    style="margin: 0"
+                  >
                     {{ csrfField() }}
                     <button type="submit" class="outline secondary" style="padding: 0.2rem 0.5rem; font-size: 0.8rem">Remove</button>
                   </form>
@@ -54,15 +80,23 @@
         </tbody>
       </table>
     @end
-
-    <h3>Add Role</h3>
-    <form method="POST" action="/admin/users/{{ user.id }}/roles" style="display: flex; gap: 1rem; align-items: flex-end">
+    
+    <h3>
+      Add Role
+    </h3>
+    <form
+      method="POST"
+      action="/admin/users/{{ user.id }}/roles"
+      style="display: flex; gap: 1rem; align-items: flex-end"
+    >
       {{ csrfField() }}
       <label style="flex: 1; margin-bottom: 0">
         Role
         <select name="role">
           @each(r in validRoles)
-            <option value="{{ r }}">{{ r }}</option>
+            <option value="{{ r }}">
+              {{ r }}
+            </option>
           @end
         </select>
       </label>

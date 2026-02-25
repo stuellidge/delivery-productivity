@@ -8,13 +8,16 @@ import GitHubBackfillService from '#services/github_backfill_service'
 let originalFetch: typeof globalThis.fetch
 let originalSetTimeout: typeof globalThis.setTimeout
 
-function buildPr(number: number, opts: {
-  head?: string
-  title?: string
-  created_at?: string
-  closed_at?: string | null
-  merged_at?: string | null
-} = {}) {
+function buildPr(
+  number: number,
+  opts: {
+    head?: string
+    title?: string
+    created_at?: string
+    closed_at?: string | null
+    merged_at?: string | null
+  } = {}
+) {
   return {
     number,
     title: opts.title ?? `PR ${number}`,

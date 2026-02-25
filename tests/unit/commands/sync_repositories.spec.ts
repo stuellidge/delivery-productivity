@@ -30,9 +30,17 @@ test.group('Command | scheduler:sync-repositories', (group) => {
     // Page 1 returns one repo; page 2 returns empty to stop pagination
     let callCount = 0
     globalThis.fetch = async () => {
-      const page = callCount === 0
-        ? [{ name: 'cmd-svc', full_name: 'acme-cmd/cmd-svc', default_branch: 'main', archived: false }]
-        : []
+      const page =
+        callCount === 0
+          ? [
+              {
+                name: 'cmd-svc',
+                full_name: 'acme-cmd/cmd-svc',
+                default_branch: 'main',
+                archived: false,
+              },
+            ]
+          : []
       callCount++
       return { ok: true, json: async () => page } as Response
     }
@@ -47,8 +55,7 @@ test.group('Command | scheduler:sync-repositories', (group) => {
   })
 
   test('exits successfully with no active tech streams', async () => {
-    globalThis.fetch = async () =>
-      ({ ok: true, json: async () => [] }) as Response
+    globalThis.fetch = async () => ({ ok: true, json: async () => [] }) as Response
 
     const command = await ace.create(SyncRepositories, [])
     await command.exec()

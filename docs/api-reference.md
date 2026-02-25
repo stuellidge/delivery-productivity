@@ -28,9 +28,9 @@ Receives Jira events (issue created, updated, transitioned).
 
 **Headers:**
 
-| Header | Description |
-|---|---|
-| `Content-Type` | `application/json` |
+| Header            | Description                                                     |
+| ----------------- | --------------------------------------------------------------- |
+| `Content-Type`    | `application/json`                                              |
 | `X-Hub-Signature` | `sha256=<hmac>` — required only if `JIRA_WEBHOOK_SECRET` is set |
 
 **Response:** `202 Accepted`
@@ -49,11 +49,11 @@ Receives GitHub events.
 
 **Headers:**
 
-| Header | Description |
-|---|---|
-| `Content-Type` | `application/json` |
-| `X-GitHub-Event` | Event type (e.g. `pull_request`, `deployment_status`, `workflow_run`) |
-| `X-Hub-Signature-256` | `sha256=<hmac>` — required only if `GITHUB_WEBHOOK_SECRET` is set |
+| Header                | Description                                                           |
+| --------------------- | --------------------------------------------------------------------- |
+| `Content-Type`        | `application/json`                                                    |
+| `X-GitHub-Event`      | Event type (e.g. `pull_request`, `deployment_status`, `workflow_run`) |
+| `X-Hub-Signature-256` | `sha256=<hmac>` — required only if `GITHUB_WEBHOOK_SECRET` is set     |
 
 **Response:** `202 Accepted` (or `401 Unauthorized` if signature verification fails)
 
@@ -88,16 +88,16 @@ Record a deployment event from a CI/CD pipeline.
 }
 ```
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `repo_full_name` | string | Yes | `org/repo` — must match a registered repository |
-| `environment` | string | Yes | e.g. `production`, `staging` |
-| `status` | string | Yes | `success`, `failed`, `rolled_back`, `cancelled` |
-| `deployed_at` | ISO 8601 | Yes | Timestamp of the deployment |
-| `commit_sha` | string | No | Git commit SHA |
-| `pipeline_id` | string | No | CI/CD pipeline run ID |
-| `trigger_type` | string | No | `push`, `manual`, `schedule`, `config` (config-only deploys are excluded from DORA) |
-| `pr_number` | integer | No | PR number if this deployment was triggered by a PR |
+| Field            | Type     | Required | Description                                                                         |
+| ---------------- | -------- | -------- | ----------------------------------------------------------------------------------- |
+| `repo_full_name` | string   | Yes      | `org/repo` — must match a registered repository                                     |
+| `environment`    | string   | Yes      | e.g. `production`, `staging`                                                        |
+| `status`         | string   | Yes      | `success`, `failed`, `rolled_back`, `cancelled`                                     |
+| `deployed_at`    | ISO 8601 | Yes      | Timestamp of the deployment                                                         |
+| `commit_sha`     | string   | No       | Git commit SHA                                                                      |
+| `pipeline_id`    | string   | No       | CI/CD pipeline run ID                                                               |
+| `trigger_type`   | string   | No       | `push`, `manual`, `schedule`, `config` (config-only deploys are excluded from DORA) |
+| `pr_number`      | integer  | No       | PR number if this deployment was triggered by a PR                                  |
 
 **Response:** `202 Accepted`
 
@@ -106,6 +106,7 @@ Record a deployment event from a CI/CD pipeline.
 ```
 
 **Notes:**
+
 - Deployments for repositories with `is_deployable = false` are silently ignored.
 - If `pr_number` is provided and a matching `PrCycle` exists, lead time is computed automatically.
 
@@ -128,14 +129,14 @@ Record an incident or alarm event from your monitoring system.
 }
 ```
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `event_type` | string | Yes | `alarm_triggered`, `incident_opened`, `alarm_resolved`, `incident_resolved` |
-| `incident_id` | string | Yes | Unique identifier for the incident (used to correlate open/close events) |
-| `service_name` | string | Yes | Must match a repository's `deploy_target` field |
-| `occurred_at` | ISO 8601 | Yes | Timestamp of the event |
-| `severity` | string | No | e.g. `P1`, `P2`, `critical` |
-| `description` | string | No | Human-readable description |
+| Field          | Type     | Required | Description                                                                 |
+| -------------- | -------- | -------- | --------------------------------------------------------------------------- |
+| `event_type`   | string   | Yes      | `alarm_triggered`, `incident_opened`, `alarm_resolved`, `incident_resolved` |
+| `incident_id`  | string   | Yes      | Unique identifier for the incident (used to correlate open/close events)    |
+| `service_name` | string   | Yes      | Must match a repository's `deploy_target` field                             |
+| `occurred_at`  | ISO 8601 | Yes      | Timestamp of the event                                                      |
+| `severity`     | string   | No       | e.g. `P1`, `P2`, `critical`                                                 |
+| `description`  | string   | No       | Human-readable description                                                  |
 
 **Response:** `202 Accepted`
 
@@ -160,9 +161,7 @@ Returns all active delivery streams.
 ```json
 {
   "status": "ok",
-  "data": [
-    { "id": 1, "name": "payments", "display_name": "Payments Team", "team_size": 8 }
-  ]
+  "data": [{ "id": 1, "name": "payments", "display_name": "Payments Team", "team_size": 8 }]
 }
 ```
 
@@ -177,9 +176,7 @@ Returns all active tech streams.
 ```json
 {
   "status": "ok",
-  "data": [
-    { "id": 1, "name": "backend", "display_name": "Backend", "github_org": "acme" }
-  ]
+  "data": [{ "id": 1, "name": "backend", "display_name": "Backend", "github_org": "acme" }]
 }
 ```
 
@@ -191,10 +188,10 @@ Returns sprints for a delivery stream.
 
 **Query params:**
 
-| Param | Type | Description |
-|---|---|---|
-| `stream` | integer | Delivery stream ID (required) |
-| `state` | string | Filter by state: `future`, `active`, `closed` |
+| Param    | Type    | Description                                   |
+| -------- | ------- | --------------------------------------------- |
+| `stream` | integer | Delivery stream ID (required)                 |
+| `state`  | string  | Filter by state: `future`, `active`, `closed` |
 
 **Response:**
 
@@ -223,8 +220,8 @@ Returns real-time WIP and cycle time data.
 
 **Query params:**
 
-| Param | Type | Description |
-|---|---|---|
+| Param    | Type    | Description                                                    |
+| -------- | ------- | -------------------------------------------------------------- |
 | `stream` | integer | Delivery stream ID (optional — returns all streams if omitted) |
 
 **Response:**
@@ -261,10 +258,10 @@ Returns flow efficiency, defect escape rate, and PR review turnaround.
 
 **Query params:**
 
-| Param | Type | Default | Description |
-|---|---|---|---|
-| `stream` | integer | (all) | Delivery or tech stream ID |
-| `window` | integer | `30` | Rolling window in days |
+| Param    | Type    | Default | Description                |
+| -------- | ------- | ------- | -------------------------- |
+| `stream` | integer | (all)   | Delivery or tech stream ID |
+| `window` | integer | `30`    | Rolling window in days     |
 
 **Response:**
 
@@ -305,10 +302,10 @@ Returns DORA metrics. When `tech_stream` is specified, returns a time series. Wi
 
 **Query params:**
 
-| Param | Type | Default | Description |
-|---|---|---|---|
-| `tech_stream` | integer | (all) | Tech stream ID |
-| `window` | integer | `90` | Window in days |
+| Param         | Type    | Default | Description    |
+| ------------- | ------- | ------- | -------------- |
+| `tech_stream` | integer | (all)   | Tech stream ID |
+| `window`      | integer | `90`    | Window in days |
 
 **Response (with tech_stream — time series):**
 
@@ -358,6 +355,7 @@ Returns DORA metrics. When `tech_stream` is specified, returns a time series. Wi
 ```
 
 **Units:**
+
 - `deploymentFrequency` — count of deploys per week (time series: raw count in bucket)
 - `changeFailureRate` — percentage (0–100)
 - `ttrMedian` / `ttrMean` — minutes
@@ -373,10 +371,10 @@ Returns Monte Carlo sprint completion forecast.
 
 **Query params:**
 
-| Param | Type | Default | Description |
-|---|---|---|---|
-| `stream` | integer | — | Delivery stream ID (required for meaningful results) |
-| `window` | integer | `12` | Historical window in weeks for throughput sampling |
+| Param    | Type    | Default | Description                                          |
+| -------- | ------- | ------- | ---------------------------------------------------- |
+| `stream` | integer | —       | Delivery stream ID (required for meaningful results) |
+| `window` | integer | `12`    | Historical window in weeks for throughput sampling   |
 
 **Response:**
 
@@ -406,10 +404,10 @@ Returns aggregated pulse survey data.
 
 **Query params:**
 
-| Param | Type | Default | Description |
-|---|---|---|---|
-| `stream` | integer | — | Delivery stream ID |
-| `periods` | integer | `6` | Number of recent survey periods to return |
+| Param     | Type    | Default | Description                               |
+| --------- | ------- | ------- | ----------------------------------------- |
+| `stream`  | integer | —       | Delivery stream ID                        |
+| `periods` | integer | `6`     | Number of recent survey periods to return |
 
 **Response:**
 
@@ -446,8 +444,8 @@ Returns cross-stream correlation and block analysis.
 
 **Query params:**
 
-| Param | Type | Description |
-|---|---|---|
+| Param         | Type    | Description                                       |
+| ------------- | ------- | ------------------------------------------------- |
 | `tech_stream` | integer | If provided, returns only this tech stream's data |
 
 **Response:**
@@ -574,10 +572,10 @@ Triggers a historical data backfill in the background. Returns immediately.
 
 **Path params:**
 
-| Param | Values |
-|---|---|
-| `source` | `jira` or `github` |
-| `org` | Jira project key (e.g. `PAY`) or GitHub org slug (e.g. `acme`) |
+| Param    | Values                                                         |
+| -------- | -------------------------------------------------------------- |
+| `source` | `jira` or `github`                                             |
+| `org`    | Jira project key (e.g. `PAY`) or GitHub org slug (e.g. `acme`) |
 
 **Response:** `202 Accepted`
 
@@ -595,9 +593,9 @@ Links an existing PR event to a Jira ticket. Used for retroactive linkage.
 
 **Path params:**
 
-| Param | Description |
-|---|---|
-| `id` | PR event ID (integer) |
+| Param | Description           |
+| ----- | --------------------- |
+| `id`  | PR event ID (integer) |
 
 **Request body:**
 
@@ -624,11 +622,11 @@ All errors follow the same envelope:
 }
 ```
 
-| HTTP Status | Meaning |
-|---|---|
-| `400 Bad Request` | Malformed request body or missing required field |
-| `401 Unauthorized` | Missing or invalid API key / invalid webhook signature |
-| `403 Forbidden` | API key does not have permission for the requested stream |
-| `404 Not Found` | Resource does not exist |
-| `422 Unprocessable Entity` | Validation failed — body contains field-level errors |
-| `500 Internal Server Error` | Unexpected server error — check application logs |
+| HTTP Status                 | Meaning                                                   |
+| --------------------------- | --------------------------------------------------------- |
+| `400 Bad Request`           | Malformed request body or missing required field          |
+| `401 Unauthorized`          | Missing or invalid API key / invalid webhook signature    |
+| `403 Forbidden`             | API key does not have permission for the requested stream |
+| `404 Not Found`             | Resource does not exist                                   |
+| `422 Unprocessable Entity`  | Validation failed — body contains field-level errors      |
+| `500 Internal Server Error` | Unexpected server error — check application logs          |

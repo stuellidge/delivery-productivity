@@ -44,10 +44,7 @@ export default class PlatformSettingsController {
     }
 
     // Extra validation for the thresholds key
-    if (
-      params.key === 'cross_stream_severity_thresholds' &&
-      !isValidThresholdArray(parsed)
-    ) {
+    if (params.key === 'cross_stream_severity_thresholds' && !isValidThresholdArray(parsed)) {
       session.flash('errors', {
         value:
           'Thresholds must be an array of objects with minStreams (number), maxConfidence (number), and severity (string) fields.',

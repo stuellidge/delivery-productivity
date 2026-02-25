@@ -16,7 +16,8 @@ const DashboardController = () => import('#controllers/dashboard_controller')
 const DeliveryStreamsController = () => import('#controllers/admin/delivery_streams_controller')
 const TechStreamsController = () => import('#controllers/admin/tech_streams_controller')
 const StatusMappingsController = () => import('#controllers/admin/status_mappings_controller')
-const OidcGroupMappingsController = () => import('#controllers/admin/oidc_group_mappings_controller')
+const OidcGroupMappingsController = () =>
+  import('#controllers/admin/oidc_group_mappings_controller')
 const AdminUsersController = () => import('#controllers/admin/users_controller')
 const JiraWebhookController = () => import('#controllers/webhooks/jira_webhook_controller')
 const GithubWebhookController = () => import('#controllers/webhooks/github_webhook_controller')
@@ -28,15 +29,13 @@ const IncidentEventsController = () => import('#controllers/api/incident_events_
 const AdminMetricsController = () => import('#controllers/api/admin_metrics_controller')
 const PulseSurveyController = () => import('#controllers/pulse_survey_controller')
 const CrossStreamController = () => import('#controllers/cross_stream_controller')
-const PlatformSettingsController = () =>
-  import('#controllers/admin/platform_settings_controller')
+const PlatformSettingsController = () => import('#controllers/admin/platform_settings_controller')
 const PrLinkController = () => import('#controllers/api/pr_link_controller')
 const AdminSessionsController = () => import('#controllers/admin/sessions_controller')
 const AuditLogController = () => import('#controllers/admin/audit_log_controller')
 const PublicHolidaysController = () => import('#controllers/admin/public_holidays_controller')
 const UnlinkedPrsController = () => import('#controllers/admin/unlinked_prs_controller')
-const IntegrationHealthController = () =>
-  import('#controllers/admin/integration_health_controller')
+const IntegrationHealthController = () => import('#controllers/admin/integration_health_controller')
 
 /*
 |--------------------------------------------------------------------------
@@ -59,13 +58,9 @@ router.post('/login', [AuthController, 'login']).as('auth.login.submit').use(mid
 router.post('/logout', [AuthController, 'logout']).as('auth.logout').use(middleware.auth())
 
 // Social / OIDC auth — no CSRF needed (GET only, no state-changing body)
-router
-  .get('/auth/social/redirect', [SocialAuthController, 'redirect'])
-  .as('auth.social.redirect')
+router.get('/auth/social/redirect', [SocialAuthController, 'redirect']).as('auth.social.redirect')
 
-router
-  .get('/auth/social/callback', [SocialAuthController, 'callback'])
-  .as('auth.social.callback')
+router.get('/auth/social/callback', [SocialAuthController, 'callback']).as('auth.social.callback')
 
 /*
 |--------------------------------------------------------------------------

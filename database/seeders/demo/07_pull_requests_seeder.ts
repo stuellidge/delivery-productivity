@@ -35,7 +35,19 @@ export default class PullRequestsSeeder extends BaseSeeder {
     ]
 
     // [repoId, techStreamId, deliveryStreamId, prNumber, daysAgo (merged), openedHrsBefore, reviewHrsBefore, leadTimeHrs, linkedTicketId, linesAdded, linesRemoved]
-    const prs: [Repository, number, number, number, number, number, number, number, string | null, number, number][] = [
+    const prs: [
+      Repository,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      string | null,
+      number,
+      number,
+    ][] = [
       // payments-api PRs
       [paymentsApiRepo, backend.id, payments.id, 101, 85, 18, 6, 18, 'PAY-101', 42, 18],
       [paymentsApiRepo, backend.id, payments.id, 102, 80, 8, 4, 8, 'PAY-102', 15, 8],
@@ -78,7 +90,19 @@ export default class PullRequestsSeeder extends BaseSeeder {
     ]
 
     for (let i = 0; i < prs.length; i++) {
-      const [repo, techStreamId, deliveryStreamId, prNumber, daysAgo, openedHrsBefore, reviewHrsBefore, , linkedTicketId, linesAdded, linesRemoved] = prs[i]
+      const [
+        repo,
+        techStreamId,
+        deliveryStreamId,
+        prNumber,
+        daysAgo,
+        openedHrsBefore,
+        reviewHrsBefore,
+        ,
+        linkedTicketId,
+        linesAdded,
+        linesRemoved,
+      ] = prs[i]
       const authorHash = authorHashes[i % authorHashes.length]
       const reviewerHash = authorHashes[(i + 1) % authorHashes.length]
 

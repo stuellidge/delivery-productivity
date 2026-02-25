@@ -31,8 +31,7 @@ export default class JiraBackfillService {
 
     while (true) {
       const jql = encodeURIComponent(`project=${this.projectKey}`)
-      const fields =
-        'status,summary,issuetype,created,updated,customfield_delivery_stream'
+      const fields = 'status,summary,issuetype,created,updated,customfield_delivery_stream'
       const url = `${baseUrl}/rest/api/3/search?jql=${jql}&expand=changelog&fields=${fields}&maxResults=${maxResults}&startAt=${startAt}`
 
       const resp = await fetch(url, {
@@ -151,9 +150,7 @@ export default class JiraBackfillService {
     await new WorkItemCycleComputationService(ticketId).compute()
   }
 
-  private async resolveDeliveryStreamId(
-    streamName: string | undefined
-  ): Promise<number | null> {
+  private async resolveDeliveryStreamId(streamName: string | undefined): Promise<number | null> {
     if (!streamName) return null
     const stream = await DeliveryStream.findBy('name', streamName)
     return stream?.id ?? null

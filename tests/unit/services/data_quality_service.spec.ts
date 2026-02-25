@@ -223,7 +223,9 @@ test.group('DataQualityService | defect attribution', (group) => {
 test.group('DataQualityService | pulse response rate', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
-  test('computes pulse response rate from latest pulse_aggregate per stream', async ({ assert }) => {
+  test('computes pulse response rate from latest pulse_aggregate per stream', async ({
+    assert,
+  }) => {
     const ds1 = await seedDeliveryStream('pulse-ds-1')
     const ds2 = await seedDeliveryStream('pulse-ds-2')
 

@@ -38,7 +38,9 @@ export default class DailyMetricsMaterializationService {
       ...techStreams.map((s) => this.materializeTechStream(s)),
     ])
 
-    const count = await DailyStreamMetric.query().where('metric_date', this.today).count('* as total')
+    const count = await DailyStreamMetric.query()
+      .where('metric_date', this.today)
+      .count('* as total')
     return Number(count[0].$extras.total)
   }
 

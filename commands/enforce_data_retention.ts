@@ -17,8 +17,6 @@ export default class EnforceDataRetention extends BaseCommand {
       }
     }
 
-    this.logger.success(
-      `Done — ${total} total row(s) deleted across ${results.length} table(s)`
-    )
+    this.logger.success(`Done — ${total} total row(s) deleted across ${results.length} table(s)`)
   }
 }

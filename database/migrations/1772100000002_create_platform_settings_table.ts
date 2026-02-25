@@ -9,15 +9,8 @@ export default class extends BaseSchema {
       table.string('key', 100).unique().notNullable()
       table.jsonb('value').notNullable()
       table.text('description').nullable()
-      table
-        .timestamp('updated_at', { useTz: true })
-        .defaultTo(this.db.rawQuery('NOW()').knexQuery)
-      table
-        .integer('updated_by')
-        .nullable()
-        .references('id')
-        .inTable('users')
-        .onDelete('SET NULL')
+      table.timestamp('updated_at', { useTz: true }).defaultTo(this.db.rawQuery('NOW()').knexQuery)
+      table.integer('updated_by').nullable().references('id').inTable('users').onDelete('SET NULL')
     })
 
     this.defer(async (db) => {

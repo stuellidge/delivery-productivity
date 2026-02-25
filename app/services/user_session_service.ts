@@ -45,9 +45,7 @@ export default class UserSessionService {
    * Revoke a session by its token (called on logout).
    */
   async revokeByToken(platformToken: string): Promise<void> {
-    await UserSession.query()
-      .where('platform_token', platformToken)
-      .update({ is_revoked: true })
+    await UserSession.query().where('platform_token', platformToken).update({ is_revoked: true })
   }
 
   /**

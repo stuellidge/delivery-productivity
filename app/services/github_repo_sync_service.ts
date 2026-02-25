@@ -39,8 +39,8 @@ export default class GithubRepoSyncService {
 
       const resp = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/vnd.github+json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
           'X-GitHub-Api-Version': '2022-11-28',
         },
       })
@@ -104,9 +104,6 @@ export default class GithubRepoSyncService {
         .update({ is_active: false })
     }
 
-    logger.info(
-      { githubOrg: stream.githubOrg, count: activeNames.size },
-      'Org repos synced'
-    )
+    logger.info({ githubOrg: stream.githubOrg, count: activeNames.size }, 'Org repos synced')
   }
 }

@@ -35,7 +35,13 @@ export default class StatusMappingsSeeder extends BaseSeeder {
       ['SRC', 'Done', 'done', false, 8],
     ]
 
-    for (const [jiraProjectKey, jiraStatusName, pipelineStage, isActiveWork, displayOrder] of mappings) {
+    for (const [
+      jiraProjectKey,
+      jiraStatusName,
+      pipelineStage,
+      isActiveWork,
+      displayOrder,
+    ] of mappings) {
       await StatusMapping.updateOrCreate(
         { jiraProjectKey, jiraStatusName },
         { pipelineStage: pipelineStage as any, isActiveWork, displayOrder }

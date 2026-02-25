@@ -527,7 +527,10 @@ test.group('GithubEventNormalizer | ticket regex', (group) => {
     const service = new GithubEventNormalizerService(payload, 'pull_request', undefined)
     await service.process()
 
-    const event = await PrEvent.query().where('pr_number', 201).where('event_type', 'opened').first()
+    const event = await PrEvent.query()
+      .where('pr_number', 201)
+      .where('event_type', 'opened')
+      .first()
     assert.equal(event!.linkedTicketId, 'PROJ-123')
   })
 
@@ -557,7 +560,10 @@ test.group('GithubEventNormalizer | ticket regex', (group) => {
     const service = new GithubEventNormalizerService(payload, 'pull_request', undefined)
     await service.process()
 
-    const event = await PrEvent.query().where('pr_number', 202).where('event_type', 'opened').first()
+    const event = await PrEvent.query()
+      .where('pr_number', 202)
+      .where('event_type', 'opened')
+      .first()
     assert.equal(event!.linkedTicketId, 'feat-456')
   })
 
@@ -586,7 +592,10 @@ test.group('GithubEventNormalizer | ticket regex', (group) => {
     const service = new GithubEventNormalizerService(payload, 'pull_request', undefined)
     await service.process()
 
-    const event = await PrEvent.query().where('pr_number', 203).where('event_type', 'opened').first()
+    const event = await PrEvent.query()
+      .where('pr_number', 203)
+      .where('event_type', 'opened')
+      .first()
     assert.isNull(event!.linkedTicketId)
   })
 })

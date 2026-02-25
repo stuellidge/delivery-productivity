@@ -28,15 +28,11 @@ export default class extends BaseSchema {
       table.timestamp('received_at', { useTz: true }).notNullable().defaultTo(this.now())
       table.timestamp('event_timestamp', { useTz: true }).notNullable()
 
-      table
-        .enum('event_type', ['logged', 'attributed', 'reclassified'])
-        .notNullable()
+      table.enum('event_type', ['logged', 'attributed', 'reclassified']).notNullable()
 
       table.string('ticket_id', 100).notNullable()
 
-      table
-        .enum('severity', ['critical', 'high', 'medium', 'low'])
-        .nullable()
+      table.enum('severity', ['critical', 'high', 'medium', 'low']).nullable()
 
       table.string('found_in_stage', 50).notNullable()
       table.string('introduced_in_stage', 50).nullable()

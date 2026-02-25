@@ -5,9 +5,7 @@ import path from 'node:path'
 import env from '#start/env'
 
 export default class EventArchiveService {
-  constructor(
-    private readonly archiveBasePath: string = env.get('ARCHIVE_PATH') ?? 'archive'
-  ) {}
+  constructor(private readonly archiveBasePath: string = env.get('ARCHIVE_PATH') ?? 'archive') {}
 
   async append(eventType: string, data: Record<string, unknown>): Promise<void> {
     const date = DateTime.now().toISODate()!

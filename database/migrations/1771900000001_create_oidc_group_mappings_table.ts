@@ -9,9 +9,7 @@ export default class extends BaseSchema {
       table.string('provider').notNullable().defaultTo('microsoft')
       table.string('group_pattern').notNullable()
       table.boolean('is_regex').defaultTo(false).notNullable()
-      table
-        .enu('role', ['viewer', 'team_member', 'stream_lead', 'platform_admin'])
-        .notNullable()
+      table.enu('role', ['viewer', 'team_member', 'stream_lead', 'platform_admin']).notNullable()
       table
         .integer('delivery_stream_id')
         .unsigned()

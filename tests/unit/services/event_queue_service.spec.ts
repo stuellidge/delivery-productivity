@@ -26,12 +26,7 @@ test.group('EventQueueService | enqueue', (group) => {
 
   test('stores eventType and signature for GitHub events', async ({ assert }) => {
     const svc = new EventQueueService()
-    const row = await svc.enqueue(
-      'github',
-      { action: 'opened' },
-      'pull_request',
-      'sha256=abc123'
-    )
+    const row = await svc.enqueue('github', { action: 'opened' }, 'pull_request', 'sha256=abc123')
 
     assert.equal(row.eventType, 'pull_request')
     assert.equal(row.signature, 'sha256=abc123')
@@ -39,7 +34,11 @@ test.group('EventQueueService | enqueue', (group) => {
 
   test('eventType and signature default to null for non-GitHub sources', async ({ assert }) => {
     const svc = new EventQueueService()
-    const row = await svc.enqueue('jira', { webhookEvent: 'jira:issue_created', issue: { key: 'X-1' }, timestamp: 1 })
+    const row = await svc.enqueue('jira', {
+      webhookEvent: 'jira:issue_created',
+      issue: { key: 'X-1' },
+      timestamp: 1,
+    })
 
     assert.isNull(row.eventType)
     assert.isNull(row.signature)
@@ -67,9 +66,7 @@ test.group('EventQueueService | processPending', (group) => {
     assert.isNotNull(row.processedAt)
   })
 
-  test('increments attempt_count and keeps status pending on first failure', async ({
-    assert,
-  }) => {
+  test('increments attempt_count and keeps status pending on first failure', async ({ assert }) => {
     const fail = async () => {
       throw new Error('dispatch failed')
     }

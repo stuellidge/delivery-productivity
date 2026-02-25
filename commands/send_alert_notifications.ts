@@ -10,9 +10,7 @@ export default class SendAlertNotifications extends BaseCommand {
   }
 
   async run() {
-    const { default: SystemMonitoringService } = await import(
-      '#services/system_monitoring_service'
-    )
+    const { default: SystemMonitoringService } = await import('#services/system_monitoring_service')
     await new SystemMonitoringService().notify()
     this.logger.info('Alert notification check complete')
   }

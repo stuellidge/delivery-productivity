@@ -56,8 +56,18 @@ export default class UsersSeeder extends BaseSeeder {
     const existingSet = new Set(existingRoles.map((r) => `${r.userId}:${r.role}`))
 
     const rolesToCreate = [
-      { userId: admin.id, role: 'platform_admin' as const, deliveryStreamId: null, techStreamId: null },
-      { userId: alice.id, role: 'viewer' as const, deliveryStreamId: payments.id, techStreamId: null },
+      {
+        userId: admin.id,
+        role: 'platform_admin' as const,
+        deliveryStreamId: null,
+        techStreamId: null,
+      },
+      {
+        userId: alice.id,
+        role: 'viewer' as const,
+        deliveryStreamId: payments.id,
+        techStreamId: null,
+      },
       { userId: bob.id, role: 'viewer' as const, deliveryStreamId: search.id, techStreamId: null },
     ]
 

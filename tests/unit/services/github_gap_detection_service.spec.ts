@@ -211,7 +211,11 @@ test.group('GithubGapDetectionService | run', (group) => {
     const prInWindow = buildPr(5, { updated_at: WITHIN_WINDOW })
 
     // PR outside window — should trigger early break
-    const prOutsideWindow = buildPr(6, { updated_at: OUTSIDE_WINDOW, closed_at: OUTSIDE_WINDOW, merged_at: OUTSIDE_WINDOW })
+    const prOutsideWindow = buildPr(6, {
+      updated_at: OUTSIDE_WINDOW,
+      closed_at: OUTSIDE_WINDOW,
+      merged_at: OUTSIDE_WINDOW,
+    })
 
     globalThis.fetch = async () =>
       ({

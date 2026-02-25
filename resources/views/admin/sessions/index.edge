@@ -1,55 +1,96 @@
 @component('layouts/app', { title: 'Sessions — Admin' })
   @slot('main')
     <hgroup>
-      <h1>Active Sessions</h1>
-      <p>Platform session records. Revoke a session to immediately invalidate it.</p>
+      <h1>
+        Active Sessions
+      </h1>
+      <p>
+        Platform session records. Revoke a session to immediately invalidate it.
+      </p>
     </hgroup>
 
     @if(flashMessages.has('success'))
       <article style="border-left: 4px solid var(--pico-ins-color)">
-        <p>{{ flashMessages.get('success') }}</p>
+        <p>
+          {{ flashMessages.get('success') }}
+        </p>
       </article>
     @end
-
+    
     @if(sessions.length === 0)
-      <p class="secondary">No session records found.</p>
+      <p class="secondary">
+        No session records found.
+      </p>
     @else
       <figure>
         <table>
           <thead>
             <tr>
-              <th>User</th>
-              <th>Auth Method</th>
-              <th>Created</th>
-              <th>Expires</th>
-              <th>Last Activity</th>
-              <th>Status</th>
-              <th></th>
+              <th>
+                User
+              </th>
+              <th>
+                Auth Method
+              </th>
+              <th>
+                Created
+              </th>
+              <th>
+                Expires
+              </th>
+              <th>
+                Last Activity
+              </th>
+              <th>
+                Status
+              </th>
+              <th>
+              </th>
             </tr>
           </thead>
           <tbody>
             @each(s in sessions)
               <tr>
-                <td>{{ s.user ? s.user.email : '#' + s.userId }}</td>
-                <td><code>{{ s.authMethod }}</code></td>
-                <td>{{ s.createdAt.toFormat('dd MMM yyyy HH:mm') }}</td>
-                <td>{{ s.expiresAt.toFormat('dd MMM yyyy HH:mm') }}</td>
-                <td>{{ s.lastActivityAt ? s.lastActivityAt.toFormat('dd MMM yyyy HH:mm') : '—' }}</td>
+                <td>
+                  {{ s.user ? s.user.email : '#' + s.userId }}
+                </td>
+                <td>
+                  <code>{{ s.authMethod }}</code>
+                </td>
+                <td>
+                  {{ s.createdAt.toFormat('dd MMM yyyy HH:mm') }}
+                </td>
+                <td>
+                  {{ s.expiresAt.toFormat('dd MMM yyyy HH:mm') }}
+                </td>
+                <td>
+                  {{ s.lastActivityAt ? s.lastActivityAt.toFormat('dd MMM yyyy HH:mm') : '—' }}
+                </td>
                 <td>
                   @if(s.isRevoked)
-                    <mark style="background: var(--pico-del-color); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem">Revoked</mark>
+                    <mark
+                      style="background: var(--pico-del-color); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem"
+                    >Revoked</mark>
                   @elseif(s.isExpired)
-                    <mark style="background: var(--pico-muted-color); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem">Expired</mark>
+                    <mark
+                      style="background: var(--pico-muted-color); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem"
+                    >Expired</mark>
                   @else
-                    <mark style="background: var(--pico-ins-color); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem">Active</mark>
+                    <mark
+                      style="background: var(--pico-ins-color); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem"
+                    >Active</mark>
                   @end
                 </td>
                 <td>
                   @if(!s.isRevoked)
                     <form method="POST" action="/admin/sessions/{{ s.id }}/revoke" style="margin: 0">
                       {{ csrfField() }}
-                      <button type="submit" class="secondary outline" style="padding: 0.25rem 0.75rem; font-size: 0.8rem"
-                        onclick="return confirm('Revoke this session?')">
+                      <button
+                        type="submit"
+                        class="secondary outline"
+                        style="padding: 0.25rem 0.75rem; font-size: 0.8rem"
+                        onclick="return confirm('Revoke this session?')"
+                      >
                         Revoke
                       </button>
                     </form>

@@ -134,10 +134,7 @@ test.group('Admin | Users | roles', (group) => {
 
     response.assertStatus(302)
 
-    const role = await UserRole.query()
-      .where('user_id', user.id)
-      .where('role', 'viewer')
-      .first()
+    const role = await UserRole.query().where('user_id', user.id).where('role', 'viewer').first()
 
     assert.isNotNull(role)
     assert.equal(role!.grantedBy, admin.id)

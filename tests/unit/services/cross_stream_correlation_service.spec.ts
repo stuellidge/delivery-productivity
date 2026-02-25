@@ -131,9 +131,11 @@ test.group('CrossStreamCorrelationService | configurable thresholds', (group) =>
 
   test('uses thresholds from platform_settings when row present', async ({ assert }) => {
     // Override existing threshold row: 3 streams + any confidence = 'low'
-    await PlatformSetting.query().where('key', 'cross_stream_severity_thresholds').update({
-      value: JSON.stringify([{ minStreams: 3, maxConfidence: 100, severity: 'low' }]),
-    })
+    await PlatformSetting.query()
+      .where('key', 'cross_stream_severity_thresholds')
+      .update({
+        value: JSON.stringify([{ minStreams: 3, maxConfidence: 100, severity: 'low' }]),
+      })
 
     const ts = await seedTechStream('ts-custom-thresh')
     const ds1 = await seedDeliveryStream('ds-custom-thresh-1')

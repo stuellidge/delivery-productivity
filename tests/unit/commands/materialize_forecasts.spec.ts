@@ -19,10 +19,7 @@ test.group('Command | scheduler:materialize-forecasts', (group) => {
     const command = await ace.create(MaterializeForecasts, [])
     await command.exec()
     command.assertSucceeded()
-    const rows = await ForecastSnapshot.query().where(
-      'forecast_date',
-      DateTime.now().toISODate()!
-    )
+    const rows = await ForecastSnapshot.query().where('forecast_date', DateTime.now().toISODate()!)
     assert.isAtLeast(rows.length, 1)
   })
 
@@ -30,10 +27,7 @@ test.group('Command | scheduler:materialize-forecasts', (group) => {
     const command = await ace.create(MaterializeForecasts, [])
     await command.exec()
     command.assertSucceeded()
-    const rows = await ForecastSnapshot.query().where(
-      'forecast_date',
-      DateTime.now().toISODate()!
-    )
+    const rows = await ForecastSnapshot.query().where('forecast_date', DateTime.now().toISODate()!)
     assert.lengthOf(rows, 0)
   })
 })

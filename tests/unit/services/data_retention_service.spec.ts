@@ -99,11 +99,7 @@ test.group('DataRetentionService', (group) => {
 
     const rows = await PulseResponse.query().where('deliveryStreamId', stream.id)
     assert.equal(rows.length, 1)
-    assert.approximately(
-      DateTime.now().diff(rows[0].receivedAt, 'months').months,
-      3,
-      1
-    )
+    assert.approximately(DateTime.now().diff(rows[0].receivedAt, 'months').months, 3, 1)
   })
 
   test('keeps rows within the retention window', async ({ assert }) => {
@@ -134,7 +130,11 @@ test.group('DataRetentionService', (group) => {
   test('reads custom retention periods from platform_settings', async ({ assert }) => {
     const now = DateTime.now()
     // Seed a pulse_response at 8 months — normally kept (12-month default), but with custom 6-month config it should be deleted
-    const stream = await DeliveryStream.create({ name: 'pay2', displayName: 'Pay2', isActive: true })
+    const stream = await DeliveryStream.create({
+      name: 'pay2',
+      displayName: 'Pay2',
+      isActive: true,
+    })
     await seedPulseResponse(stream.id, now.minus({ months: 8 }))
 
     // Override retention config: pulse_responses = 6 months
@@ -162,7 +162,11 @@ test.group('DataRetentionService', (group) => {
   })
 
   test('deletes forecast_snapshots older than 12 months', async ({ assert }) => {
-    const stream = await DeliveryStream.create({ name: 'fs-pay', displayName: 'FS Pay', isActive: true })
+    const stream = await DeliveryStream.create({
+      name: 'fs-pay',
+      displayName: 'FS Pay',
+      isActive: true,
+    })
     const now = DateTime.now()
 
     await ForecastSnapshot.create({
@@ -187,10 +191,6 @@ test.group('DataRetentionService', (group) => {
 
     const rows = await ForecastSnapshot.query().where('deliveryStreamId', stream.id)
     assert.equal(rows.length, 1)
-    assert.approximately(
-      DateTime.now().diff(rows[0].computedAt, 'months').months,
-      3,
-      1
-    )
+    assert.approximately(DateTime.now().diff(rows[0].computedAt, 'months').months, 3, 1)
   })
 })

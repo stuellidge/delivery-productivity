@@ -58,7 +58,16 @@ export default class DailyMetricsSeeder extends BaseSeeder {
       for (const [metricName, metricValue, metricUnit, percentile, sampleSize] of backendRows) {
         await DailyStreamMetric.updateOrCreate(
           { streamType: 'tech', streamId: backend.id, metricName, metricDate, percentile },
-          { streamType: 'tech', streamId: backend.id, metricName, metricDate, metricValue, metricUnit, percentile, sampleSize }
+          {
+            streamType: 'tech',
+            streamId: backend.id,
+            metricName,
+            metricDate,
+            metricValue,
+            metricUnit,
+            percentile,
+            sampleSize,
+          }
         )
       }
 
@@ -81,7 +90,16 @@ export default class DailyMetricsSeeder extends BaseSeeder {
       for (const [metricName, metricValue, metricUnit, percentile, sampleSize] of frontendRows) {
         await DailyStreamMetric.updateOrCreate(
           { streamType: 'tech', streamId: frontend.id, metricName, metricDate, percentile },
-          { streamType: 'tech', streamId: frontend.id, metricName, metricDate, metricValue, metricUnit, percentile, sampleSize }
+          {
+            streamType: 'tech',
+            streamId: frontend.id,
+            metricName,
+            metricDate,
+            metricValue,
+            metricUnit,
+            percentile,
+            sampleSize,
+          }
         )
       }
     }

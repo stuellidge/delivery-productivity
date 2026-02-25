@@ -6,12 +6,12 @@ This guide walks you through installing and running the Delivery Performance Pla
 
 ## Prerequisites
 
-| Requirement | Version | Notes |
-|---|---|---|
-| Node.js | 20 LTS or later | Use `nvm` or `fnm` to manage versions |
-| PostgreSQL | 14 or later | Local install or managed service (RDS, Supabase, etc.) |
-| npm | 10+ | Bundled with Node.js |
-| Git | any | For cloning the repository |
+| Requirement | Version         | Notes                                                  |
+| ----------- | --------------- | ------------------------------------------------------ |
+| Node.js     | 20 LTS or later | Use `nvm` or `fnm` to manage versions                  |
+| PostgreSQL  | 14 or later     | Local install or managed service (RDS, Supabase, etc.) |
+| npm         | 10+             | Bundled with Node.js                                   |
+| Git         | any             | For cloning the repository                             |
 
 Optional integrations (configured later):
 
@@ -110,6 +110,7 @@ NODE_ENV=development node ace db:seed
 ```
 
 This command:
+
 - Creates 3 demo user accounts (see credentials below)
 - Configures delivery streams, tech streams, and repositories
 - Seeds 90 days of work items, PRs, deployments, incidents, and pulse data
@@ -117,11 +118,11 @@ This command:
 
 **Demo login credentials:**
 
-| Email | Password | Role |
-|---|---|---|
+| Email              | Password    | Role                                            |
+| ------------------ | ----------- | ----------------------------------------------- |
 | `admin@demo.local` | `Demo1234!` | Platform Admin — full access to all admin pages |
-| `alice@demo.local` | `Demo1234!` | Viewer — scoped to Payments stream |
-| `bob@demo.local` | `Demo1234!` | Viewer — scoped to Search stream |
+| `alice@demo.local` | `Demo1234!` | Viewer — scoped to Payments stream              |
+| `bob@demo.local`   | `Demo1234!` | Viewer — scoped to Search stream                |
 
 > **Safety guard:** The seeder checks `NODE_ENV` and will refuse to run in `production`. Each individual seeder also declares `static environment = ['development']` as a second line of defence.
 

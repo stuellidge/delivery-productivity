@@ -72,9 +72,8 @@ test.group('Social Auth | findOrCreateUser integration', (group) => {
       password: 'generated-oidc-no-password',
       isActive: true,
     })
-    const { default: OidcGroupMappingService } = await import(
-      '#services/oidc_group_mapping_service'
-    )
+    const { default: OidcGroupMappingService } =
+      await import('#services/oidc_group_mapping_service')
     const service = new OidcGroupMappingService()
     await service.applyMappings(user.id, ['sg-admin'], 'microsoft')
     const roles = await UserRole.query().where('user_id', user.id)

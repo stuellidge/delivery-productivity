@@ -117,9 +117,7 @@ test.group('Dashboard | Sprint Time Range', (group) => {
       state: 'active',
     })
 
-    const response = await client
-      .get(`/dashboard?stream=${stream.id}&window=sprint`)
-      .loginAs(user)
+    const response = await client.get(`/dashboard?stream=${stream.id}&window=sprint`).loginAs(user)
     response.assertStatus(200)
   })
 })
@@ -136,9 +134,7 @@ test.group('Dashboard | Zone Toggles', (group) => {
 
   test('accepts zones query param to show only selected zones', async ({ client }) => {
     const user = await createUser()
-    const response = await client
-      .get('/dashboard?zones=realtime,trend')
-      .loginAs(user)
+    const response = await client.get('/dashboard?zones=realtime,trend').loginAs(user)
     response.assertStatus(200)
   })
 })

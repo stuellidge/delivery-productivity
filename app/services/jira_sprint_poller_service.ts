@@ -31,11 +31,7 @@ export default class JiraSprintPollerService {
     logger.info({ count: activeSprints.length }, 'Sprint snapshot polling completed')
   }
 
-  private async pollSprint(
-    sprint: Sprint,
-    baseUrl: string,
-    authHeader: string
-  ): Promise<void> {
+  private async pollSprint(sprint: Sprint, baseUrl: string, authHeader: string): Promise<void> {
     const issues: any[] = []
     let startAt = 0
 

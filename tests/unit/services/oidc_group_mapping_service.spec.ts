@@ -35,7 +35,10 @@ test.group('OidcGroupMappingService | matchGroups | exact match', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
   test('maps exact group name to role', async ({ assert }) => {
-    const mapping = await createMapping({ groupPattern: 'sg-platform-admin', role: 'platform_admin' })
+    const mapping = await createMapping({
+      groupPattern: 'sg-platform-admin',
+      role: 'platform_admin',
+    })
     const service = new OidcGroupMappingService()
     const result = service.matchGroups(['sg-platform-admin', 'sg-other'], [mapping])
     assert.lengthOf(result, 1)

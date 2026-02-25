@@ -24,9 +24,6 @@ export default class AuditLogService {
   }
 
   async getRecent(limit: number = 50): Promise<AuditLog[]> {
-    return AuditLog.query()
-      .preload('actor')
-      .orderBy('created_at', 'desc')
-      .limit(limit)
+    return AuditLog.query().preload('actor').orderBy('created_at', 'desc').limit(limit)
   }
 }

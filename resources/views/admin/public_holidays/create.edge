@@ -1,16 +1,22 @@
 @component('layouts/app', { title: 'Add Holiday — Admin' })
   @slot('main')
     <hgroup>
-      <h1>Add Holiday</h1>
-      <p>Add a public holiday to exclude from business-day calculations.</p>
+      <h1>
+        Add Holiday
+      </h1>
+      <p>
+        Add a public holiday to exclude from business-day calculations.
+      </p>
     </hgroup>
 
     @if(flashMessages.has('errors'))
       <article style="border-left: 4px solid var(--pico-del-color)">
-        <p>Please correct the errors below.</p>
+        <p>
+          Please correct the errors below.
+        </p>
       </article>
     @end
-
+    
     <form method="POST" action="/admin/public-holidays">
       {{ csrfField() }}
 

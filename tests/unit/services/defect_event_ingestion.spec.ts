@@ -75,7 +75,9 @@ test.group('DefectEventIngestion | JiraEventNormalizerService', (group) => {
   })
 
   test('defaults found_in_stage to "unknown" when custom field absent', async ({ assert }) => {
-    const payload = buildPayload({ issue: { key: 'BUG-3', fields: { issuetype: { name: 'Bug' } } } })
+    const payload = buildPayload({
+      issue: { key: 'BUG-3', fields: { issuetype: { name: 'Bug' } } },
+    })
 
     await new JiraEventNormalizerService(payload).process()
 
@@ -85,7 +87,9 @@ test.group('DefectEventIngestion | JiraEventNormalizerService', (group) => {
   })
 
   test('leaves introduced_in_stage null when custom field absent', async ({ assert }) => {
-    const payload = buildPayload({ issue: { key: 'BUG-4', fields: { issuetype: { name: 'Bug' } } } })
+    const payload = buildPayload({
+      issue: { key: 'BUG-4', fields: { issuetype: { name: 'Bug' } } },
+    })
 
     await new JiraEventNormalizerService(payload).process()
 
@@ -159,9 +163,7 @@ test.group('DefectEventIngestion | JiraEventNormalizerService', (group) => {
 
       await new JiraEventNormalizerService(payload).process()
 
-      const defect = await DefectEvent.query()
-        .where('ticket_id', `BUG-sev-${priority}`)
-        .first()
+      const defect = await DefectEvent.query().where('ticket_id', `BUG-sev-${priority}`).first()
       assert.equal(defect!.severity, expected)
     }
   })

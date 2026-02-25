@@ -1,30 +1,50 @@
 @component('layouts/app', { title: 'Users — Admin' })
   @slot('main')
     <hgroup>
-      <h2>User Management</h2>
-      <p>All platform users. Users are created automatically via OIDC login.</p>
+      <h2>
+        User Management
+      </h2>
+      <p>
+        All platform users. Users are created automatically via OIDC login.
+      </p>
     </hgroup>
 
     <table>
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Status</th>
-          <th>Roles</th>
-          <th>Actions</th>
+          <th>
+            Name
+          </th>
+          <th>
+            Email
+          </th>
+          <th>
+            Status
+          </th>
+          <th>
+            Roles
+          </th>
+          <th>
+            Actions
+          </th>
         </tr>
       </thead>
       <tbody>
         @each(user in users)
           <tr>
-            <td>{{ user.fullName ?? '—' }}</td>
-            <td>{{ user.email }}</td>
+            <td>
+              {{ user.fullName ?? '—' }}
+            </td>
+            <td>
+              {{ user.email }}
+            </td>
             <td>
               @if(user.isActive)
                 <mark>Active</mark>
               @else
-                <del>Inactive</del>
+                <del>
+                  Inactive
+                </del>
               @end
             </td>
             <td>
@@ -33,7 +53,12 @@
               @end
             </td>
             <td>
-              <a href="/admin/users/{{ user.id }}" role="button" class="outline" style="padding: 0.3rem 0.6rem; font-size: 0.85rem">View</a>
+              <a
+                href="/admin/users/{{ user.id }}"
+                role="button"
+                class="outline"
+                style="padding: 0.3rem 0.6rem; font-size: 0.85rem"
+              >View</a>
             </td>
           </tr>
         @end

@@ -7,7 +7,9 @@ export default class JiraBacklogPollerService {
     const today = DateTime.now().toISODate()!
 
     // Activate future sprints whose start date has arrived
-    const toActivate = await Sprint.query().where('state', 'future').where('start_date', '<=', today)
+    const toActivate = await Sprint.query()
+      .where('state', 'future')
+      .where('start_date', '<=', today)
     for (const sprint of toActivate) {
       sprint.state = 'active'
       await sprint.save()

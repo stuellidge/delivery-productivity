@@ -49,11 +49,7 @@ async function createSprint(
   })
 }
 
-async function createStatusMapping(
-  projectKey: string,
-  statusName: string,
-  pipelineStage: string
-) {
+async function createStatusMapping(projectKey: string, statusName: string, pipelineStage: string) {
   return StatusMapping.create({
     jiraProjectKey: projectKey,
     jiraStatusName: statusName,

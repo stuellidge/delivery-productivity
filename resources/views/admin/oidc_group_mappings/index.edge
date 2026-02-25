@@ -1,52 +1,94 @@
 @component('layouts/app', { title: 'OIDC Group Mappings — Admin' })
   @slot('main')
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem">
-      <h1>OIDC Group Mappings</h1>
+      <h1>
+        OIDC Group Mappings
+      </h1>
       <a href="/admin/oidc-group-mappings/create" role="button">New Mapping</a>
     </div>
 
     <nav aria-label="breadcrumb">
       <ul>
-        <li><a href="/admin">Admin</a></li>
-        <li>OIDC Group Mappings</li>
+        <li>
+          <a href="/admin">Admin</a>
+        </li>
+        <li>
+          OIDC Group Mappings
+        </li>
       </ul>
     </nav>
 
     @if(flashMessages.has('success'))
-      <p><ins>{{ flashMessages.get('success') }}</ins></p>
+      <p>
+        <ins>
+          {{ flashMessages.get('success') }}
+        </ins>
+      </p>
     @end
-
+    
     @if(flashMessages.has('error'))
-      <p><del>{{ flashMessages.get('error') }}</del></p>
+      <p>
+        <del>
+          {{ flashMessages.get('error') }}
+        </del>
+      </p>
     @end
-
+    
     @if(mappings.length === 0)
       <article>
-        <p>No group mappings yet. <a href="/admin/oidc-group-mappings/create">Create the first one</a>.</p>
+        <p>
+          No group mappings yet. <a href="/admin/oidc-group-mappings/create">Create the first one</a>.
+        </p>
       </article>
     @else
       <figure>
         <table>
           <thead>
             <tr>
-              <th>Provider</th>
-              <th>Group Pattern</th>
-              <th>Regex?</th>
-              <th>Role</th>
-              <th>Delivery Stream</th>
-              <th>Tech Stream</th>
-              <th>Actions</th>
+              <th>
+                Provider
+              </th>
+              <th>
+                Group Pattern
+              </th>
+              <th>
+                Regex?
+              </th>
+              <th>
+                Role
+              </th>
+              <th>
+                Delivery Stream
+              </th>
+              <th>
+                Tech Stream
+              </th>
+              <th>
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             @each(mapping in mappings)
               <tr>
-                <td>{{ mapping.provider }}</td>
-                <td><code>{{ mapping.groupPattern }}</code></td>
-                <td>{{ mapping.isRegex ? 'Yes' : 'No' }}</td>
-                <td><mark>{{ mapping.role }}</mark></td>
-                <td>{{ mapping.deliveryStreamId ?? '—' }}</td>
-                <td>{{ mapping.techStreamId ?? '—' }}</td>
+                <td>
+                  {{ mapping.provider }}
+                </td>
+                <td>
+                  <code>{{ mapping.groupPattern }}</code>
+                </td>
+                <td>
+                  {{ mapping.isRegex ? 'Yes' : 'No' }}
+                </td>
+                <td>
+                  <mark>{{ mapping.role }}</mark>
+                </td>
+                <td>
+                  {{ mapping.deliveryStreamId ?? '—' }}
+                </td>
+                <td>
+                  {{ mapping.techStreamId ?? '—' }}
+                </td>
                 <td>
                   <form method="POST" action="/admin/oidc-group-mappings/{{ mapping.id }}?_method=DELETE">
                     {{ csrfField() }}

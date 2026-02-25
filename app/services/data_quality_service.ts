@@ -64,10 +64,7 @@ export default class DataQualityService {
         target: TARGETS.defectAttributionRate,
       })
     }
-    if (
-      pulseStats.sampledStreams > 0 &&
-      pulseStats.avgRate < TARGETS.pulseResponseRate
-    ) {
+    if (pulseStats.sampledStreams > 0 && pulseStats.avgRate < TARGETS.pulseResponseRate) {
       warnings.push({
         metric: 'pulseResponseRate',
         rate: pulseStats.avgRate,
@@ -123,8 +120,7 @@ export default class DataQualityService {
       .whereNotNull('delivery_stream_id')
       .count('* as tagged')
     const ticketTotal = Number(ticketRow.total)
-    const ticketTaggingRate =
-      ticketTotal > 0 ? (Number(taggedRow.tagged) / ticketTotal) * 100 : 100
+    const ticketTaggingRate = ticketTotal > 0 ? (Number(taggedRow.tagged) / ticketTotal) * 100 : 100
 
     if (ticketTotal > 0 && ticketTaggingRate < TARGETS.ticketTaggingRate) {
       warnings.push(
@@ -143,8 +139,7 @@ export default class DataQualityService {
       .whereNotNull('linked_ticket_id')
       .count('* as traceable')
     const deployTotal = Number(deployRow.total)
-    const deployTraceRate =
-      deployTotal > 0 ? (Number(traceRow.traceable) / deployTotal) * 100 : 100
+    const deployTraceRate = deployTotal > 0 ? (Number(traceRow.traceable) / deployTotal) * 100 : 100
 
     if (deployTotal > 0 && deployTraceRate < TARGETS.deploymentTraceabilityRate) {
       warnings.push(
@@ -165,10 +160,7 @@ export default class DataQualityService {
       .where('delivery_stream_id', deliveryStreamId)
       .orderBy('survey_period', 'desc')
       .first()
-    if (
-      latestAggregate &&
-      Number(latestAggregate.responseRatePct) < TARGETS.pulseResponseRate
-    ) {
+    if (latestAggregate && Number(latestAggregate.responseRatePct) < TARGETS.pulseResponseRate) {
       warnings.push(
         `Pulse response rate is ${Number(latestAggregate.responseRatePct).toFixed(1)}% (target: ${TARGETS.pulseResponseRate}%)`
       )

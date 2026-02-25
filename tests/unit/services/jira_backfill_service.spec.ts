@@ -16,14 +16,17 @@ function buildSearchResponse(issues: any[], total?: number) {
   }
 }
 
-function buildIssue(key: string, opts: {
-  status?: string
-  issuetype?: string
-  created?: string
-  updated?: string
-  changelogHistories?: any[]
-  deliveryStream?: string
-} = {}) {
+function buildIssue(
+  key: string,
+  opts: {
+    status?: string
+    issuetype?: string
+    created?: string
+    updated?: string
+    changelogHistories?: any[]
+    deliveryStream?: string
+  } = {}
+) {
   return {
     key,
     fields: {
@@ -122,9 +125,15 @@ test.group('JiraBackfillService | run', (group) => {
     globalThis.fetch = async (url: any) => {
       const urlStr = String(url)
       if (urlStr.includes('startAt=0')) {
-        return { ok: true, json: async () => ({ issues: [page1], total: 2, startAt: 0, maxResults: 100 }) } as Response
+        return {
+          ok: true,
+          json: async () => ({ issues: [page1], total: 2, startAt: 0, maxResults: 100 }),
+        } as Response
       }
-      return { ok: true, json: async () => ({ issues: [page2], total: 2, startAt: 1, maxResults: 100 }) } as Response
+      return {
+        ok: true,
+        json: async () => ({ issues: [page2], total: 2, startAt: 1, maxResults: 100 }),
+      } as Response
     }
 
     await new JiraBackfillService('PAY').run()

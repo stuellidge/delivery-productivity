@@ -282,10 +282,7 @@ test.group('GithubCicdEventNormalizer | event_timestamp', (group) => {
     const event = await CicdEvent.query().where('pipeline_run_id', '400').first()
     assert.isNotNull(event)
     const eventTs = event!.eventTimestamp
-    assert.equal(
-      DateTime.fromISO(runAt).toISO()!.slice(0, 19),
-      eventTs.toISO()!.slice(0, 19)
-    )
+    assert.equal(DateTime.fromISO(runAt).toISO()!.slice(0, 19), eventTs.toISO()!.slice(0, 19))
   })
 })
 

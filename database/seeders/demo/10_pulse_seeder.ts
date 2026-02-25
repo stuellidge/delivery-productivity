@@ -29,18 +29,90 @@ export default class PulseSeeder extends BaseSeeder {
 
     // Payments: generally healthy team, slight pace concern recently
     const paymentsData = [
-      { pace: 3.9, pTrend: null, tooling: 3.6, tTrend: null, clarity: 4.2, cTrend: null, responses: 6, rate: 75.0 },
-      { pace: 3.8, pTrend: -0.1, tooling: 3.7, tTrend: 0.1, clarity: 4.1, cTrend: -0.1, responses: 7, rate: 87.5 },
-      { pace: 3.6, pTrend: -0.2, tooling: 3.5, tTrend: -0.2, clarity: 4.3, cTrend: 0.2, responses: 6, rate: 75.0 },
-      { pace: 3.4, pTrend: -0.2, tooling: 3.4, tTrend: -0.1, clarity: 4.0, cTrend: -0.3, responses: 5, rate: 62.5 },
+      {
+        pace: 3.9,
+        pTrend: null,
+        tooling: 3.6,
+        tTrend: null,
+        clarity: 4.2,
+        cTrend: null,
+        responses: 6,
+        rate: 75.0,
+      },
+      {
+        pace: 3.8,
+        pTrend: -0.1,
+        tooling: 3.7,
+        tTrend: 0.1,
+        clarity: 4.1,
+        cTrend: -0.1,
+        responses: 7,
+        rate: 87.5,
+      },
+      {
+        pace: 3.6,
+        pTrend: -0.2,
+        tooling: 3.5,
+        tTrend: -0.2,
+        clarity: 4.3,
+        cTrend: 0.2,
+        responses: 6,
+        rate: 75.0,
+      },
+      {
+        pace: 3.4,
+        pTrend: -0.2,
+        tooling: 3.4,
+        tTrend: -0.1,
+        clarity: 4.0,
+        cTrend: -0.3,
+        responses: 5,
+        rate: 62.5,
+      },
     ]
 
     // Search: smaller team, lower tooling, good clarity on priorities
     const searchData = [
-      { pace: 4.0, pTrend: null, tooling: 3.2, tTrend: null, clarity: 3.8, cTrend: null, responses: 4, rate: 80.0 },
-      { pace: 3.8, pTrend: -0.2, tooling: 3.4, tTrend: 0.2, clarity: 4.0, cTrend: 0.2, responses: 4, rate: 80.0 },
-      { pace: 3.9, pTrend: 0.1, tooling: 3.3, tTrend: -0.1, clarity: 4.2, cTrend: 0.2, responses: 3, rate: 60.0 },
-      { pace: 3.7, pTrend: -0.2, tooling: 3.5, tTrend: 0.2, clarity: 4.1, cTrend: -0.1, responses: 4, rate: 80.0 },
+      {
+        pace: 4.0,
+        pTrend: null,
+        tooling: 3.2,
+        tTrend: null,
+        clarity: 3.8,
+        cTrend: null,
+        responses: 4,
+        rate: 80.0,
+      },
+      {
+        pace: 3.8,
+        pTrend: -0.2,
+        tooling: 3.4,
+        tTrend: 0.2,
+        clarity: 4.0,
+        cTrend: 0.2,
+        responses: 4,
+        rate: 80.0,
+      },
+      {
+        pace: 3.9,
+        pTrend: 0.1,
+        tooling: 3.3,
+        tTrend: -0.1,
+        clarity: 4.2,
+        cTrend: 0.2,
+        responses: 3,
+        rate: 60.0,
+      },
+      {
+        pace: 3.7,
+        pTrend: -0.2,
+        tooling: 3.5,
+        tTrend: 0.2,
+        clarity: 4.1,
+        cTrend: -0.1,
+        responses: 4,
+        rate: 80.0,
+      },
     ]
 
     const computedAt = now

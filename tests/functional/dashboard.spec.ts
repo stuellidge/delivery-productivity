@@ -197,10 +197,7 @@ test.group('Dashboard | Stream Health Bar', (group) => {
     assert.include(response.text(), 'data-health-bar')
   })
 
-  test('health bar includes cycle time p85 value when data exists', async ({
-    client,
-    assert,
-  }) => {
+  test('health bar includes cycle time p85 value when data exists', async ({ client, assert }) => {
     const user = await createUser()
     const stream = await DeliveryStream.create({
       name: 'payments',

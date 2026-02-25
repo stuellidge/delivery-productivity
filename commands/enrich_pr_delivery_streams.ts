@@ -4,7 +4,8 @@ import PrDeliveryStreamEnrichmentService from '#services/pr_delivery_stream_enri
 
 export default class EnrichPrDeliveryStreams extends BaseCommand {
   static commandName = 'scheduler:enrich-pr-delivery-streams'
-  static description = 'Back-fill deliveryStreamId on pr_events and pr_cycles linked to Jira tickets'
+  static description =
+    'Back-fill deliveryStreamId on pr_events and pr_cycles linked to Jira tickets'
   static options: CommandOptions = { startApp: true }
 
   async run() {

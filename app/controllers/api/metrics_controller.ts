@@ -73,7 +73,11 @@ export default class ApiMetricsController {
     return response.ok({
       status: 'ok',
       data,
-      meta: { stream_id: streamId ?? null, window_days: windowDays, computed_at: DateTime.now().toISO() },
+      meta: {
+        stream_id: streamId ?? null,
+        window_days: windowDays,
+        computed_at: DateTime.now().toISO(),
+      },
     })
   }
 
@@ -146,7 +150,11 @@ export default class ApiMetricsController {
       return response.ok({
         status: 'ok',
         data,
-        meta: { tech_stream_id: streamId, window_days: windowDays, computed_at: DateTime.now().toISO() },
+        meta: {
+          tech_stream_id: streamId,
+          window_days: windowDays,
+          computed_at: DateTime.now().toISO(),
+        },
       })
     }
 

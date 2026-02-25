@@ -115,10 +115,7 @@ test.group('API | POST /api/v1/pr-events/:id/link-ticket', (group) => {
     assert.equal(updated!.linkedTicketId, 'PAY-456')
   })
 
-  test('also updates pr_cycle linked_ticket_id when cycle exists', async ({
-    client,
-    assert,
-  }) => {
+  test('also updates pr_cycle linked_ticket_id when cycle exists', async ({ client, assert }) => {
     await seedApiKey()
     const ts = await seedTechStream()
     const repo = await seedRepository(ts.id)
@@ -139,10 +136,7 @@ test.group('API | POST /api/v1/pr-events/:id/link-ticket', (group) => {
 
     response.assertStatus(200)
 
-    const cycle = await PrCycle.query()
-      .where('repo_id', repo.id)
-      .where('pr_number', 301)
-      .first()
+    const cycle = await PrCycle.query().where('repo_id', repo.id).where('pr_number', 301).first()
     assert.equal(cycle!.linkedTicketId, 'PAY-789')
   })
 })

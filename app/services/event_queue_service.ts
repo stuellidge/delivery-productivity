@@ -10,15 +10,13 @@ type DispatchFn = (row: EventQueue) => Promise<void>
 
 async function defaultDispatch(row: EventQueue): Promise<void> {
   if (row.eventSource === 'jira') {
-    const { default: JiraEventNormalizerService } = await import(
-      '#services/jira_event_normalizer_service'
-    )
+    const { default: JiraEventNormalizerService } =
+      await import('#services/jira_event_normalizer_service')
     const svc = new JiraEventNormalizerService(row.payload as any)
     await svc.process()
   } else if (row.eventSource === 'github') {
-    const { default: GithubEventNormalizerService } = await import(
-      '#services/github_event_normalizer_service'
-    )
+    const { default: GithubEventNormalizerService } =
+      await import('#services/github_event_normalizer_service')
     // Pass undefined signature so re-validation is skipped (already validated at receipt)
     const svc = new GithubEventNormalizerService(
       row.payload as Record<string, any>,

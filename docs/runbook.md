@@ -14,42 +14,42 @@ For demo seed data and local development credentials, see the [Setup Guide — D
 
 ### Required
 
-| Variable | Description | Example |
-|---|---|---|
-| `NODE_ENV` | Runtime environment | `production` |
-| `PORT` | HTTP port | `3333` |
-| `APP_KEY` | AdonisJS encryption key (generate once, keep secret) | `base64:...` |
-| `HOST` | Bind host | `0.0.0.0` |
-| `LOG_LEVEL` | Pino log level | `info` |
-| `SESSION_DRIVER` | Session storage | `cookie` |
-| `DB_HOST` | PostgreSQL host | `localhost` |
-| `DB_PORT` | PostgreSQL port | `5432` |
-| `DB_USER` | PostgreSQL user | `dpp` |
-| `DB_PASSWORD` | PostgreSQL password | _(secret)_ |
-| `DB_DATABASE` | Database name | `delivery_productivity` |
+| Variable         | Description                                          | Example                 |
+| ---------------- | ---------------------------------------------------- | ----------------------- |
+| `NODE_ENV`       | Runtime environment                                  | `production`            |
+| `PORT`           | HTTP port                                            | `3333`                  |
+| `APP_KEY`        | AdonisJS encryption key (generate once, keep secret) | `base64:...`            |
+| `HOST`           | Bind host                                            | `0.0.0.0`               |
+| `LOG_LEVEL`      | Pino log level                                       | `info`                  |
+| `SESSION_DRIVER` | Session storage                                      | `cookie`                |
+| `DB_HOST`        | PostgreSQL host                                      | `localhost`             |
+| `DB_PORT`        | PostgreSQL port                                      | `5432`                  |
+| `DB_USER`        | PostgreSQL user                                      | `dpp`                   |
+| `DB_PASSWORD`    | PostgreSQL password                                  | _(secret)_              |
+| `DB_DATABASE`    | Database name                                        | `delivery_productivity` |
 
 ### Optional — Integrations
 
-| Variable | Description |
-|---|---|
-| `JIRA_WEBHOOK_SECRET` | Shared secret for Jira webhook HMAC verification |
-| `JIRA_BASE_URL` | Jira base URL (e.g. `https://your-org.atlassian.net`) |
-| `JIRA_API_TOKEN` | Jira API token for polling (if used) |
-| `JIRA_EMAIL` | Jira account email for API auth |
-| `GITHUB_WEBHOOK_SECRET` | Shared secret for GitHub webhook HMAC verification |
-| `GITHUB_TOKEN` | GitHub PAT for polling / gap detection |
-| `HMAC_KEY` | Key for anonymising identifiers in metrics |
+| Variable                | Description                                           |
+| ----------------------- | ----------------------------------------------------- |
+| `JIRA_WEBHOOK_SECRET`   | Shared secret for Jira webhook HMAC verification      |
+| `JIRA_BASE_URL`         | Jira base URL (e.g. `https://your-org.atlassian.net`) |
+| `JIRA_API_TOKEN`        | Jira API token for polling (if used)                  |
+| `JIRA_EMAIL`            | Jira account email for API auth                       |
+| `GITHUB_WEBHOOK_SECRET` | Shared secret for GitHub webhook HMAC verification    |
+| `GITHUB_TOKEN`          | GitHub PAT for polling / gap detection                |
+| `HMAC_KEY`              | Key for anonymising identifiers in metrics            |
 
 ### Optional — Authentication
 
-| Variable | Description | Default |
-|---|---|---|
-| `AUTH_METHOD` | `database` or `oidc` | `database` |
-| `OIDC_CLIENT_ID` | Entra ID application (client) ID | — |
-| `OIDC_CLIENT_SECRET` | Entra ID client secret | — |
-| `OIDC_REDIRECT_URI` | OAuth callback URL (must match Entra app config) | — |
-| `OIDC_TENANT_ID` | Entra tenant ID or `common` | — |
-| `OIDC_GROUP_CLAIM` | JWT claim containing group IDs | `groups` |
+| Variable             | Description                                      | Default    |
+| -------------------- | ------------------------------------------------ | ---------- |
+| `AUTH_METHOD`        | `database` or `oidc`                             | `database` |
+| `OIDC_CLIENT_ID`     | Entra ID application (client) ID                 | —          |
+| `OIDC_CLIENT_SECRET` | Entra ID client secret                           | —          |
+| `OIDC_REDIRECT_URI`  | OAuth callback URL (must match Entra app config) | —          |
+| `OIDC_TENANT_ID`     | Entra tenant ID or `common`                      | —          |
+| `OIDC_GROUP_CLAIM`   | JWT claim containing group IDs                   | `groups`   |
 
 ---
 
@@ -131,19 +131,19 @@ pm2 stop dpp
 
 The platform runs background jobs via the built-in scheduler. Ensure the application process is running — the scheduler runs inside the application process (no separate cron configuration needed).
 
-| Command | Schedule | Description |
-|---|---|---|
-| `scheduler:process-event-queue` | Every minute | Dequeues and processes webhook events |
-| `scheduler:send-alert-notifications` | Every 15 minutes | Sends Slack alerts for active conditions |
-| `scheduler:enrich-pr-delivery-streams` | Every 5 minutes | Links PRs to delivery streams via ticket IDs |
-| `scheduler:materialize-cross-stream` | Hourly | Materialises cross-stream correlation data |
-| `scheduler:poll-sprint-snapshots` | Every 2 hours | Fetches sprint velocity from Jira |
-| `scheduler:materialize-forecasts` | Daily | Materialises Monte Carlo forecast snapshots |
-| `scheduler:materialize-daily-metrics` | Daily | Materialises daily DORA metric aggregates |
-| `scheduler:poll-backlog` | Daily | Transitions sprint states |
-| `scheduler:sync-repositories` | Daily | Syncs repository list from GitHub |
-| `scheduler:detect-github-gaps` | Daily | Detects and backfills missing PR events |
-| `scheduler:enforce-data-retention` | Daily | Purges data beyond the retention window |
+| Command                                | Schedule         | Description                                  |
+| -------------------------------------- | ---------------- | -------------------------------------------- |
+| `scheduler:process-event-queue`        | Every minute     | Dequeues and processes webhook events        |
+| `scheduler:send-alert-notifications`   | Every 15 minutes | Sends Slack alerts for active conditions     |
+| `scheduler:enrich-pr-delivery-streams` | Every 5 minutes  | Links PRs to delivery streams via ticket IDs |
+| `scheduler:materialize-cross-stream`   | Hourly           | Materialises cross-stream correlation data   |
+| `scheduler:poll-sprint-snapshots`      | Every 2 hours    | Fetches sprint velocity from Jira            |
+| `scheduler:materialize-forecasts`      | Daily            | Materialises Monte Carlo forecast snapshots  |
+| `scheduler:materialize-daily-metrics`  | Daily            | Materialises daily DORA metric aggregates    |
+| `scheduler:poll-backlog`               | Daily            | Transitions sprint states                    |
+| `scheduler:sync-repositories`          | Daily            | Syncs repository list from GitHub            |
+| `scheduler:detect-github-gaps`         | Daily            | Detects and backfills missing PR events      |
+| `scheduler:enforce-data-retention`     | Daily            | Purges data beyond the retention window      |
 
 ### Running commands manually
 
@@ -164,11 +164,11 @@ The platform processes webhooks asynchronously via the `event_queue` table. Unde
 SELECT status, COUNT(*) FROM event_queue GROUP BY status;
 ```
 
-| Status | Description |
-|---|---|
-| `pending` | Awaiting processing |
-| `processing` | Currently being processed (in-flight) |
-| `completed` | Successfully processed |
+| Status          | Description                                      |
+| --------------- | ------------------------------------------------ |
+| `pending`       | Awaiting processing                              |
+| `processing`    | Currently being processed (in-flight)            |
+| `completed`     | Successfully processed                           |
 | `dead_lettered` | Failed after 3 attempts — requires investigation |
 
 A `HIGH` severity alert fires automatically when pending rows exceed 1,000.
@@ -232,13 +232,13 @@ The `scheduler:enforce-data-retention` command runs daily and enforces rolling r
 
 Default retention windows:
 
-| Table | Window |
-|---|---|
-| `deployment_records` | 365 days |
-| `incident_events` | 365 days |
-| `pr_events` | 365 days |
-| `work_item_events` | 365 days |
-| `event_queue` (completed/dead-lettered) | 30 days |
+| Table                                   | Window   |
+| --------------------------------------- | -------- |
+| `deployment_records`                    | 365 days |
+| `incident_events`                       | 365 days |
+| `pr_events`                             | 365 days |
+| `work_item_events`                      | 365 days |
+| `event_queue` (completed/dead-lettered) | 30 days  |
 
 To adjust windows, modify the `DataRetentionService` configuration and redeploy.
 
@@ -275,13 +275,13 @@ curl -X POST https://your-domain.com/api/v1/webhooks/github \
 
 The system monitors these conditions automatically. Query `/api/v1/admin/system-alerts` with a valid API key.
 
-| Condition | Severity | Trigger |
-|---|---|---|
-| `deployment_traceability_low` | LOW | Production deployments with linked ticket < 80% |
-| `pulse_response_rate_low` | LOW | Current-period pulse response rate < 40% of team size |
-| `integration_stale_jira` | MEDIUM | No Jira events received in last 2 hours |
-| `integration_stale_github` | MEDIUM | No GitHub events received in last 2 hours |
-| `event_queue_depth_high` | HIGH | Pending event queue rows >= 1,000 |
+| Condition                     | Severity | Trigger                                               |
+| ----------------------------- | -------- | ----------------------------------------------------- |
+| `deployment_traceability_low` | LOW      | Production deployments with linked ticket < 80%       |
+| `pulse_response_rate_low`     | LOW      | Current-period pulse response rate < 40% of team size |
+| `integration_stale_jira`      | MEDIUM   | No Jira events received in last 2 hours               |
+| `integration_stale_github`    | MEDIUM   | No GitHub events received in last 2 hours             |
+| `event_queue_depth_high`      | HIGH     | Pending event queue rows >= 1,000                     |
 
 Notifications are sent via Slack if `alert_notification_channels` is configured in platform settings and the alert severity meets the `minimumSeverity` threshold.
 

@@ -1,88 +1,134 @@
 @layout('layouts/app')
 
-@slot('content')
-  <h2>Integration Health</h2>
+  @slot('content')
+    <h2>
+      Integration Health
+    </h2>
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem">
-    <article>
-      <header><strong>Last Archive Write</strong></header>
-      @if(lastArchiveRun)
-        <p>{{ lastArchiveRun }}</p>
-      @else
-        <p><em>No archive writes recorded yet</em></p>
-      @end
-    </article>
-    <article>
-      <header><strong>Last Data Retention Run</strong></header>
-      @if(lastRetentionRun)
-        <p>{{ lastRetentionRun }}</p>
-      @else
-        <p><em>Retention job has not run yet</em></p>
-      @end
-    </article>
-  </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem">
+      <article>
+        <header>
+          <strong>Last Archive Write</strong>
+        </header>
+        @if(lastArchiveRun)
+          <p>
+            {{ lastArchiveRun }}
+          </p>
+        @else
+          <p>
+            <em>No archive writes recorded yet</em>
+          </p>
+        @end
+      </article>
+      <article>
+        <header>
+          <strong>Last Data Retention Run</strong>
+        </header>
+        @if(lastRetentionRun)
+          <p>
+            {{ lastRetentionRun }}
+          </p>
+        @else
+          <p>
+            <em>Retention job has not run yet</em>
+          </p>
+        @end
+      </article>
+    </div>
 
-  <h3>Webhook Sources</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Source</th>
-        <th>Status</th>
-        <th>Events (last hour)</th>
-        <th>Last event</th>
-      </tr>
-    </thead>
-    <tbody>
-      @each(source in health.webhookSources)
+    <h3>
+      Webhook Sources
+    </h3>
+    <table>
+      <thead>
         <tr>
-          <td>{{ source.source }}</td>
-          <td>
-            @if(source.status === 'healthy')
-              <span style="color: green">● Healthy</span>
-            @elseif(source.status === 'stale')
-              <span style="color: orange">● Stale</span>
-            @else
-              <span style="color: grey">● No data</span>
-            @end
-          </td>
-          <td>{{ source.eventCountLastHour }}</td>
-          <td>{{ source.lastEventAt ? source.lastEventAt.toISO() : '—' }}</td>
+          <th>
+            Source
+          </th>
+          <th>
+            Status
+          </th>
+          <th>
+            Events (last hour)
+          </th>
+          <th>
+            Last event
+          </th>
         </tr>
-      @end
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        @each(source in health.webhookSources)
+          <tr>
+            <td>
+              {{ source.source }}
+            </td>
+            <td>
+              @if(source.status === 'healthy')
+                <span style="color: green">● Healthy</span>
+              @elseif(source.status === 'stale')
+                <span style="color: orange">● Stale</span>
+              @else
+                <span style="color: grey">● No data</span>
+              @end
+            </td>
+            <td>
+              {{ source.eventCountLastHour }}
+            </td>
+            <td>
+              {{ source.lastEventAt ? source.lastEventAt.toISO() : '—' }}
+            </td>
+          </tr>
+        @end
+      </tbody>
+    </table>
 
-  <h3>Event Sources</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Source</th>
-        <th>Status</th>
-        <th>Events (last hour)</th>
-        <th>Last event</th>
-      </tr>
-    </thead>
-    <tbody>
-      @each(source in health.eventSources)
+    <h3>
+      Event Sources
+    </h3>
+    <table>
+      <thead>
         <tr>
-          <td>{{ source.source }}</td>
-          <td>
-            @if(source.status === 'healthy')
-              <span style="color: green">● Healthy</span>
-            @elseif(source.status === 'stale')
-              <span style="color: orange">● Stale</span>
-            @else
-              <span style="color: grey">● No data</span>
-            @end
-          </td>
-          <td>{{ source.eventCountLastHour }}</td>
-          <td>{{ source.lastEventAt ? source.lastEventAt.toISO() : '—' }}</td>
+          <th>
+            Source
+          </th>
+          <th>
+            Status
+          </th>
+          <th>
+            Events (last hour)
+          </th>
+          <th>
+            Last event
+          </th>
         </tr>
-      @end
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        @each(source in health.eventSources)
+          <tr>
+            <td>
+              {{ source.source }}
+            </td>
+            <td>
+              @if(source.status === 'healthy')
+                <span style="color: green">● Healthy</span>
+              @elseif(source.status === 'stale')
+                <span style="color: orange">● Stale</span>
+              @else
+                <span style="color: grey">● No data</span>
+              @end
+            </td>
+            <td>
+              {{ source.eventCountLastHour }}
+            </td>
+            <td>
+              {{ source.lastEventAt ? source.lastEventAt.toISO() : '—' }}
+            </td>
+          </tr>
+        @end
+      </tbody>
+    </table>
 
-  <footer style="margin-top: 1rem">
-    <small>Computed at: {{ health.computedAt }}</small>
-  </footer>
-@end
+    <footer style="margin-top: 1rem">
+      <small>Computed at: {{ health.computedAt }}</small>
+    </footer>
+  @end

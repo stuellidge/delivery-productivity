@@ -5,7 +5,10 @@ import logger from '@adonisjs/core/services/logger'
 
 const storeValidator = vine.compile(
   vine.object({
-    date: vine.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
+    date: vine
+      .string()
+      .trim()
+      .regex(/^\d{4}-\d{2}-\d{2}$/),
     name: vine.string().trim().minLength(1).maxLength(255),
   })
 )
