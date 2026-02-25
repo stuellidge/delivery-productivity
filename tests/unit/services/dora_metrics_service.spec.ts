@@ -167,6 +167,19 @@ test.group('DoraMetricsService | change failure rate', (group) => {
     assert.approximately(result.changeFailureRate, 25, 0.5)
   })
 
+  test('includes rolled_back deployments in change failure rate', async ({ assert }) => {
+    const ts = await seedTechStream()
+    await seedDeploy(ts.id, WITHIN_WINDOW, 'rolled_back', false) // rolled back — counts as failure
+    await seedDeploy(ts.id, WITHIN_WINDOW, 'success', false) // good
+    await seedDeploy(ts.id, WITHIN_WINDOW, 'success', false) // good
+    await seedDeploy(ts.id, WITHIN_WINDOW, 'success', false) // good
+
+    const service = new DoraMetricsService(ts.id, 30)
+    const result = await service.compute()
+    // 1 rolled_back out of 4 = 25%
+    assert.approximately(result.changeFailureRate, 25, 0.5)
+  })
+
   test('excludes config-only deployment from change failure rate', async ({ assert }) => {
     const ts = await seedTechStream()
     await seedDeploy(ts.id, WITHIN_WINDOW, 'success', true) // normal, caused incident

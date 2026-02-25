@@ -128,7 +128,7 @@ export default class DoraTrendService {
       .where((q) => q.whereNull('trigger_type').orWhereNot('trigger_type', 'config'))
 
     const deploymentFrequency = deploys.length
-    const failedDeploys = deploys.filter((d) => d.causedIncident).length
+    const failedDeploys = deploys.filter((d) => d.causedIncident || d.status === 'rolled_back').length
     const changeFailureRate = deploys.length > 0 ? (failedDeploys / deploys.length) * 100 : 0
 
     const incidents = await IncidentEvent.query()

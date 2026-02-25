@@ -38,8 +38,8 @@ export default class DoraMetricsService {
     // Deployment frequency (deploys per week)
     const deploymentFrequency = deploys.length > 0 ? deploys.length / (this.windowDays / 7) : 0
 
-    // Change failure rate (% of deploys that caused incidents)
-    const failedDeploys = deploys.filter((d) => d.causedIncident).length
+    // Change failure rate (% of deploys that caused incidents OR were rolled back)
+    const failedDeploys = deploys.filter((d) => d.causedIncident || d.status === 'rolled_back').length
     const changeFailureRate = deploys.length > 0 ? (failedDeploys / deploys.length) * 100 : 0
 
     // Time to restore from incidents with TTR data in window
