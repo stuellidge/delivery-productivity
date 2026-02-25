@@ -72,7 +72,7 @@
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; font-size: 0.85rem">
       <span style="color: var(--pico-muted-color); align-self: center">Show zones:</span>
       @each(zoneEntry in zoneEntries)
-        @set('isActive', activeZones.includes(zoneEntry.key))
+        @let(isActive = activeZones.includes(zoneEntry.key))
         <a
           href="?stream={{ selectedStreamId ?? '' }}&techStream={{ selectedTechStreamId ?? '' }}&window={{ windowParam }}&zones={{ zoneEntry.toggleUrl }}"
           data-zone-toggle="{{ zoneEntry.key }}"
