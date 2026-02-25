@@ -101,13 +101,39 @@ You should see all migrations applied successfully. If you see an error, check t
 
 ---
 
-## 5. Create the first admin user
+## 5. Load demo data (development / local demo)
+
+The platform ships with a comprehensive set of demo seed data covering two teams (Payments and Search), 90 days of deployment history, sprint data, pulse surveys, and pre-computed DORA metrics.
 
 ```bash
-node ace db:seed
+NODE_ENV=development node ace db:seed
 ```
 
-> If no seeder is configured, create a user directly:
+This command:
+- Creates 3 demo user accounts (see credentials below)
+- Configures delivery streams, tech streams, and repositories
+- Seeds 90 days of work items, PRs, deployments, incidents, and pulse data
+- Pre-populates daily DORA metrics so trend charts are populated immediately
+
+**Demo login credentials:**
+
+| Email | Password | Role |
+|---|---|---|
+| `admin@demo.local` | `Demo1234!` | Platform Admin — full access to all admin pages |
+| `alice@demo.local` | `Demo1234!` | Viewer — scoped to Payments stream |
+| `bob@demo.local` | `Demo1234!` | Viewer — scoped to Search stream |
+
+> **Safety guard:** The seeder checks `NODE_ENV` and will refuse to run in `production`. Each individual seeder also declares `static environment = ['development']` as a second line of defence.
+
+To reset and reload demo data at any time:
+
+```bash
+NODE_ENV=development node ace migration:fresh && node ace db:seed
+```
+
+### Creating the first admin user in production
+
+Do not use `db:seed` in production. Instead, create a single admin account via the REPL:
 
 ```bash
 node ace repl
@@ -120,13 +146,13 @@ const { default: User } = await import('#models/user')
 const { default: UserRole } = await import('#models/user_role')
 
 const user = await User.create({
-  email: 'admin@example.com',
+  email: 'admin@yourcompany.com',
   password: 'YourSecurePassword123!',
-  name: 'Platform Admin',
+  fullName: 'Platform Admin',
   isActive: true,
 })
 
-await UserRole.create({ userId: user.id, role: 'platform_admin' })
+await UserRole.create({ userId: user.id, role: 'platform_admin', grantedAt: new Date() })
 console.log('Admin user created:', user.id)
 process.exit(0)
 ```

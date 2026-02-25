@@ -6,6 +6,7 @@ This document is the operator guide for the Delivery Performance Platform (DPP).
 
 For initial installation, see the [Setup Guide](setup-guide.md).
 For a full list of environment variables and platform settings, see the [Configuration Reference](configuration-reference.md).
+For demo seed data and local development credentials, see the [Setup Guide — Demo Data section](setup-guide.md#5-load-demo-data-development--local-demo).
 
 ---
 
