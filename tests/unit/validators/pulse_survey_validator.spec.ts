@@ -11,9 +11,7 @@ const validBase = {
 test.group('PulseSurveyValidator | free_text', () => {
   test('rejects free_text longer than 5000 characters', async ({ assert }) => {
     const longText = 'a'.repeat(5001)
-    await assert.rejects(() =>
-      pulseSurveyValidator.validate({ ...validBase, free_text: longText })
-    )
+    await assert.rejects(() => pulseSurveyValidator.validate({ ...validBase, free_text: longText }))
   })
 
   test('accepts free_text of exactly 5000 characters', async ({ assert }) => {
