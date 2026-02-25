@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto'
 import { DateTime } from 'luxon'
 import OidcGroupMapping from '#models/oidc_group_mapping'
 import User from '#models/user'
@@ -82,8 +83,8 @@ export default class OidcGroupMappingService {
     return User.create({
       email,
       fullName: displayName,
-      // Random placeholder — OIDC users never use password auth
-      password: `oidc-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      // Cryptographically secure placeholder — OIDC users never use password auth
+      password: `oidc-${Date.now()}-${randomBytes(32).toString('hex')}`,
       isActive: true,
     })
   }

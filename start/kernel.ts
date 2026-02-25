@@ -49,4 +49,5 @@ export const middleware = router.named({
   silentAuth: () => import('#middleware/silent_auth_middleware'),
   admin: () => import('#middleware/admin_middleware'),
   apiKey: () => import('#middleware/api_key_middleware'),
+  loginThrottle: () => import('#middleware/login_throttle_middleware'),
 })

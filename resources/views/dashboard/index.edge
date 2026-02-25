@@ -704,7 +704,7 @@
     @if(deliveryStreams.length > 0)
       <script>
         document.addEventListener("DOMContentLoaded", function() {
-          var data = {{{ cycleScatterData }}};
+          var data = {{{ js.stringify(cycleScatterData) }}};
           var p85 = {{ cycleTimeStats.p85 }};
           if (typeof window.renderCycleTimeChart === "function") {
             window.renderCycleTimeChart("cycleTimeChart", JSON.stringify(data), p85);

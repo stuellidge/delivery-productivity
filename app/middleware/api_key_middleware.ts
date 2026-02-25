@@ -44,7 +44,14 @@ export default class ApiKeyMiddleware {
 
       const streamParam = request.input('stream')
       if (streamParam && scope.deliveryStreamIds) {
-        if (!scope.deliveryStreamIds.includes(Number(streamParam))) {
+        const streamId = Number(streamParam)
+        if (!Number.isSafeInteger(streamId)) {
+          return response.forbidden({
+            status: 'error',
+            error: { code: 'FORBIDDEN', message: 'Invalid stream ID' },
+          })
+        }
+        if (!scope.deliveryStreamIds.includes(streamId)) {
           return response.forbidden({
             status: 'error',
             error: { code: 'FORBIDDEN', message: 'Stream not in key scope' },
@@ -54,7 +61,14 @@ export default class ApiKeyMiddleware {
 
       const techStreamParam = request.input('techStream')
       if (techStreamParam && scope.techStreamIds) {
-        if (!scope.techStreamIds.includes(Number(techStreamParam))) {
+        const techStreamId = Number(techStreamParam)
+        if (!Number.isSafeInteger(techStreamId)) {
+          return response.forbidden({
+            status: 'error',
+            error: { code: 'FORBIDDEN', message: 'Invalid stream ID' },
+          })
+        }
+        if (!scope.techStreamIds.includes(techStreamId)) {
           return response.forbidden({
             status: 'error',
             error: { code: 'FORBIDDEN', message: 'Tech stream not in key scope' },

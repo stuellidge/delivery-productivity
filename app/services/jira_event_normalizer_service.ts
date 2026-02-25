@@ -1,4 +1,6 @@
+import { createHmac, timingSafeEqual } from 'node:crypto'
 import { DateTime } from 'luxon'
+import env from '#start/env'
 import WorkItemEvent from '#models/work_item_event'
 import DefectEvent from '#models/defect_event'
 import DeliveryStream from '#models/delivery_stream'
@@ -8,6 +10,13 @@ import EventArchiveService from '#services/event_archive_service'
 import type { WorkItemEventType } from '#models/work_item_event'
 import type { DefectSeverity } from '#models/defect_event'
 import type { PipelineStage } from '#models/status_mapping'
+
+export class InvalidSignatureError extends Error {
+  constructor() {
+    super('Invalid signature')
+    this.name = 'InvalidSignatureError'
+  }
+}
 
 interface ChangelogItem {
   field: string
@@ -39,8 +48,28 @@ export interface JiraWebhookPayload {
 export default class JiraEventNormalizerService {
   constructor(
     private readonly payload: JiraWebhookPayload,
-    private readonly archiveService: EventArchiveService = new EventArchiveService()
+    private readonly archiveService: EventArchiveService = new EventArchiveService(),
+    private readonly signature?: string,
+    private readonly secretOverride?: string
   ) {}
+
+  checkSignature(): void {
+    const secret = this.secretOverride ?? env.get('JIRA_WEBHOOK_SECRET')
+    if (secret && this.signature) {
+      if (!this.verifySignature(JSON.stringify(this.payload), this.signature, secret)) {
+        throw new InvalidSignatureError()
+      }
+    }
+  }
+
+  private verifySignature(payload: string, signature: string, secret: string): boolean {
+    const expected = 'sha256=' + createHmac('sha256', secret).update(payload).digest('hex')
+    try {
+      return timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
+    } catch {
+      return false
+    }
+  }
 
   async process(): Promise<void> {
     const eventType = this.determineEventType()

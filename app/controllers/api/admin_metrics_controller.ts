@@ -55,6 +55,14 @@ export default class AdminMetricsController {
 
     const { source, org } = params
 
+    const orgPattern = /^[a-zA-Z0-9][a-zA-Z0-9\-_.]{0,98}[a-zA-Z0-9]$|^[a-zA-Z0-9]$/
+    if (!orgPattern.test(org)) {
+      return response.unprocessableEntity({
+        status: 'error',
+        error: { code: 'VALIDATION_ERROR', message: 'org must be a valid organisation name' },
+      })
+    }
+
     if (source === 'jira') {
       setImmediate(() => new JiraBackfillService(org).run().catch((err) => logger.error(err)))
     } else {

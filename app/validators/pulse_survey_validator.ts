@@ -6,6 +6,6 @@ export const pulseSurveyValidator = vine.compile(
     pace_score: vine.number().min(1).max(5),
     tooling_score: vine.number().min(1).max(5),
     clarity_score: vine.number().min(1).max(5),
-    free_text: vine.string().optional(),
+    free_text: vine.string().maxLength(5000).optional(),
   })
 )

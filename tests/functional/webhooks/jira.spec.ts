@@ -1,9 +1,17 @@
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
+import { createHmac } from 'node:crypto'
 import WorkItemEvent from '#models/work_item_event'
 import DeliveryStream from '#models/delivery_stream'
 import StatusMapping from '#models/status_mapping'
 import EventQueueService from '#services/event_queue_service'
+
+const JIRA_WEBHOOK_SECRET = 'test-jira-secret'
+
+function signPayload(payload: object, secret: string): string {
+  const body = JSON.stringify(payload)
+  return 'sha256=' + createHmac('sha256', secret).update(body).digest('hex')
+}
 
 const WEBHOOK_PATH = '/api/v1/webhooks/jira'
 
@@ -363,5 +371,35 @@ test.group('Jira Webhooks | completed', (group) => {
       .first()
 
     assert.isNotNull(event)
+  })
+})
+
+test.group('Jira Webhooks | signature verification', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('returns 401 when signature is invalid', async ({ client }) => {
+    const response = await client
+      .post(WEBHOOK_PATH)
+      .header('x-hub-signature-256', 'sha256=invalidsignature')
+      .json(issueCreatedPayload)
+
+    response.assertStatus(401)
+  })
+
+  test('returns 202 when signature is valid', async ({ client }) => {
+    const sig = signPayload(issueCreatedPayload, JIRA_WEBHOOK_SECRET)
+    const response = await client
+      .post(WEBHOOK_PATH)
+      .header('x-hub-signature-256', sig)
+      .json(issueCreatedPayload)
+
+    response.assertStatus(202)
+  })
+
+  test('returns 202 when no signature header is sent', async ({ client }) => {
+    // No x-hub-signature-256 header → signature check is bypassed regardless of env config
+    const response = await client.post(WEBHOOK_PATH).json(issueCreatedPayload)
+
+    response.assertStatus(202)
   })
 })

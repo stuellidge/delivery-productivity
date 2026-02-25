@@ -53,7 +53,11 @@ router.on('/').redirect('/dashboard')
 
 router.get('/login', [AuthController, 'showLogin']).as('auth.login').use(middleware.guest())
 
-router.post('/login', [AuthController, 'login']).as('auth.login.submit').use(middleware.guest())
+router
+  .post('/login', [AuthController, 'login'])
+  .as('auth.login.submit')
+  .use(middleware.loginThrottle())
+  .use(middleware.guest())
 
 router.post('/logout', [AuthController, 'logout']).as('auth.logout').use(middleware.auth())
 

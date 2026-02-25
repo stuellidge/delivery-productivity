@@ -59,4 +59,34 @@ test.group('API | POST /api/v1/admin/backfill/:source/:org', (group) => {
 
     response.assertStatus(422)
   })
+
+  test('returns 422 for invalid org name with special chars (;)', async ({ client }) => {
+    await seedApiKey()
+
+    const response = await client
+      .post('/api/v1/admin/backfill/jira/my-org;rm -rf /')
+      .header('Authorization', `Bearer ${RAW_KEY}`)
+
+    response.assertStatus(422)
+  })
+
+  test('returns 422 for invalid org name with special chars (&)', async ({ client }) => {
+    await seedApiKey()
+
+    const response = await client
+      .post('/api/v1/admin/backfill/github/my-org&evil')
+      .header('Authorization', `Bearer ${RAW_KEY}`)
+
+    response.assertStatus(422)
+  })
+
+  test('returns 202 for valid org name with hyphens', async ({ client }) => {
+    await seedApiKey()
+
+    const response = await client
+      .post('/api/v1/admin/backfill/github/my-valid-org')
+      .header('Authorization', `Bearer ${RAW_KEY}`)
+
+    response.assertStatus(202)
+  })
 })

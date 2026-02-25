@@ -176,6 +176,17 @@ test.group('OidcGroupMappingService | findOrCreateUser', (group) => {
     assert.isTrue(user.isActive)
   })
 
+  test('each new user gets a unique placeholder password (randomness check)', async ({
+    assert,
+  }) => {
+    const service = new OidcGroupMappingService()
+    const user1 = await service.findOrCreateUser('crypto-a@example.com', 'User A')
+    const user2 = await service.findOrCreateUser('crypto-b@example.com', 'User B')
+
+    // Hashed passwords should differ because underlying random values differ
+    assert.notEqual(user1.password, user2.password)
+  })
+
   test('returns existing user when email exists', async ({ assert }) => {
     const existing = await createUser('existing@example.com')
     const service = new OidcGroupMappingService()

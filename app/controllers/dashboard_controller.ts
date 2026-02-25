@@ -192,13 +192,11 @@ export default class DashboardController {
 
     const cycleRecords = await cycleQuery
 
-    const cycleScatterData = JSON.stringify(
-      cycleRecords.map((c) => ({
-        x: c.completedAt.toISO(),
-        y: Number(c.cycleTimeDays),
-        ticketId: c.ticketId,
-      }))
-    )
+    const cycleScatterData = cycleRecords.map((c) => ({
+      x: c.completedAt.toISO(),
+      y: Number(c.cycleTimeDays),
+      ticketId: c.ticketId,
+    }))
 
     // Data quality warnings for selected stream
     const dataQualityWarnings = selectedStreamId

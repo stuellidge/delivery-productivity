@@ -1,6 +1,7 @@
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
 import User from '#models/user'
+import { throttleState } from '#middleware/login_throttle_middleware'
 
 test.group('Auth | login', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
@@ -99,6 +100,31 @@ test.group('Auth | logout', (group) => {
     const response = await client.post('/logout').withCsrfToken().redirects(0)
     response.assertStatus(302)
     response.assertHeader('location', '/login')
+  })
+})
+
+test.group('Auth | login rate limiting', (group) => {
+  group.each.setup(() => {
+    throttleState.clear()
+    return testUtils.db().withGlobalTransaction()
+  })
+
+  test('returns 429 after 10 login attempts within window', async ({ client }) => {
+    for (let i = 0; i < 10; i++) {
+      await client
+        .post('/login')
+        .withCsrfToken()
+        .fields({ email: `user${i}@example.com`, password: 'wrong' })
+        .redirects(0)
+    }
+
+    const response = await client
+      .post('/login')
+      .withCsrfToken()
+      .fields({ email: 'attacker@example.com', password: 'wrong' })
+      .redirects(0)
+
+    response.assertStatus(429)
   })
 })
 

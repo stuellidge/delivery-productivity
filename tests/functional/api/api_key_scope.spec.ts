@@ -146,4 +146,38 @@ test.group('API | Stream scope enforcement', (group) => {
 
     response.assertStatus(200)
   })
+
+  test('returns 403 when stream param is not a safe integer (NaN)', async ({ client }) => {
+    const ds = await seedDeliveryStream('payments')
+    await ApiKey.create({
+      keyHash: KEY_HASH,
+      displayName: 'Scoped Key',
+      permissions: ['metrics:read'],
+      streamScope: { deliveryStreamIds: [ds.id] },
+      isActive: true,
+    })
+
+    const response = await client
+      .get('/api/v1/metrics/realtime?stream=notanumber')
+      .header('Authorization', `Bearer ${RAW_KEY}`)
+
+    response.assertStatus(403)
+  })
+
+  test('returns 403 when stream param is Infinity', async ({ client }) => {
+    const ds = await seedDeliveryStream('payments')
+    await ApiKey.create({
+      keyHash: KEY_HASH,
+      displayName: 'Scoped Key',
+      permissions: ['metrics:read'],
+      streamScope: { deliveryStreamIds: [ds.id] },
+      isActive: true,
+    })
+
+    const response = await client
+      .get('/api/v1/metrics/realtime?stream=Infinity')
+      .header('Authorization', `Bearer ${RAW_KEY}`)
+
+    response.assertStatus(403)
+  })
 })
