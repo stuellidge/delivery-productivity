@@ -61,7 +61,7 @@ export default class GitHubBackfillService {
         break
       }
 
-      const prs: any[] = await resp.json()
+      const prs = (await resp.json()) as any[]
       if (prs.length === 0) break
 
       for (const pr of prs) {
@@ -81,7 +81,7 @@ export default class GitHubBackfillService {
       pr.body ?? null,
       customRegex
     )
-    const techStreamId = techStream?.id ?? null
+    const techStreamId = techStream?.id ?? undefined
 
     // opened event
     const openedAt = DateTime.fromISO(pr.created_at)

@@ -1,7 +1,6 @@
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
 import { DateTime } from 'luxon'
-import db from '@adonisjs/lucid/services/db'
 import EventQueue from '#models/event_queue'
 import WorkItemEvent from '#models/work_item_event'
 import EventQueueService from '#services/event_queue_service'

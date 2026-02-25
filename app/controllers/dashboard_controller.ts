@@ -61,10 +61,11 @@ export default class DashboardController {
         .first()
 
       if (activeSprintForWindow) {
+        const rawStartDate = activeSprintForWindow.startDate as unknown
         const sprintStart =
-          activeSprintForWindow.startDate instanceof Date
-            ? DateTime.fromJSDate(activeSprintForWindow.startDate as unknown as Date)
-            : DateTime.fromISO(activeSprintForWindow.startDate as unknown as string)
+          rawStartDate instanceof Date
+            ? DateTime.fromJSDate(rawStartDate)
+            : DateTime.fromISO(rawStartDate as string)
         windowDays = Math.max(1, Math.ceil(DateTime.now().diff(sprintStart, 'days').days))
       }
     } else {

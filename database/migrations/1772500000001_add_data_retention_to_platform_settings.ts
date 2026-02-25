@@ -26,7 +26,7 @@ export default class extends BaseSchema {
 
   async down() {
     this.defer(async (db) => {
-      await db.table('platform_settings').where('key', 'data_retention_months').delete()
+      await db.from('platform_settings').where('key', 'data_retention_months').delete()
     })
   }
 }

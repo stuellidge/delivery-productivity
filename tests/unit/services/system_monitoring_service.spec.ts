@@ -209,7 +209,7 @@ test.group('SystemMonitoringService | notify', (group) => {
 
     let slackCalled = false
     let slackBody: any = null
-    globalThis.fetch = async (url: any, opts: any) => {
+    globalThis.fetch = async (_url: any, opts: any) => {
       slackCalled = true
       slackBody = JSON.parse(opts.body)
       return { ok: true, status: 200 } as any

@@ -25,7 +25,7 @@ function buildRepo(name: string, org: string, opts: Partial<GithubRepo> = {}): G
 
 function mockFetchPages(pages: any[][]) {
   let callCount = 0
-  globalThis.fetch = async (url: string | Request | URL) => {
+  globalThis.fetch = async (_url: string | Request | URL) => {
     const pageRepos = pages[callCount] ?? []
     callCount++
     return { ok: true, json: async () => pageRepos } as Response
