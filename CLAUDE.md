@@ -37,6 +37,12 @@ This is an AdonisJS v6 application with TypeScript.
 - **Arrow Functions**: Always use parentheses around parameters
 - **Bracket Spacing**: Include spaces in object literals `{ key: 'value' }`
 
+## Pre-Commit Checklist
+
+Before every commit, always run both:
+1. `npm run format` — no semicolons, single quotes, 2-space indentation, ES5 trailing commas, 100-char line limit
+2. `npm run typecheck` — must be clean (zero errors introduced by my changes)
+
 ## Import Aliases
 
 Use `#` aliases for clean imports (configured in `package.json`):
