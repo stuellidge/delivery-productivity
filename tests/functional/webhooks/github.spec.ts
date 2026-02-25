@@ -292,6 +292,7 @@ test.group('Github Webhooks | workflow_run events', (group) => {
     assert.isNotNull(event)
     assert.equal(event!.eventType, 'build_completed')
     assert.equal(event!.status, 'success')
+    assert.isNumber(event!.repoId)
   })
 })
 
@@ -350,6 +351,7 @@ test.group('Github Webhooks | deployment_status events', (group) => {
     const event = await CicdEvent.query().where('pipeline_id', '88001').first()
     assert.isNotNull(event)
     assert.equal(event!.eventType, 'deploy_completed')
+    assert.isNumber(event!.repoId)
 
     const deployRecord = await DeploymentRecord.query()
       .where('tech_stream_id', techStream.id)

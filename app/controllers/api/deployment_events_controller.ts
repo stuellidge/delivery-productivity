@@ -5,6 +5,6 @@ export default class DeploymentEventsController {
   async handle({ request, response }: HttpContext) {
     const service = new DeploymentEventService(request.body())
     await service.process()
-    return response.ok({ ok: true })
+    return response.status(202).send({ ok: true })
   }
 }

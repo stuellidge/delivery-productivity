@@ -183,13 +183,15 @@ export default class GithubEventNormalizerService {
   }
 
   private async handleWorkflowRun(): Promise<void> {
-    const { action, workflow_run: run, installation } = this.payload
+    const { action, workflow_run: run, installation, repository } = this.payload
 
     // Only process completed actions
     if (action !== 'completed') return
 
     const techStream = await this.resolveTechStream(installation?.id)
     if (!techStream) return
+
+    const repo = await this.resolveRepository(repository?.full_name)
 
     const pipelineId = String(run?.workflow_id ?? '')
     const pipelineRunId = String(run?.id ?? '')
@@ -208,6 +210,7 @@ export default class GithubEventNormalizerService {
     const event = await CicdEvent.create({
       source: 'github',
       techStreamId: techStream.id,
+      repoId: repo?.id ?? null,
       eventType: 'build_completed',
       pipelineId,
       pipelineRunId,
@@ -250,6 +253,7 @@ export default class GithubEventNormalizerService {
     const cicdEvent = await CicdEvent.create({
       source: 'github',
       techStreamId: techStream.id,
+      repoId: repo?.id ?? null,
       eventType,
       pipelineId,
       pipelineRunId,

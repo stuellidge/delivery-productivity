@@ -70,7 +70,7 @@ test.group('API | POST /api/v1/events/deployment', (group) => {
         commit_sha: 'deadbeef',
       })
 
-    response.assertStatus(200)
+    response.assertStatus(202)
     const body = response.body()
     assert.equal(body.ok, true)
 
@@ -79,7 +79,7 @@ test.group('API | POST /api/v1/events/deployment', (group) => {
     assert.equal(record!.environment, 'production')
   })
 
-  test('returns ok (ignores) for unknown repo', async ({ client, assert }) => {
+  test('returns 202 (ignores) for unknown repo', async ({ client, assert }) => {
     await seedApiKey()
 
     const response = await client
@@ -92,7 +92,7 @@ test.group('API | POST /api/v1/events/deployment', (group) => {
         deployed_at: DateTime.now().toISO(),
       })
 
-    response.assertStatus(200)
+    response.assertStatus(202)
     const body = response.body()
     assert.equal(body.ok, true)
   })

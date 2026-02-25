@@ -71,7 +71,7 @@ test.group('API | POST /api/v1/events/incident', (group) => {
         occurred_at: DateTime.now().toISO(),
       })
 
-    response.assertStatus(200)
+    response.assertStatus(202)
     assert.equal(response.body().ok, true)
 
     const incident = await IncidentEvent.findBy('incident_id', 'INC-TEST-001')
@@ -79,7 +79,7 @@ test.group('API | POST /api/v1/events/incident', (group) => {
     assert.equal(incident!.severity, 'critical')
   })
 
-  test('returns ok (ignores) for unknown service', async ({ client, assert }) => {
+  test('returns 202 (ignores) for unknown service', async ({ client, assert }) => {
     await seedApiKey()
 
     const response = await client
@@ -92,7 +92,7 @@ test.group('API | POST /api/v1/events/incident', (group) => {
         occurred_at: DateTime.now().toISO(),
       })
 
-    response.assertStatus(200)
+    response.assertStatus(202)
     assert.equal(response.body().ok, true)
   })
 })

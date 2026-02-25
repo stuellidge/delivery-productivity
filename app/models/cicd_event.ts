@@ -3,6 +3,7 @@ import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import DeliveryStream from '#models/delivery_stream'
 import TechStream from '#models/tech_stream'
+import Repository from '#models/repository'
 
 export type CicdEventType =
   | 'build_started'
@@ -25,6 +26,9 @@ export default class CicdEvent extends BaseModel {
 
   @column()
   declare techStreamId: number | null
+
+  @column()
+  declare repoId: number | null
 
   @column.dateTime()
   declare receivedAt: DateTime
@@ -73,4 +77,7 @@ export default class CicdEvent extends BaseModel {
 
   @belongsTo(() => TechStream)
   declare techStream: BelongsTo<typeof TechStream>
+
+  @belongsTo(() => Repository)
+  declare repository: BelongsTo<typeof Repository>
 }

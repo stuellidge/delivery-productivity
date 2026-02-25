@@ -5,6 +5,6 @@ export default class IncidentEventsController {
   async handle({ request, response }: HttpContext) {
     const service = new IncidentEventService(request.body())
     await service.process()
-    return response.ok({ ok: true })
+    return response.status(202).send({ ok: true })
   }
 }
