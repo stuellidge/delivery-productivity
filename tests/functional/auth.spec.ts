@@ -109,6 +109,10 @@ test.group('Auth | login rate limiting', (group) => {
     return testUtils.db().withGlobalTransaction()
   })
 
+  group.each.teardown(() => {
+    throttleState.clear()
+  })
+
   test('returns 429 after 10 login attempts within window', async ({ client }) => {
     for (let i = 0; i < 10; i++) {
       await client
