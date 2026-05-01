@@ -1,8 +1,9 @@
-<h1>
-  {{ error.code }} - Server error
-</h1>
-<p>
-  This template is rendered by the
-  <a href="http://docs.adonisjs.com/guides/exception-handling#status-pages">status pages feature</a>
-  of the global exception handler.
-</p>
+@component('layouts/app', { title: 'Server Error' })
+  @slot('main')
+    <hgroup>
+      <h1>Server Error</h1>
+      <p>Something went wrong on our end. Please try again later.</p>
+    </hgroup>
+    <p><a href="/dashboard">← Back to dashboard</a></p>
+  @end
+@end

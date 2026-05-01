@@ -143,8 +143,11 @@ export default class DashboardController {
     ])
 
     // Read cross-stream correlations from materialised table; fall back to live if empty
+    const techStreamMap = new Map(techStreams.map((ts) => [ts.id, ts.displayName]))
+
     let crossStreamCorrelations: Array<{
       techStreamId: number
+      techStreamName: string
       blockCount14d: number
       impactedDeliveryStreamIds: number[]
       severity: string
@@ -158,13 +161,18 @@ export default class DashboardController {
     if (materialisedRows.length > 0) {
       crossStreamCorrelations = materialisedRows.map((r) => ({
         techStreamId: r.techStreamId,
+        techStreamName: techStreamMap.get(r.techStreamId) ?? String(r.techStreamId),
         blockCount14d: r.blockCount14d,
         impactedDeliveryStreamIds: r.impactedDeliveryStreams,
         severity: r.severity,
         avgConfidencePct: r.avgConfidencePct,
       }))
     } else {
-      crossStreamCorrelations = await new CrossStreamCorrelationService().computeAll()
+      const rawCorrelations = await new CrossStreamCorrelationService().computeAll()
+      crossStreamCorrelations = rawCorrelations.map((r) => ({
+        ...r,
+        techStreamName: techStreamMap.get(r.techStreamId) ?? String(r.techStreamId),
+      }))
     }
 
     const pulseAggregates = selectedStreamId
